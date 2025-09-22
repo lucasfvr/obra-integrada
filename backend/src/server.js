@@ -1,10 +1,14 @@
+// Localização: backend/src/server.js
+
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
-import obraRoutes from './routes/obraRoutes.js';
+
+// Caminhos corrigidos: a partir da pasta 'src', o caminho para 'routes' é './routes'
+import obraRoutes from './routes/obraRoutes.js'; 
 import userRoutes from './routes/userRoutes.js';
 
-dotenv.config();
+dotenv.config({ path: '../.env' }); // Informa ao dotenv para procurar o .env na pasta acima
 
 const app = express();
 const PORT = process.env.PORT || 3001;
