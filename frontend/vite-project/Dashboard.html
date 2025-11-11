@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Admin Dashboard | Korsat X Parmaga</title>
+    <!-- ======= Styles ====== -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- =============== Navigation ================ -->
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <span class="icon">
+    <img src="imgs/logo-obra-integrada (1).png" alt="Logo" class="logo-img">
+</span>
+                        <span class="title"></span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="home-outline"></ion-icon>
+                        </span>
+                        <span class="title">Página Inicial</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="people-outline"></ion-icon>
+                        </span>
+                        <span class="title">Usuários Cadastrados</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="chatbubble-outline"></ion-icon>
+                        </span>
+                        <span class="title">Mensagens</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="help-outline"></ion-icon>
+                        </span>
+                        <span class="title">Orientação Admin</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="settings-outline"></ion-icon>
+                        </span>
+                        <span class="title">Configurações</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="lock-closed-outline"></ion-icon>
+                        </span>
+                        <span class="title">Reset de Senha</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="log-out-outline"></ion-icon>
+                        </span>
+                        <span class="title">Deslogar</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ========================= Main ==================== -->
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </div>
+
+                <div class="search">
+                    <label>
+                        <input type="text" placeholder="Pesquise Aqui">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </label>
+                </div>
+
+                <div class="user">
+                    <img src="imgs/mark.jpg" alt="">
+                </div>
+            </div>
+
+            <!-- ======================= Cards ================== -->
+            <div class="cardBox">
+                <div class="card">
+                    <div>
+                        <div class="numbers">1,504</div>
+                        <div class="cardName">Visualizações Diárias</div>
+                    </div>
+
+                    <div class="iconBx">
+                        <ion-icon name="eye-outline"></ion-icon>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <div class="numbers">80</div>
+                        <div class="cardName">Negociações</div>
+                    </div>
+
+                    <div class="iconBx">
+                        <ion-icon name="cart-outline"></ion-icon>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <div class="numbers">284</div>
+                        <div class="cardName">Comentários</div>
+                    </div>
+
+                    <div class="iconBx">
+                        <ion-icon name="chatbubbles-outline"></ion-icon>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <div class="numbers">R$17,842</div>
+                        <div class="cardName">Dinheiro Movimentado</div>
+                    </div>
+
+                    <div class="iconBx">
+                        <ion-icon name="cash-outline"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================ Order Details List ================= -->
+            <div class="details">
+                <div class="recentOrders">
+                    <div class="cardHeader">
+                        <h2>Solicitações Recentes</h2>
+                        <a href="#" class="btn">Ver Todos</a>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Nome</td>
+                                <td>Preço</td>
+                                <td>Pagamento</td>
+                                <td>Status</td>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Levantamento de Muro</td>
+                                <td>R$1200</td>
+                                <td>Integral</td>
+                                <td><span class="status delivered">Concluído</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Reparação de Poço</td>
+                                <td>R$110</td>
+                                <td>Integral</td>
+                                <td><span class="status pending">Pendente</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Construção de Piscina</td>
+                                <td>R$1200</td>
+                                <td>Parcelado</td>
+                                <td><span class="status return">Cancelado</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Reforma de Apartamento</td>
+                                <td>R$620</td>
+                                <td>Integral</td>
+                                <td><span class="status inProgress">Em Andamento</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Sobrado</td>
+                                <td>R$1200</td>
+                                <td>Parcelado</td>
+                                <td><span class="status delivered">Concluído</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Construção de piscina</td>
+                                <td>R$110</td>
+                                <td>Parcelado</td>
+                                <td><span class="status pending">Pendente</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Galpão Logístico</td>
+                                <td>R$1200</td>
+                                <td>Integral</td>
+                                <td><span class="status return">Cancelado</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Manuntenção Elétrica</td>
+                                <td>R$620</td>
+                                <td>Parcelado</td>
+                                <td><span class="status inProgress">Em Andamento</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+              
+
+    <!-- =========== Scripts =========  -->
+    <script src="assets/js/main.js"></script>
+
+    <!-- ====== ionicons ======= -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>
