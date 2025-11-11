@@ -17,13 +17,14 @@ function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogo
                 {/* Logo e Nome */}
                 <div className="flex items-center cursor-pointer" onClick={() => onNavigate('home')}>
                     <img src={logoObraIntegrada} alt="Obra Integrada Logo" className="h-14 mr-3" />
-                    <span className="text-2xl font-bold text-slate-900 hidden sm:block">Obra Integrada</span>
                 </div>
 
                 {/* Links de Navegação */}
                 <nav className="hidden md:flex items-center space-x-8">
-                    <button onClick={() => onNavigate('functions')} className="text-slate-600 hover:text-indigo-600 transition">Funções</button>
-                    <button onClick={() => onNavigate('plans')} className="text-slate-600 hover:text-indigo-600 transition">Planos</button>
+                    <button onClick={() => onNavigate('integracoes')} className="text-slate-600 hover:text-indigo-600 transition">Integrações</button>
+                    <button onClick={() => onNavigate('recursos')} className="text-slate-600 hover:text-indigo-600 transition">Recursos</button>
+                    <button onClick={() => onNavigate('sobre-nos')} className="text-slate-600 hover:text-indigo-600 transition">Sobre nós</button>
+                    <button onClick={() => onNavigate('contato')} className="text-slate-600 hover:text-indigo-600 transition">Contato</button>
                 </nav>
 
                 {/* Lado Direito Dinâmico */}
@@ -38,16 +39,14 @@ function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogo
                             </button>
 
                             {isMenuOpen && (
-                                <div
-                                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5"
-                                >
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
                                     <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         Meu Perfil
                                     </a>
                                     <button
                                         onClick={() => {
                                             onLogout();
-                                            setIsMenuOpen(false); 
+                                            setIsMenuOpen(false);
                                         }}
                                         className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
