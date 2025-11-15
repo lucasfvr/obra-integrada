@@ -1,0 +1,45 @@
+[
+  {
+    "id": 1001,
+    "tipo": "fisica",
+    "nome": "Admin",
+    "cpf": "99999999999",
+    "email": "admin@gmail.com",
+    "username": "admin",
+    "password": "$2a$10$70AmH0uXgDaLQ6nMKpXjru1a.PbJ9aJCeJLA9TKLSZnJYW6FtTtWq"
+  },
+  {
+    "id": 1002,
+    "tipo": "fisica",
+    "nome": "Usuário Teste",
+    "cpf": "11122233344",
+    "email": "teste@example.com",
+    "username": "teste",
+    "password": "$2a$10$Jq8BY2GUmfGkt2l5KoUTxei7WzK5q8dFEXNv7zYQZfNca28MC9BJG"
+  },
+  {
+    "id": 2001,
+    "tipo": "fisica",
+    "nome": "Cliente Breve 1",
+    "cpf": "00011122233",
+    "email": "cliente1@example.com",
+    "isBrief": true
+  },
+  {
+    "id": 2002,
+    "tipo": "juridica",
+    "razaoSocial": "Empresa X",
+    "cnpj": "12.345.678/0001-99",
+    "email": "empresa@example.com",
+    "isBrief": true
+  },
+  {
+    "id": 1763176596250,
+    "tipo": "fisica",
+    "nome": "João Player",
+    "cpf": "98765432100",
+    "email": "joao@example.com",
+    "username": "joao",
+    "password": "$2b$10$Cdfal42Ywk.VBBy3i6nRWeXfmxKH6OHrNfLdHtuJEDdScfU/PCCYi"
+  }
+]
