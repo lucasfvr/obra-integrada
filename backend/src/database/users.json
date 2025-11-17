@@ -1,122 +1,29 @@
 [
   {
-    "id": 1762863559332,
+    "id": 1763405813306,
     "tipo": "fisica",
-    "nome": "kaua ritson",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762864428654,
-    "tipo": "fisica",
-    "nome": "kaua ritsaon",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762864876835,
-    "tipo": "fisica",
-    "nome": "kauaritson",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com ",
-    "isBrief": true
-  },
-  {
-    "id": 1762865583820,
-    "tipo": "fisica",
-    "nome": "kaua ritson ",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762865725609,
-    "tipo": "fisica",
-    "nome": "kaua ritson ",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762866218703,
-    "tipo": "fisica",
-    "nome": "kauarritson@gmail.com",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762866277844,
-    "tipo": "juridica",
-    "razaoSocial": "acces",
-    "cnpj": "77.118.543/0001-32",
-    "email": "kauarritson@mail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762866949864,
-    "tipo": "fisica",
-    "nome": "kaua ritson ",
-    "cpf": "184388967",
-    "email": "kinonoinoi@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762867856611,
-    "tipo": "fisica",
-    "nome": "DS",
-    "cpf": "das",
-    "email": "das@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762868017043,
-    "tipo": "fisica",
-    "nome": "kaua ritson",
-    "cpf": "18438892779",
-    "email": "kauartiason@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762869498351,
-    "tipo": "fisica",
-    "nome": "kauaritson",
-    "cpf": "18438892779",
-    "email": "kauartison@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762869843889,
-    "tipo": "fisica",
-    "nome": "kaua ritson",
-    "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762870444335,
-    "tipo": "fisica",
-    "nome": "kaua ritson",
-    "cpf": "1843889279",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1762870861409,
-    "tipo": "juridica",
-    "razaoSocial": "kdadasda",
-    "cnpj": "321313131",
-    "email": "kauarritson@gmail.com",
-    "isBrief": true
-  },
-  {
-    "id": 1763159782865,
-    "tipo": "fisica",
-    "nome": "Fulano",
-    "cpf": "11122233344",
-    "email": "teste@teste.com",
-    "isBrief": true
+    "email": "kauaschirmer@gmail.com",
+    "username": "kauaschirmer@gmail.com",
+    "isBrief": false,
+    "nome": "kaua schirmer",
+    "cpf": "17438892779",
+    "password": "$2b$10$SFlTbOi1M2/hutexeZjdT.3d4L4W3x1xWUotbD1Q.YesFXWp.lt5i",
+    "formulario": {
+      "tipoCadastro": "fisica",
+      "nome": "kaua schirmer botelho",
+      "cnpj": "",
+      "razaoSocial": "",
+      "inscricaoEstadual": "",
+      "celular": "24999272409",
+      "telefone": "24999272409",
+      "cep": "27253005",
+      "endereco": "Rodovia VRD 001 dos Metalúrgicos",
+      "numero": "1001",
+      "complemento": "",
+      "referencia": "",
+      "bairro": "São Geraldo",
+      "cidade": "Volta Redonda",
+      "estado": "RJ"
+    }
   }
 ]

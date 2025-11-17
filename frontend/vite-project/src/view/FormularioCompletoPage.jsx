@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiMail, FiLock, FiUser, FiMapPin, FiPhone } from "react-icons/fi";
+import { FiMail, FiUser, FiMapPin, FiPhone } from "react-icons/fi";
 
 function FormularioCompletoPage({ userId, onSubmitSuccess }) {
   const [formData, setFormData] = useState({
@@ -31,7 +31,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Consulta automática do CEP via API do ViaCEP
+  // 🔹 Consulta automática de CEP
   const handleCepBlur = async () => {
     const cep = formData.cep.replace(/\D/g, "");
     if (cep.length !== 8) return;
@@ -55,7 +55,6 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
       }));
       setErrorMessage("");
     } catch (error) {
-      console.error("Erro ao buscar CEP:", error);
       setErrorMessage("Erro ao buscar o CEP.");
     } finally {
       setLoadingCep(false);
@@ -64,26 +63,30 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/formulario", {
+      const response = await fetch("http://localhost:3000/api/users/formulario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, userId }),
       });
 
-      if (!response.ok) throw new Error("Erro no envio");
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.erro || "Erro no envio");
+      }
 
       onSubmitSuccess?.();
     } catch (error) {
-      console.error(error);
-      setErrorMessage("Erro ao enviar o formulário. Tente novamente.");
+      setErrorMessage(error.message || "Erro ao enviar o formulário.");
     }
   };
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto text-gray-800">
+
       <h2 className="text-2xl font-semibold mb-6">
         Identificação{" "}
         <span className="text-gray-500 text-sm font-normal">
@@ -92,6 +95,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        
         {/* DADOS PARA ACESSO */}
         <fieldset className="border rounded-lg p-5">
           <legend className="font-semibold text-lg flex items-center gap-2">
@@ -154,6 +158,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
           <legend className="font-semibold text-lg flex items-center gap-2">
             <FiUser /> Tipo de cadastro
           </legend>
+
           <div className="flex gap-4 mt-2">
             <label className="flex items-center gap-2">
               <input
@@ -165,6 +170,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
               />
               Pessoa Física
             </label>
+
             <label className="flex items-center gap-2">
               <input
                 type="radio"
@@ -194,6 +200,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
               className="border rounded-lg p-2"
               required
             />
+
             {formData.tipoCadastro === "juridica" && (
               <>
                 <input
@@ -205,6 +212,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
                   className="border rounded-lg p-2"
                   required
                 />
+
                 <input
                   type="text"
                   name="razaoSocial"
@@ -214,6 +222,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
                   className="border rounded-lg p-2"
                   required
                 />
+
                 <input
                   type="text"
                   name="inscricaoEstadual"
@@ -224,6 +233,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
                 />
               </>
             )}
+
             <input
               type="text"
               name="celular"
@@ -233,6 +243,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
               className="border rounded-lg p-2"
               required
             />
+
             <input
               type="text"
               name="telefone"
@@ -246,118 +257,122 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
 
         {/* ENDEREÇO */}
         <fieldset className="border rounded-lg p-5">
-  <legend className="font-semibold text-lg flex items-center gap-2">
-    <FiMapPin /> Endereço
-  </legend>
+          <legend className="font-semibold text-lg flex items-center gap-2">
+            <FiMapPin /> Endereço
+          </legend>
 
-  <div className="grid grid-cols-2 gap-4 mt-4">
-    <div>
-      <label className="text-sm font-medium">CEP *</label>
-      <input
-        type="text"
-        name="cep"
-        placeholder="00000-000"
-        value={formData.cep}
-        onChange={handleChange}
-        onBlur={handleCepBlur}
-        className="border rounded-lg w-full p-2"
-        required
-      />
-      {loadingCep && (
-        <p className="text-sm text-gray-500 mt-1">Buscando endereço...</p>
-      )}
-    </div>
+          <div className="grid grid-cols-2 gap-4 mt-4">
 
-    <div>
-      <label className="text-sm font-medium">Endereço *</label>
-      <input
-        type="text"
-        name="endereco"
-        placeholder="Rua / Avenida"
-        value={formData.endereco}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-        required
-      />
-    </div>
+            <div>
+              <label className="text-sm font-medium">CEP *</label>
+              <input
+                type="text"
+                name="cep"
+                placeholder="00000-000"
+                value={formData.cep}
+                onChange={handleChange}
+                onBlur={handleCepBlur}
+                className="border rounded-lg w-full p-2"
+                required
+              />
+              {loadingCep && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Buscando endereço...
+                </p>
+              )}
+            </div>
 
-    <div>
-      <label className="text-sm font-medium">Número *</label>
-      <input
-        type="text"
-        name="numero"
-        placeholder="Número"
-        value={formData.numero}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-        required
-      />
-    </div>
+            <div>
+              <label className="text-sm font-medium">Endereço *</label>
+              <input
+                type="text"
+                name="endereco"
+                placeholder="Rua / Avenida"
+                value={formData.endereco}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+                required
+              />
+            </div>
 
-    <div>
-      <label className="text-sm font-medium">Complemento</label>
-      <input
-        type="text"
-        name="complemento"
-        placeholder="Apartamento, bloco, etc."
-        value={formData.complemento}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-      />
-    </div>
+            <div>
+              <label className="text-sm font-medium">Número *</label>
+              <input
+                type="text"
+                name="numero"
+                placeholder="Número"
+                value={formData.numero}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+                required
+              />
+            </div>
 
-    <div>
-      <label className="text-sm font-medium">Referência</label>
-      <input
-        type="text"
-        name="referencia"
-        placeholder="Ponto de referência"
-        value={formData.referencia}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-      />
-    </div>
+            <div>
+              <label className="text-sm font-medium">Complemento</label>
+              <input
+                type="text"
+                name="complemento"
+                placeholder="Apartamento, bloco, etc."
+                value={formData.complemento}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+              />
+            </div>
 
-    <div>
-      <label className="text-sm font-medium">Bairro *</label>
-      <input
-        type="text"
-        name="bairro"
-        placeholder="Bairro"
-        value={formData.bairro}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-        required
-      />
-    </div>
+            <div>
+              <label className="text-sm font-medium">Referência</label>
+              <input
+                type="text"
+                name="referencia"
+                placeholder="Ponto de referência"
+                value={formData.referencia}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+              />
+            </div>
 
-    <div>
-      <label className="text-sm font-medium">Cidade *</label>
-      <input
-        type="text"
-        name="cidade"
-        placeholder="Cidade"
-        value={formData.cidade}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-        required
-      />
-    </div>
+            <div>
+              <label className="text-sm font-medium">Bairro *</label>
+              <input
+                type="text"
+                name="bairro"
+                placeholder="Bairro"
+                value={formData.bairro}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+                required
+              />
+            </div>
 
-    <div>
-      <label className="text-sm font-medium">Estado *</label>
-      <input
-        type="text"
-        name="estado"
-        placeholder="UF"
-        value={formData.estado}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2"
-        required
-      />
-    </div>
-  </div>
-</fieldset>
+            <div>
+              <label className="text-sm font-medium">Cidade *</label>
+              <input
+                type="text"
+                name="cidade"
+                placeholder="Cidade"
+                value={formData.cidade}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Estado *</label>
+              <input
+                type="text"
+                name="estado"
+                placeholder="UF"
+                value={formData.estado}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+                required
+              />
+            </div>
+
+          </div>
+        </fieldset>
 
         {errorMessage && (
           <p className="text-red-500 text-sm text-center">{errorMessage}</p>
@@ -369,6 +384,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
         >
           Salvar e continuar
         </button>
+
       </form>
     </div>
   );

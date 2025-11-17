@@ -18,7 +18,7 @@ function HomePage({ onNavigate, onLoginClick, onRegisterClick }) {
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 3500,
+    autoplaySpeed: 2000,
     arrows: false,
     fade: true,
   };

@@ -18,21 +18,46 @@ async function writeDB(data) {
 }
 
 export class UserModel {
+
     static async findAll() {
         return await readDB();
     }
 
-    static async findByUsername(username) {
+    static async findById(id) {
         const users = await readDB();
-        return users.find(u => u.username === username);
+        return users.find((u) => u.id == id);
+    }
+
+    // 🔥 Agora procura por username e por email
+    static async findByUsername(usernameOrEmail) {
+        const users = await readDB();
+        return users.find(
+            (u) => u.username === usernameOrEmail || u.email === usernameOrEmail
+        );
     }
 
     static async create(user) {
-        console.log('>>> CHEGOU NO MODEL PARA SALVAR <<<');
-        console.log('Usuário a ser salvo:', user);
         const users = await readDB();
         users.push(user);
         await writeDB(users);
         return user;
+    }
+
+    // 🔥 Versão segura do update que mantém campos antigos
+    static async update(id, updatedUser) {
+        const users = await readDB();
+        const index = users.findIndex((u) => u.id == id);
+
+        if (index === -1) return null;
+
+        // Mesclar dados ao invés de substituir completamente
+        users[index] = {
+            ...users[index],
+            ...updatedUser,
+        };
+
+        await writeDB(users);
+
+        return users[index];
     }
 }
