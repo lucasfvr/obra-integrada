@@ -1,23 +1,16 @@
-import dotenv from 'dotenv';
 import express from 'express';
-import cors from 'cors';
-import obraRoutes from './routes/obraRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-
-dotenv.config();
+import userRoutes from './routes/userRoutes.js'; // Caminho correto para as rotas
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
-// Middlewares
-app.use(cors());
+// Middleware para ler o corpo da requisição em JSON
 app.use(express.json());
 
-// Rotas da API
-app.use('/api', obraRoutes);
+// Registrar as rotas com o prefixo '/api'
 app.use('/api', userRoutes);
 
-// Inicia o servidor
+// Iniciar o servidor
 app.listen(PORT, () => {
-    console.log(`Backend rodando com sucesso em http://${process.env.HOST || 'localhost'}:${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

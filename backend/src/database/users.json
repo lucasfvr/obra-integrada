@@ -1,20 +1,5 @@
 [
   {
-    "id": 1758514151346,
-    "username": "123",
-    "password": "123"
-  },
-  {
-    "id": 1758547375862,
-    "username": "Kaua",
-    "password": "123"
-  },
-  {
-    "id": 1758586920134,
-    "username": "1234",
-    "password": "1234"
-  },
-  {
     "id": 1762863559332,
     "tipo": "fisica",
     "nome": "kaua ritson",
@@ -35,7 +20,7 @@
     "tipo": "fisica",
     "nome": "kauaritson",
     "cpf": "18438892779",
-    "email": "kauarritson@gmail.com",
+    "email": "kauarritson@gmail.com ",
     "isBrief": true
   },
   {
@@ -124,6 +109,14 @@
     "razaoSocial": "kdadasda",
     "cnpj": "321313131",
     "email": "kauarritson@gmail.com",
+    "isBrief": true
+  },
+  {
+    "id": 1763159782865,
+    "tipo": "fisica",
+    "nome": "Fulano",
+    "cpf": "11122233344",
+    "email": "teste@teste.com",
     "isBrief": true
   }
 ]
