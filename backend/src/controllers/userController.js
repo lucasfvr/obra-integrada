@@ -82,14 +82,14 @@ export async function loginUser(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, username: user.username, nome: user.nome }, // Inclui nome no token
       process.env.JWT_SECRET || "SUPER_SECRET",
       { expiresIn: "1h" }
     );
 
     return res.status(200).json({
       mensagem: "Login bem-sucedido!",
-      user: { id: user.id, username: user.username },
+      user: { id: user.id, username: user.username, nome: user.nome }, // Retorna o nome
       token
     });
 
