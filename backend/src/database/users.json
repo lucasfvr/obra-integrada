@@ -79,5 +79,32 @@
       "cidade": "Volta Redonda",
       "estado": "RJ"
     }
+  },
+  {
+    "id": 1772149081229,
+    "tipo": "fisica",
+    "email": "lucas.f.m@uol.com.br",
+    "username": "lucas.f.m@uol.com.br",
+    "isBrief": false,
+    "nome": "lucas",
+    "cpf": "1236457988",
+    "password": "$2b$10$WfzdlELn1f5FKsbjJkKZhe.vQcJuV2i/8Y0nzY.iF9MiS9n7KllX2",
+    "formulario": {
+      "tipoCadastro": "fisica",
+      "nome": "LUCAS FERNANDES MACHADO DE SOUZA",
+      "cnpj": "",
+      "razaoSocial": "",
+      "inscricaoEstadual": "",
+      "celular": "(24) 99914-5860",
+      "telefone": "24999145860",
+      "cep": "27250-160",
+      "endereco": "Rua Rio Paraiba",
+      "numero": "104",
+      "complemento": "",
+      "referencia": "",
+      "bairro": "Agua Limpa",
+      "cidade": "Volta Redonda",
+      "estado": "RJ"
+    }
   }
 ]
