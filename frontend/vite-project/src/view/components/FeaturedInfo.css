@@ -1,0 +1,51 @@
+.featured {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.featured-item {
+  -webkit-box-shadow: 0px 0px 11px -1px rgba(0, 0, 0, 0.16);
+  box-shadow: 0px 0px 11px -1px rgba(0, 0, 0, 0.16);
+  width: 80%;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 35px 30px;
+  gap: 1rem;
+}
+
+.featuredTitle {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.featuredMoneyContainer {
+  position: relative;
+  width: 50%;
+}
+
+.featuredMoneyContainer .featuredMoney {
+  font-size: 25px;
+  font-weight: 600;
+}
+
+.featuredMoneyRate {
+  font-weight: normal;
+  letter-spacing: 1px;
+  font-size: 15px;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+
+.bad-rate {
+  color: red;
+}
+
+.good-rate {
+  color: rgb(5, 255, 5);
+}
+
+.featuredResult {
+  font-weight: lighter;
+}
