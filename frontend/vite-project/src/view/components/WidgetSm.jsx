@@ -19,7 +19,7 @@ export default function WidgetSm() {
           </div>
 
           <button className="widgetSmButton">
-            <i class="bi bi-eye-fill"></i>
+            <i className="bi bi-eye-fill"></i>
             Display
           </button>
         </li>
@@ -36,7 +36,7 @@ export default function WidgetSm() {
           </div>
 
           <button className="widgetSmButton">
-            <i class="bi bi-eye-fill"></i>
+            <i className="bi bi-eye-fill"></i>
             Display
           </button>
         </li>
@@ -53,7 +53,7 @@ export default function WidgetSm() {
           </div>
 
           <button className="widgetSmButton">
-            <i class="bi bi-eye-fill"></i>
+            <i className="bi bi-eye-fill"></i>
             Display
           </button>
         </li>
@@ -70,7 +70,7 @@ export default function WidgetSm() {
           </div>
 
           <button className="widgetSmButton">
-            <i class="bi bi-eye-fill"></i>
+            <i className="bi bi-eye-fill"></i>
             Display
           </button>
         </li>
@@ -87,7 +87,7 @@ export default function WidgetSm() {
           </div>
 
           <button className="widgetSmButton">
-            <i class="bi bi-eye-fill"></i>
+            <i className="bi bi-eye-fill"></i>
             Visualizar
           </button>
         </li>
