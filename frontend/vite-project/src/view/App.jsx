@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import HomePage from "./Home.jsx";
+import DashboardFinal from "./DashboardFinal.jsx";
 import LoginModal from "./Login.jsx";
 import RegisterModal from "./RegisterModal.jsx";
 import FormularioCompletoPage from "./FormularioCompletoPage.jsx";
@@ -65,7 +65,7 @@ function App() {
     );
   } else {
     currentPage = (
-      <HomePage
+      <DashboardFinal
         onNavigate={setScreen}
         onLoginClick={() => setLoginModalOpen(true)}
         onRegisterClick={() => setRegisterModalOpen(true)}
