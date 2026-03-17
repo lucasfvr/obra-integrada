@@ -15,7 +15,10 @@ function Dashboard({ onLogout, currentUser, onNavigate }) {
         if (!currentUser) return;
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/obras?userId=${currentUser.id}`);
+            const token = localStorage.getItem("obra-token");
+            const response = await fetch(`http://localhost:3000/api/obras?userId=${currentUser.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             const data = await response.json();
             if (response.ok) setObras(data);
             else console.error("Erro ao buscar obras:", data.erro);
@@ -31,9 +34,10 @@ function Dashboard({ onLogout, currentUser, onNavigate }) {
 
     const handleAdicionarObra = async (nome_obra) => {
         try {
+            const token = localStorage.getItem("obra-token");
             const response = await fetch('http://localhost:3000/api/obras', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ nome_obra, userId: currentUser.id })
             });
             if (response.ok) fetchObras();
@@ -45,9 +49,10 @@ function Dashboard({ onLogout, currentUser, onNavigate }) {
 
     const handleRemoverObra = async (obraId) => {
         try {
+            const token = localStorage.getItem("obra-token");
             const response = await fetch(`http://localhost:3000/api/obras/${obraId}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ userId: currentUser.id })
             });
             if (response.ok) fetchObras();

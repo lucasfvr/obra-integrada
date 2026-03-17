@@ -106,5 +106,32 @@
       "cidade": "Volta Redonda",
       "estado": "RJ"
     }
+  },
+  {
+    "id": 1773663098054,
+    "tipo": "fisica",
+    "email": "kauarritson@gmail.com",
+    "username": "kauarritson@gmail.com",
+    "isBrief": false,
+    "nome": "Kauã Ritson",
+    "cpf": "18438892779",
+    "password": "$2b$10$vrmxiOBTXJH7lI5HeVC/OeQx0LdmrdPuu0v.FlSqlpzeFTSq2TXwa",
+    "formulario": {
+      "tipoCadastro": "fisica",
+      "nome": "Kauã Ritson",
+      "cnpj": "",
+      "razaoSocial": "",
+      "inscricaoEstadual": "",
+      "celular": "24999272404",
+      "telefone": "",
+      "cep": "27253005",
+      "endereco": "Rodovia VRD 001 dos Metalúrgicos",
+      "numero": "1001",
+      "complemento": "",
+      "referencia": "",
+      "bairro": "São Geraldo",
+      "cidade": "Volta Redonda",
+      "estado": "RJ"
+    }
   }
 ]

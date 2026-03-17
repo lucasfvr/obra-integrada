@@ -65,6 +65,10 @@ export async function loginUser(req, res) {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ erro: "Email e senha são obrigatórios" });
+    }
+
     // username = email
     const user = await UserModel.findByUsername(username);
 

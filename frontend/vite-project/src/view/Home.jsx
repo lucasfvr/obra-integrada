@@ -10,7 +10,8 @@ import construcao3 from "../assets/construcao3.jpg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-function HomePage({ onNavigate, onLoginClick, onRegisterClick }) {
+
+function HomePage({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogout }) {
   const settings = {
     dots: true,
     infinite: true,
@@ -30,6 +31,8 @@ function HomePage({ onNavigate, onLoginClick, onRegisterClick }) {
         onNavigate={onNavigate}
         onLoginClick={onLoginClick}
         onRegisterClick={onRegisterClick}
+        currentUser={currentUser}
+        onLogout={onLogout}
       />
 
       {/* Carrossel */}

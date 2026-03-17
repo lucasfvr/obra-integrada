@@ -9,25 +9,44 @@ function LoginModal({ onLogin, onClose, openRegister }) {
   const [lembrar, setLembrar] = useState(false);
   const [error, setError] = useState("");
 
+  const validateEmail = (email) => {
+    return /^\S+@\S+\.\S+$/.test(email);
+  };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    if (!usuario.trim() || !senha.trim()) {
+      setError("Email e senha são obrigatórios.");
+      return;
+    }
+
+    if (!validateEmail(usuario.trim())) {
+      setError("Por favor, informe um email válido.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const response = await fetch("http://localhost:3000/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: usuario, password: senha }),
+        body: JSON.stringify({ username: usuario.trim(), password: senha }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        onLogin(data.user);
+        onLogin(data.user, data.token);
       } else {
         setError(data.erro || "Falha no login");
       }
     } catch (err) {
       setError("Não foi possível conectar ao servidor.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -106,16 +125,17 @@ function LoginModal({ onLogin, onClose, openRegister }) {
               />
               Lembrar de mim
             </label>
-            <a href="#" className="hover:text-indigo-600">
+            <button type="button" className="hover:text-indigo-600 text-indigo-600 font-medium text-xs">
               Esqueceu senha?
-            </a>
+            </button>
           </div>
 
           <button
             type="submit"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors mt-2"
+            disabled={isSubmitting}
+            className={`w-full ${isSubmitting ? "bg-indigo-300" : "bg-indigo-600 hover:bg-indigo-700"} text-white font-medium py-2.5 rounded-lg transition-colors mt-2`}
           >
-            Entrar
+            {isSubmitting ? "Entrando..." : "Entrar"}
           </button>
 
           <p className="text-center text-sm text-gray-600 mt-3">
