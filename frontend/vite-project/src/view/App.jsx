@@ -4,11 +4,12 @@ import LoginModal from "./Login.jsx";
 import RegisterModal from "./RegisterModal.jsx";
 import FormularioCompletoPage from "./FormularioCompletoPage.jsx";
 import Dashboard from "./Dashboard.jsx";
+import DashboardFinal from "./DashboardFinal.jsx";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 
 function App() {
-  const [screen, setScreen] = useState("home");
+  const [screen, setScreen] = useState("dashboardfinal");
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -63,6 +64,8 @@ function App() {
         onNavigate={setScreen}
       />
     );
+  } else if (screen === "dashboardfinal") {
+    currentPage = <DashboardFinal />;
   } else {
     currentPage = (
       <HomePage
