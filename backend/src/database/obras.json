@@ -1,0 +1,42 @@
+[
+  {
+    "id_obra": 1,
+    "nome_obra": "Reforma da Fachada do Prédio A",
+    "localizacao": "Rua Principal, 123",
+    "status": "Em Andamento",
+    "valor_orcado": 150000,
+    "usuario_ultima_alteracao": "admin"
+  },
+  {
+    "id_obra": 2,
+    "nome_obra": "Construção de Quadra Poliesportiva",
+    "localizacao": "Complexo Esportivo Municipal",
+    "status": "Planejada",
+    "valor_orcado": 320000,
+    "usuario_ultima_alteracao": "admin"
+  },
+  {
+    "id_obra": 3,
+    "nome_obra": "123",
+    "status": "Planejada",
+    "userId": 1758514151346
+  },
+  {
+    "id_obra": 4,
+    "nome_obra": "casa",
+    "status": "Planejada",
+    "userId": 1758547375862
+  },
+  {
+    "id_obra": 5,
+    "nome_obra": "dasdasd",
+    "status": "Planejada",
+    "userId": 1758547375862
+  },
+  {
+    "id_obra": 6,
+    "nome_obra": "Foa",
+    "status": "Planejada",
+    "userId": 1758586920134
+  }
+]
