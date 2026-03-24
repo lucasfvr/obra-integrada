@@ -1,38 +1,31 @@
-import fs from "fs/promises";
-import path from "path";
+import prisma from "../database/prisma.js";
 
-const dbPath = path.resolve("src", "database", "users.json");
+export const UserModel = {
+  async findAll() {
+    return await prisma.users.findMany();
+  },
 
-async function readDB() {
-    try {
-        const data = await fs.readFile(dbPath, "utf-8");
-        return JSON.parse(data);
-    } catch (error) {
-        await fs.writeFile(dbPath, "[]");
-        return [];
-    }
-}
+  async findById(id) {
+    return await prisma.users.findUnique({
+      where: { id }
+    });
+  },
 
-async function writeDB(data) {
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2));
-}
+  async findByEmail(email) {
+    return await prisma.users.findUnique({
+      where: { email }
+    });
+  },
 
-export class UserModel {
-    static async findAll() {
-        return await readDB();
-    }
+  async findByUsername(username) {
+    return await prisma.users.findUnique({
+      where: { username }
+    });
+  },
 
-    static async findByUsername(username) {
-        const users = await readDB();
-        return users.find(u => u.username === username);
-    }
-
-    static async create(user) {
-        console.log('>>> CHEGOU NO MODEL PARA SALVAR <<<');
-        console.log('Usuário a ser salvo:', user);
-        const users = await readDB();
-        users.push(user);
-        await writeDB(users);
-        return user;
-    }
-}
+  async create(data) {
+    return await prisma.users.create({
+      data
+    });
+  }
+};
