@@ -4,7 +4,6 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Todas as rotas exigem token
 router.get('/obras', authMiddleware, listarObras);
 router.post('/obras', authMiddleware, criarObra);
 router.put('/obras/:id', authMiddleware, atualizarObra);
