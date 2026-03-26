@@ -52,11 +52,7 @@ function MaterialCalculator() {
                     onChange={(e) => setPreco(e.target.value)}
                     className="border p-2 w-full"
                 />
-<<<<<<< HEAD
                 <button type="submit" className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-4 py-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-500">
-=======
-                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
->>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
                     Adicionar
                 </button>
             </form>

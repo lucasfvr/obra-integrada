@@ -10,12 +10,7 @@ import construcao3 from "../assets/construcao3.jpg";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-<<<<<<< HEAD
 function HomePage({ onNavigate, onLoginClick, onRegisterClick }) {
-=======
-
-function HomePage({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogout }) {
->>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
   const settings = {
     dots: true,
     infinite: true,
@@ -35,11 +30,6 @@ function HomePage({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLo
         onNavigate={onNavigate}
         onLoginClick={onLoginClick}
         onRegisterClick={onRegisterClick}
-<<<<<<< HEAD
-=======
-        currentUser={currentUser}
-        onLogout={onLogout}
->>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
       />
 
       {/* Carrossel */}
@@ -78,11 +68,7 @@ function HomePage({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLo
         <div className="mt-10">
           <a
             href="#"
-<<<<<<< HEAD
             className="bg-indigo-600 text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-=======
-            className="bg-indigo-600 text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-indigo-700 transition shadow-lg"
->>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
           >
             Comece Agora Gratuitamente
           </a>
