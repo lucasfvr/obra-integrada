@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import logoObraIntegrada from "../assets/logo-obra-integrada.png"; 
+import logoObraIntegrada from "../assets/logo-obra-integrada.png";
+import { validateEmail, validatePassword } from "../utils/validation";
 
 function LoginModal({ onLogin, onClose, openRegister }) {
   const [usuario, setUsuario] = useState("");
@@ -8,10 +9,33 @@ function LoginModal({ onLogin, onClose, openRegister }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [lembrar, setLembrar] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    const newErrors = {};
+
+    // Validar email
+    const emailValidation = validateEmail(usuario);
+    if (!emailValidation.valid) {
+      newErrors.usuario = emailValidation.message;
+    }
+
+    // Validar senha
+    const passwordValidation = validatePassword(senha);
+    if (!passwordValidation.valid) {
+      newErrors.senha = passwordValidation.message;
+    }
+
+    // Se houver erros, mostrar e não prosseguir
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setError("Por favor, corrija os erros nos campos");
+      return;
+    }
+
+    setErrors({});
 
     try {
       const response = await fetch("http://localhost:3000/api/users/login", {
@@ -63,35 +87,51 @@ function LoginModal({ onLogin, onClose, openRegister }) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="relative">
-            <FiMail className="absolute left-3 top-3.5 text-gray-400 text-lg" />
-            <input
-              type="email"
-              placeholder="Seu@email.com"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              required
-            />
+          <div>
+            <div className={`relative ${errors.usuario ? 'border-red-500' : ''}`}>
+              <FiMail className="absolute left-3 top-3.5 text-gray-400 text-lg" />
+              <input
+                type="email"
+                placeholder="Seu@email.com"
+                value={usuario}
+                onChange={(e) => {
+                  setUsuario(e.target.value);
+                  if (errors.usuario) setErrors({...errors, usuario: null});
+                }}
+                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                  errors.usuario ? 'border-red-500' : 'border-gray-300'
+                }`}
+                required
+              />
+            </div>
+            {errors.usuario && <p className="text-red-500 text-xs mt-1">{errors.usuario}</p>}
           </div>
 
-          <div className="relative">
-            <FiLock className="absolute left-3 top-3.5 text-gray-400 text-lg" />
-            <input
-              type={mostrarSenha ? "text" : "password"}
-              placeholder="Sua senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setMostrarSenha(!mostrarSenha)}
-              className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
-            >
-              {mostrarSenha ? <FiEyeOff /> : <FiEye />}
-            </button>
+          <div>
+            <div className={`relative ${errors.senha ? 'border-red-500' : ''}`}>
+              <FiLock className="absolute left-3 top-3.5 text-gray-400 text-lg" />
+              <input
+                type={mostrarSenha ? "text" : "password"}
+                placeholder="Sua senha"
+                value={senha}
+                onChange={(e) => {
+                  setSenha(e.target.value);
+                  if (errors.senha) setErrors({...errors, senha: null});
+                }}
+                className={`w-full pl-10 pr-10 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                  errors.senha ? 'border-red-500' : 'border-gray-300'
+                }`}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+              >
+                {mostrarSenha ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
+            {errors.senha && <p className="text-red-500 text-xs mt-1">{errors.senha}</p>}
           </div>
 
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
@@ -113,7 +153,7 @@ function LoginModal({ onLogin, onClose, openRegister }) {
 
           <button
             type="submit"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors mt-2"
+            className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium py-2.5 rounded-lg transition-colors mt-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             Entrar
           </button>
@@ -121,7 +161,7 @@ function LoginModal({ onLogin, onClose, openRegister }) {
           <p className="text-center text-sm text-gray-600 mt-3">
             Não tem uma conta?{" "}
             <span
-              className="text-indigo-600 font-medium hover:underline cursor-pointer"
+              className="text-indigo-600 font-medium hover:text-indigo-800 hover:underline cursor-pointer transition-colors duration-200 active:text-indigo-900"
               onClick={openRegister}
             >
               Cadastre-se

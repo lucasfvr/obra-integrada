@@ -68,7 +68,7 @@ function HomePage({ onNavigate, onLoginClick, onRegisterClick }) {
         <div className="mt-10">
           <a
             href="#"
-            className="bg-indigo-600 text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-indigo-700 transition shadow-lg"
+            className="bg-indigo-600 text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             Comece Agora Gratuitamente
           </a>

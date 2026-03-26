@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FiMail, FiUser, FiMapPin, FiPhone } from "react-icons/fi";
 
-function FormularioCompletoPage({ userId, onSubmitSuccess }) {
+function FormularioCompletoPage({ tempId, onSubmitSuccess }) {
   const [formData, setFormData] = useState({
     email: "",
     confirmarEmail: "",
@@ -70,7 +70,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
       const response = await fetch("http://localhost:3000/api/users/formulario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, userId }),
+        body: JSON.stringify({ ...formData, tempId }),
       });
 
       if (!response.ok) {
@@ -380,7 +380,7 @@ function FormularioCompletoPage({ userId, onSubmitSuccess }) {
 
         <button
           type="submit"
-          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-medium mt-3 transition-all"
+          className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white py-2 px-6 rounded-lg font-medium mt-3 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           Salvar e continuar
         </button>

@@ -12,7 +12,7 @@ function App() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [newUserId, setNewUserId] = useState(null);
+  const [tempId, setTempId] = useState(null);
 
   // LOGIN OK
   const handleLogin = (userData) => {
@@ -28,9 +28,9 @@ function App() {
   };
 
   // CADASTRO SUCESSO — Abre o formulário completo
-  const handleRegisterSuccess = (userId) => {
+  const handleRegisterSuccess = (tempId) => {
     setRegisterModalOpen(false);
-    setNewUserId(userId);
+    setTempId(tempId);
     setScreen("formulario"); // 👉 mostra o formulário completo
   };
 
@@ -48,7 +48,7 @@ function App() {
         <Header />
         <div className="flex justify-center items-start min-h-screen bg-gray-100 py-10">
           <FormularioCompletoPage
-            userId={newUserId}
+            tempId={tempId}
             onSubmitSuccess={handleFormCompleteSuccess}
           />
         </div>
@@ -83,12 +83,19 @@ function App() {
         <LoginModal
           onLogin={handleLogin}
           onClose={() => setLoginModalOpen(false)}
+          openRegister={() => {
+            setLoginModalOpen(false);
+            setRegisterModalOpen(true);
+          }}
         />
       )}
 
       {isRegisterModalOpen && (
         <RegisterModal
-          onClose={() => setRegisterModalOpen(false)}
+          onClose={() => {
+            setRegisterModalOpen(false);
+            setScreen("home");
+          }}
           onRegisterSuccess={handleRegisterSuccess}
         />
       )}
