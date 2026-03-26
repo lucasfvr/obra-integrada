@@ -15,7 +15,14 @@ function Dashboard({ onLogout, currentUser, onNavigate }) {
         if (!currentUser) return;
         setLoading(true);
         try {
+<<<<<<< HEAD
             const response = await fetch(`http://localhost:3000/api/obras?userId=${currentUser.id}`);
+=======
+            const token = localStorage.getItem("obra-token");
+            const response = await fetch(`http://localhost:3000/api/obras?userId=${currentUser.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
             const data = await response.json();
             if (response.ok) setObras(data);
             else console.error("Erro ao buscar obras:", data.erro);
@@ -31,9 +38,16 @@ function Dashboard({ onLogout, currentUser, onNavigate }) {
 
     const handleAdicionarObra = async (nome_obra) => {
         try {
+<<<<<<< HEAD
             const response = await fetch('http://localhost:3000/api/obras', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+=======
+            const token = localStorage.getItem("obra-token");
+            const response = await fetch('http://localhost:3000/api/obras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
                 body: JSON.stringify({ nome_obra, userId: currentUser.id })
             });
             if (response.ok) fetchObras();
@@ -45,9 +59,16 @@ function Dashboard({ onLogout, currentUser, onNavigate }) {
 
     const handleRemoverObra = async (obraId) => {
         try {
+<<<<<<< HEAD
             const response = await fetch(`http://localhost:3000/api/obras/${obraId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
+=======
+            const token = localStorage.getItem("obra-token");
+            const response = await fetch(`http://localhost:3000/api/obras/${obraId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
                 body: JSON.stringify({ userId: currentUser.id })
             });
             if (response.ok) fetchObras();

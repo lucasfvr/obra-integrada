@@ -1,11 +1,14 @@
   import React, { useState } from "react";
   import { FiUser, FiMail, FiFileText, FiBriefcase } from "react-icons/fi";
   import logoObraIntegrada from "../assets/logo-obra-integrada.png";
+<<<<<<< HEAD
   import { 
     formatCPF, validateCPF, 
     formatCNPJ, validateCNPJ, 
     validateEmail, validateName 
   } from "../utils/validation";
+=======
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
 
 
   function RegisterModal({ onClose, onRegisterSuccess }) {
@@ -17,11 +20,15 @@
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
     const [errors, setErrors] = useState({});
+=======
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
 
     const handleSubmit = async (e) => {
       e.preventDefault();
       setError("");
+<<<<<<< HEAD
       const newErrors = {};
 
       // Validar campos conforme tipo de pessoa
@@ -64,13 +71,20 @@
       }
 
       setErrors({});
+=======
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
       setLoading(true);
 
       // Monta o corpo da requisição conforme o tipo de pessoa
       const payload =
         tipoPessoa === "fisica"
+<<<<<<< HEAD
           ? { tipo: "fisica", nome, cpf: cpf.replace(/\D/g, ""), email }
           : { tipo: "juridica", razaoSocial, cnpj: cnpj.replace(/\D/g, ""), email };
+=======
+          ? { tipo: "fisica", nome, cpf, email }
+          : { tipo: "juridica", razaoSocial, cnpj, email };
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
 
       try {
         const response = await fetch("http://localhost:3000/api/users/register", {
@@ -83,6 +97,7 @@
         console.log("🔵 Resposta do backend:", data);
 
         if (response.ok) {
+<<<<<<< HEAD
           // pega o tempId
           const tempId = data.tempId;
           console.log("🟩 Validação ok, tempId:", tempId);
@@ -94,6 +109,25 @@
           }
         } else {
           setError(data.erro || data.message || "Falha na validação");
+=======
+          // tenta pegar o id retornado em diferentes formatos possíveis
+          const returnedId =
+            data.id ??
+            data._id ??
+            data.userId ??
+            (data.user && data.user.id) ??
+            null;
+
+          console.log("🟩 Usuário cadastrado, ID:", returnedId);
+
+          if (returnedId) {
+            onRegisterSuccess(returnedId);
+          } else {
+            setError("Cadastro criado, mas o ID do usuário não foi retornado.");
+          }
+        } else {
+          setError(data.erro || data.message || "Falha no cadastro");
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
         }
       } catch (err) {
         console.error("❌ Erro no cadastro:", err);
@@ -167,6 +201,7 @@
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {tipoPessoa === "fisica" ? (
               <>
+<<<<<<< HEAD
                 <div>
                   <div className={`flex items-center border rounded-lg px-3 py-2 ${errors.nome ? 'border-red-500' : ''}`}>
                     <FiUser className="text-gray-400 mr-2" />
@@ -201,10 +236,34 @@
                     />
                   </div>
                   {errors.cpf && <p className="text-red-500 text-xs mt-1">{errors.cpf}</p>}
+=======
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <FiUser className="text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Nome completo"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    className="w-full outline-none"
+                    required
+                  />
+                </div>
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <FiFileText className="text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="CPF"
+                    value={cpf}
+                    onChange={(e) => setCpf(e.target.value)}
+                    className="w-full outline-none"
+                    required
+                  />
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
                 </div>
               </>
             ) : (
               <>
+<<<<<<< HEAD
                 <div>
                   <div className={`flex items-center border rounded-lg px-3 py-2 ${errors.razaoSocial ? 'border-red-500' : ''}`}>
                     <FiBriefcase className="text-gray-400 mr-2" />
@@ -239,10 +298,34 @@
                     />
                   </div>
                   {errors.cnpj && <p className="text-red-500 text-xs mt-1">{errors.cnpj}</p>}
+=======
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <FiBriefcase className="text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Razão Social"
+                    value={razaoSocial}
+                    onChange={(e) => setRazaoSocial(e.target.value)}
+                    className="w-full outline-none"
+                    required
+                  />
+                </div>
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <FiFileText className="text-gray-400 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="CNPJ"
+                    value={cnpj}
+                    onChange={(e) => setCnpj(e.target.value)}
+                    className="w-full outline-none"
+                    required
+                  />
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
                 </div>
               </>
             )}
 
+<<<<<<< HEAD
             <div>
               <div className={`flex items-center border rounded-lg px-3 py-2 ${errors.email ? 'border-red-500' : ''}`}>
                 <FiMail className="text-gray-400 mr-2" />
@@ -259,6 +342,18 @@
                 />
               </div>
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+=======
+            <div className="flex items-center border rounded-lg px-3 py-2">
+              <FiMail className="text-gray-400 mr-2" />
+              <input
+                type="email"
+                placeholder="Seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full outline-none"
+                required
+              />
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
             </div>
 
             {error && (
@@ -268,7 +363,11 @@
             <button
               type="submit"
               disabled={loading}
+<<<<<<< HEAD
               className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white py-2 rounded-lg font-medium mt-2 transition-all disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+=======
+              className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium mt-2 transition-all disabled:opacity-60"
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
             >
               {loading ? "Cadastrando..." : "Cadastrar"}
             </button>

@@ -4,7 +4,11 @@ import jwt from 'jsonwebtoken';
 
 
 // ==============================
+<<<<<<< HEAD
 // CADASTRO RÁPIDO (AGORA SÓ VALIDA, NÃO CRIA USUÁRIO)
+=======
+// CADASTRO RÁPIDO
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
 // ==============================
 export async function registerUser(req, res) {
   try {
@@ -24,18 +28,22 @@ export async function registerUser(req, res) {
       if (!nome || !cpf) {
         return res.status(400).json({ erro: "Nome e CPF são obrigatórios para pessoa física" });
       }
+<<<<<<< HEAD
       // Verifica se já existe CPF
       const allUsers = await UserModel.findAll();
       const existingCPF = allUsers.find(u => u.cpf === cpf);
       if (existingCPF) {
         return res.status(409).json({ erro: "Este CPF já está cadastrado!" });
       }
+=======
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
     }
 
     if (tipo === "juridica") {
       if (!razaoSocial || !cnpj) {
         return res.status(400).json({ erro: "Razão social e CNPJ são obrigatórios para pessoa jurídica" });
       }
+<<<<<<< HEAD
       // Verifica se já existe CNPJ
       const allUsers = await UserModel.findAll();
       const existingCNPJ = allUsers.find(u => u.cnpj === cnpj);
@@ -50,11 +58,35 @@ export async function registerUser(req, res) {
     return res.status(200).json({
       mensagem: "Validação inicial ok! Prossiga para o formulário completo.",
       tempId
+=======
+    }
+
+    const newUser = {
+      id: Date.now(),
+      tipo,
+      email,
+      username: email, // <-- username SEMPRE será o email
+      isBrief: true,
+      ...(tipo === "fisica"
+        ? { nome, cpf }
+        : { razaoSocial, cnpj })
+    };
+
+    await UserModel.create(newUser);
+
+    return res.status(201).json({
+      mensagem: "Cadastro rápido criado com sucesso!",
+      id: newUser.id
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
     });
 
   } catch (error) {
     console.error(error);
+<<<<<<< HEAD
     return res.status(500).json({ erro: "Erro na validação inicial" });
+=======
+    return res.status(500).json({ erro: "Erro ao registrar usuário" });
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
   }
 }
 
@@ -67,6 +99,13 @@ export async function loginUser(req, res) {
   try {
     const { username, password } = req.body;
 
+<<<<<<< HEAD
+=======
+    if (!username || !password) {
+      return res.status(400).json({ erro: "Email e senha são obrigatórios" });
+    }
+
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
     // username = email
     const user = await UserModel.findByUsername(username);
 
@@ -109,7 +148,11 @@ export async function loginUser(req, res) {
 export async function formularioCompleto(req, res) {
   try {
     const {
+<<<<<<< HEAD
       tempId,
+=======
+      userId,
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
       email,
       confirmarEmail,
       senha,
@@ -131,6 +174,7 @@ export async function formularioCompleto(req, res) {
       estado
     } = req.body;
 
+<<<<<<< HEAD
     if (!tempId) return res.status(400).json({ erro: "ID temporário é obrigatório!" });
 
     // Validações de email
@@ -214,10 +258,25 @@ export async function formularioCompleto(req, res) {
     if (!endereco || !numero || !bairro || !cidade || !estado) {
       return res.status(400).json({ erro: "Endereço, número, bairro, cidade e estado são obrigatórios" });
     }
+=======
+    if (!userId) return res.status(400).json({ erro: "ID do usuário é obrigatório!" });
+
+    if (email !== confirmarEmail) {
+      return res.status(400).json({ erro: "Os emails não coincidem" });
+    }
+
+    if (senha !== confirmarSenha) {
+      return res.status(400).json({ erro: "As senhas não coincidem" });
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user) return res.status(404).json({ erro: "Usuário não encontrado!" });
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
 
     // Criptografa senha
     const hashedPassword = await bcrypt.hash(senha, 10);
 
+<<<<<<< HEAD
     const newUser = {
       id: tempId,
       tipo: tipoCadastro,
@@ -228,6 +287,14 @@ export async function formularioCompleto(req, res) {
       ...(tipoCadastro === "fisica"
         ? { nome, cpf: "" } // CPF não é coletado no formulário completo
         : { razaoSocial, cnpj }),
+=======
+    const dadosAtualizados = {
+      ...user,
+      email,
+      username: email,   // <-- login será sempre email
+      password: hashedPassword,
+      isBrief: false,
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
       formulario: {
         tipoCadastro,
         nome,
@@ -247,11 +314,19 @@ export async function formularioCompleto(req, res) {
       }
     };
 
+<<<<<<< HEAD
     await UserModel.create(newUser);
 
     return res.status(201).json({
       mensagem: "Cadastro completo realizado com sucesso!",
       userId: newUser.id
+=======
+    await UserModel.update(userId, dadosAtualizados);
+
+    return res.status(200).json({
+      mensagem: "Formulário completo salvo com sucesso!",
+      userId
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
     });
 
   } catch (error) {

@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { FiMail, FiUser, FiMapPin, FiPhone } from "react-icons/fi";
 
+<<<<<<< HEAD
 function FormularioCompletoPage({ tempId, onSubmitSuccess }) {
+=======
+function FormularioCompletoPage({ userId, onSubmitSuccess }) {
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
   const [formData, setFormData] = useState({
     email: "",
     confirmarEmail: "",
@@ -70,7 +74,11 @@ function FormularioCompletoPage({ tempId, onSubmitSuccess }) {
       const response = await fetch("http://localhost:3000/api/users/formulario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+<<<<<<< HEAD
         body: JSON.stringify({ ...formData, tempId }),
+=======
+        body: JSON.stringify({ ...formData, userId }),
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
       });
 
       if (!response.ok) {
@@ -380,7 +388,11 @@ function FormularioCompletoPage({ tempId, onSubmitSuccess }) {
 
         <button
           type="submit"
+<<<<<<< HEAD
           className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white py-2 px-6 rounded-lg font-medium mt-3 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
+=======
+          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-medium mt-3 transition-all"
+>>>>>>> bc85cfa1072947480c4a0c6232f4ebe60a188d22
         >
           Salvar e continuar
         </button>
