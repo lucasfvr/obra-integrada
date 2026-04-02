@@ -1,0 +1,60 @@
+.topbar {
+  position: relative;
+  top: 0;
+  width: 100%;
+}
+
+.topbar-wrapper {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 15%;
+}
+
+.topbar-title {
+  padding-left: 10px;
+}
+
+.topbar-notification {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.topbar-notification:hover {
+  cursor: pointer;
+}
+
+.icon-top {
+  font-size: 20px;
+}
+
+.topbar-notification span {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 10px;
+}
+
+.topbar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.topbar-avatar {
+  cursor: pointer;
+}
