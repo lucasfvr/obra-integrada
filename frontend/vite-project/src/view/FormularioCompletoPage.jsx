@@ -62,76 +62,47 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setErrorMessage("");
 
-    setErrorMessage("");
+  // Validar celular
+  const celularValidation = validateCelular(formData.celular);
+  if (!celularValidation.valid) {
+    setErrorMessage(celularValidation.message);
+    return;
+  }
 
-    // Validações de correspondência com pré-cadastro
-    if (formData.tipoCadastro !== preRegisterData?.tipo) {
-      setErrorMessage("O tipo de cadastro deve ser o mesmo do pré-cadastro.");
+  // Validar telefone (se preenchido)
+  if (formData.telefone && formData.telefone.trim()) {
+    const telefoneValidation = validateTelefone(formData.telefone);
+    if (!telefoneValidation.valid) {
+      setErrorMessage(telefoneValidation.message);
       return;
     }
+  }
 
-    if (formData.email !== preRegisterData?.email) {
-      setErrorMessage("O email deve ser o mesmo informado no pré-cadastro.");
-      return;
+  try {
+    const response = await fetch("http://localhost:3000/api/users/formulario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...formData,
+        cpf: preRegisterData?.cpf || "",
+        cnpj: preRegisterData?.cnpj || "",
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.erro || "Erro no envio");
     }
 
-    if (formData.tipoCadastro === "fisica") {
-      if (formData.nome !== preRegisterData?.nome) {
-        setErrorMessage("O nome deve ser o mesmo informado no pré-cadastro.");
-        return;
-      }
-    } else if (formData.tipoCadastro === "juridica") {
-      if (formData.razaoSocial !== preRegisterData?.razaoSocial) {
-        setErrorMessage("A razão social deve ser a mesma informada no pré-cadastro.");
-        return;
-      }
-      if (formData.cnpj !== preRegisterData?.cnpj) {
-        setErrorMessage("O CNPJ deve ser o mesmo informado no pré-cadastro.");
-        return;
-      }
-    }
-
-    // Validar celular
-    const celularValidation = validateCelular(formData.celular);
-    if (!celularValidation.valid) {
-      setErrorMessage(celularValidation.message);
-      return;
-    }
-
-    // Validar telefone (se preenchido)
-    if (formData.telefone && formData.telefone.trim()) {
-      const telefoneValidation = validateTelefone(formData.telefone);
-      if (!telefoneValidation.valid) {
-        setErrorMessage(telefoneValidation.message);
-        return;
-      }
-    }
-
-    try {
-      const response = await fetch("http://localhost:3000/api/users/formulario", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          ...formData, 
-          tempId,
-          cpf: preRegisterData?.cpf || "",
-          cnpj: preRegisterData?.cnpj || "",
-        }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.erro || "Erro no envio");
-      }
-
-      onSubmitSuccess?.();
-    } catch (error) {
-      setErrorMessage(error.message || "Erro ao enviar o formulário.");
-    }
-  };
+    onSubmitSuccess?.();
+  } catch (error) {
+    setErrorMessage(error.message || "Erro ao enviar o formulário.");
+  }
+};
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto text-gray-800">
