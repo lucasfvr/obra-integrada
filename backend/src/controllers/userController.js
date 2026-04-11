@@ -2,183 +2,169 @@ import { UserModel } from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-
 // ==============================
-// CADASTRO RÁPIDO
+// CADASTRO RÁPIDO (VALIDA, NÃO CRIA USUÁRIO AINDA)
 // ==============================
 export async function registerUser(req, res) {
   try {
     const { tipo, nome, cpf, razaoSocial, cnpj, email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ erro: "Email é obrigatório" });
+      return res.status(400).json({ erro: 'Email é obrigatório' });
     }
 
-    // Verifica se já existe email
     const existingUser = await UserModel.findByUsername(email);
     if (existingUser) {
-      return res.status(409).json({ erro: "Este email já está cadastrado!" });
+      return res.status(409).json({ erro: 'Este email já está cadastrado!' });
     }
 
-    if (tipo === "fisica") {
-      if (!nome || !cpf) {
-        return res.status(400).json({ erro: "Nome e CPF são obrigatórios para pessoa física" });
-      }
-    }
+    // Validações extras para pessoa física/jurídica podem ser feitas aqui
+    // (CPF/CNPJ únicos seriam verificados no banco via unique constraint se adicionada)
 
-    if (tipo === "juridica") {
-      if (!razaoSocial || !cnpj) {
-        return res.status(400).json({ erro: "Razão social e CNPJ são obrigatórios para pessoa jurídica" });
-      }
-    }
+    // ID temporário para o frontend continuar no fluxo
+    const tempId = Date.now().toString();
 
-    const newUser = {
-      id: Date.now(),
-      tipo,
-      email,
-      username: email, // <-- username SEMPRE será o email
-      isBrief: true,
-      ...(tipo === "fisica"
-        ? { nome, cpf }
-        : { razaoSocial, cnpj })
-    };
-
-    await UserModel.create(newUser);
-
-    return res.status(201).json({
-      mensagem: "Cadastro rápido criado com sucesso!",
-      id: newUser.id
+    return res.status(200).json({
+      mensagem: 'Validação inicial ok! Prossiga para o formulário completo.',
+      tempId,
+      userId: tempId,
+      id: tempId,
     });
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ erro: "Erro ao registrar usuário" });
+    return res.status(500).json({ erro: 'Erro na validação inicial' });
   }
 }
 
 
-
 // ==============================
-// LOGIN (USANDO EMAIL COMO USERNAME)
+// LOGIN
 // ==============================
 export async function loginUser(req, res) {
   try {
     const { username, password } = req.body;
 
-    // username = email
+    if (!username || !password) {
+      return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+    }
+
     const user = await UserModel.findByUsername(username);
 
     if (!user) {
-      return res.status(401).json({ erro: "Email ou senha inválidos" });
+      return res.status(401).json({ erro: 'E-mail ou senha incorretos' });
     }
 
-    if (!user.password) {
-      return res.status(403).json({ erro: "Usuário não completou o cadastro" });
+    if (!user.senha) {
+      return res.status(403).json({ erro: 'Usuário não completou o cadastro' });
     }
 
-    const senhaCorreta = await bcrypt.compare(password, user.password);
+    const senhaCorreta = await bcrypt.compare(password, user.senha);
     if (!senhaCorreta) {
-      return res.status(401).json({ erro: "Email ou senha inválidos" });
+      return res.status(401).json({ erro: 'E-mail ou senha incorretos' });
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET || "SUPER_SECRET",
-      { expiresIn: "1h" }
+      { id: user.id_usuario, username: user.username },
+      process.env.JWT_SECRET || 'SUPER_SECRET',
+      { expiresIn: '1h' }
     );
 
     return res.status(200).json({
-      mensagem: "Login bem-sucedido!",
-      user: { id: user.id, username: user.username },
-      token
+      mensagem: 'Login bem-sucedido!',
+      user: { id: user.id_usuario, username: user.username },
+      token,
     });
-
   } catch (error) {
-    console.error("ERRO NO LOGIN:", error);
-    return res.status(500).json({ erro: "Erro ao fazer login" });
+    console.error('ERRO NO LOGIN:', error);
+    return res.status(500).json({ erro: 'Erro ao fazer login' });
   }
 }
 
 
-
 // ==============================
-// FORMULÁRIO COMPLETO
+// FORMULÁRIO COMPLETO — cria o usuário de fato no banco
 // ==============================
 export async function formularioCompleto(req, res) {
   try {
     const {
-      userId,
       email,
       confirmarEmail,
       senha,
       confirmarSenha,
       tipoCadastro,
       nome,
-      cnpj,
       razaoSocial,
-      inscricaoEstadual,
+      cpf,
+      cnpj,
       celular,
       telefone,
-      cep,
-      endereco,
-      numero,
-      complemento,
-      referencia,
-      bairro,
-      cidade,
-      estado
     } = req.body;
 
-    if (!userId) return res.status(400).json({ erro: "ID do usuário é obrigatório!" });
 
+    if (!email || !confirmarEmail) {
+      return res.status(400).json({ erro: 'Email e confirmação são obrigatórios' });
+    }
     if (email !== confirmarEmail) {
-      return res.status(400).json({ erro: "Os emails não coincidem" });
+      return res.status(400).json({ erro: 'Os emails não coincidem' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ erro: 'Formato de email inválido' });
     }
 
+    const existingEmail = await UserModel.findByUsername(email);
+    if (existingEmail) {
+      return res.status(409).json({ erro: 'Este email já está cadastrado!' });
+    }
+
+    if (!senha || !confirmarSenha) {
+      return res.status(400).json({ erro: 'Senha e confirmação são obrigatórias' });
+    }
     if (senha !== confirmarSenha) {
-      return res.status(400).json({ erro: "As senhas não coincidem" });
+      return res.status(400).json({ erro: 'As senhas não coincidem' });
+    }
+    if (senha.length < 6) {
+      return res.status(400).json({ erro: 'A senha deve ter no mínimo 6 caracteres' });
+    }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+    if (!passwordRegex.test(senha)) {
+      return res.status(400).json({
+        erro: 'A senha deve conter pelo menos uma letra minúscula, uma maiúscula e um número',
+      });
     }
 
-    const user = await UserModel.findById(userId);
-    if (!user) return res.status(404).json({ erro: "Usuário não encontrado!" });
 
-    // Criptografa senha
-    const hashedPassword = await bcrypt.hash(senha, 10);
-
-    const dadosAtualizados = {
-      ...user,
-      email,
-      username: email,   // <-- login será sempre email
-      password: hashedPassword,
-      isBrief: false,
-      formulario: {
-        tipoCadastro,
-        nome,
-        cnpj,
-        razaoSocial,
-        inscricaoEstadual,
-        celular,
-        telefone,
-        cep,
-        endereco,
-        numero,
-        complemento,
-        referencia,
-        bairro,
-        cidade,
-        estado
+    if (tipoCadastro === 'fisica') {
+      if (!nome || nome.trim().length < 3) {
+        return res.status(400).json({ erro: 'Nome é obrigatório e deve ter pelo menos 3 caracteres' });
       }
-    };
+    } else if (tipoCadastro === 'juridica') {
+      if (!razaoSocial || razaoSocial.trim().length < 3) {
+        return res.status(400).json({ erro: 'Razão social é obrigatória e deve ter pelo menos 3 caracteres' });
+      }
+    } else {
+      return res.status(400).json({ erro: 'Tipo de cadastro inválido' });
+    }
 
-    await UserModel.update(userId, dadosAtualizados);
+    const hashedSenha = await bcrypt.hash(senha, 10);
 
-    return res.status(200).json({
-      mensagem: "Formulário completo salvo com sucesso!",
-      userId
+
+    const novoUsuario = await UserModel.create({
+      nome: tipoCadastro === 'fisica' ? nome : razaoSocial,
+      email,
+      username: email,
+      senha: hashedSenha,
+      telefone: celular || telefone || null,
+      tipo_usuario: tipoCadastro,
+  
     });
 
+    return res.status(201).json({
+      mensagem: 'Cadastro completo realizado com sucesso!',
+      userId: novoUsuario.id_usuario,
+    });
   } catch (error) {
-    console.error("ERRO AO SALVAR FORMULÁRIO:", error);
-    return res.status(500).json({ erro: "Erro ao enviar formulário" });
+    console.error('ERRO AO SALVAR FORMULÁRIO:', error);
+    return res.status(500).json({ erro: 'Erro ao enviar formulário' });
   }
 }
