@@ -16,6 +16,12 @@ app.get('/', (req, res) => {
   res.json({ message: 'API Obra Integrada funcionando' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+});
+server.on('error', (e) => {
+  console.error("Server Error:", e);
+});
+server.on('close', () => {
+  console.log("Server stopped");
 });

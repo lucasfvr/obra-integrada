@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --env-file ./src/.env ./src/server.js"
+    "start": "nodemon --env-file .env ./src/server.js"
   },
   "prisma": {
   "schema": "src/prisma/schema.prisma"
