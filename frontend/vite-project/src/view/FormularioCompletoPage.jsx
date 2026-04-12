@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import { FiMail, FiUser, FiMapPin, FiPhone } from "react-icons/fi";
-import { validateCelular, validateTelefone } from "../utils/validation";
+import { FiMail, FiUser, FiMapPin, FiPhone, FiEye, FiEyeOff, FiCheck, FiX } from "react-icons/fi";
+import { validateCelular, validateTelefone, formatCPF, formatCNPJ } from "../utils/validation";
 
 function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess }) {
   const [formData, setFormData] = useState({
-    email: "",
-    confirmarEmail: "",
+    email: preRegisterData?.email || "",
+    confirmarEmail: preRegisterData?.email || "",
     senha: "",
     confirmarSenha: "",
     tipoCadastro: preRegisterData?.tipo || "fisica",
-    nome: "",
-    cnpj: "",
-    razaoSocial: "",
+    nome: preRegisterData?.nome || "",
+    cpf: preRegisterData?.cpf || "",
+    cnpj: preRegisterData?.cnpj || "",
+    razaoSocial: preRegisterData?.razaoSocial || "",
     inscricaoEstadual: "",
     celular: "",
     telefone: "",
@@ -21,12 +22,52 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess }) {
     complemento: "",
     referencia: "",
     bairro: "",
-    cidade: "",
     estado: "",
+    funcao: "",
+    tipo_registro_profissional: "",
+    numero_registro_profissional: "",
   });
 
   const [errorMessage, setErrorMessage] = useState("");
   const [loadingCep, setLoadingCep] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+
+  // Calcula a força da senha
+  const getPasswordStrength = (password) => {
+    let score = 0;
+    if (password.length >= 6) score += 1;
+    if (/(?=.*[a-z])/.test(password)) score += 1;
+    if (/(?=.*[A-Z])/.test(password)) score += 1;
+    if (/(?=.*\d)/.test(password)) score += 1;
+    if (/(?=.*[@$!%*?&])/.test(password)) score += 1;
+    return score;
+  };
+
+  const strengthScore = getPasswordStrength(formData.senha);
+  
+  const renderStrengthBar = () => {
+    if (formData.senha.length === 0) return null;
+    let color = "bg-red-500";
+    let text = "Muito Fraca";
+    let width = "w-1/4";
+
+    if (strengthScore === 2) { color = "bg-orange-500"; text = "Fraca"; width = "w-2/4"; }
+    else if (strengthScore === 3 || strengthScore === 4) { color = "bg-yellow-500"; text = "Boa"; width = "w-3/4"; }
+    else if (strengthScore === 5) { color = "bg-green-500"; text = "Forte"; width = "w-full"; }
+
+    return (
+      <div className="mt-2">
+        <div className="flex items-center justify-between text-xs mb-1">
+          <span className="font-medium text-gray-500">Força da Senha:</span>
+          <span className={`font-semibold ${color.replace('bg-', 'text-')}`}>{text}</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-1.5">
+          <div className={`${color} h-1.5 rounded-full transition-all duration-300 ${width}`}></div>
+        </div>
+      </div>
+    );
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -90,6 +131,9 @@ const handleSubmit = async (e) => {
         ...formData,
         cpf: preRegisterData?.cpf || "",
         cnpj: preRegisterData?.cnpj || "",
+        funcao: formData.funcao,
+        tipo_registro_profissional: formData.tipo_registro_profissional,
+        numero_registro_profissional: formData.numero_registro_profissional,
       }),
     });
 
@@ -149,26 +193,50 @@ const handleSubmit = async (e) => {
 
             <div>
               <label className="text-sm font-medium">Crie uma senha</label>
-              <input
-                type="password"
-                name="senha"
-                value={formData.senha}
-                onChange={handleChange}
-                className="border rounded-lg w-full p-2"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={mostrarSenha ? "text" : "password"}
+                  name="senha"
+                  value={formData.senha}
+                  onChange={handleChange}
+                  className="border rounded-lg w-full p-2 pr-10 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  {mostrarSenha ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
+              {renderStrengthBar()}
             </div>
 
             <div>
               <label className="text-sm font-medium">Confirmar senha</label>
-              <input
-                type="password"
-                name="confirmarSenha"
-                value={formData.confirmarSenha}
-                onChange={handleChange}
-                className="border rounded-lg w-full p-2"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={mostrarConfirmarSenha ? "text" : "password"}
+                  name="confirmarSenha"
+                  value={formData.confirmarSenha}
+                  onChange={handleChange}
+                  className={`border rounded-lg w-full p-2 pr-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                    formData.confirmarSenha && formData.senha !== formData.confirmarSenha ? 'border-red-500' : ''
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  {mostrarConfirmarSenha ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
+              {formData.confirmarSenha && formData.senha !== formData.confirmarSenha && (
+                <p className="text-red-500 text-xs mt-1">As senhas não coincidem.</p>
+              )}
             </div>
           </div>
         </fieldset>
@@ -221,6 +289,19 @@ const handleSubmit = async (e) => {
               required
             />
 
+            {formData.tipoCadastro === "fisica" && (
+              <input
+                type="text"
+                name="cpf"
+                placeholder="CPF"
+                value={formData.cpf}
+                onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
+                className="border rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                maxLength="14"
+                required
+              />
+            )}
+
             {formData.tipoCadastro === "juridica" && (
               <>
                 <input
@@ -228,8 +309,9 @@ const handleSubmit = async (e) => {
                   name="cnpj"
                   placeholder="CNPJ"
                   value={formData.cnpj}
-                  onChange={handleChange}
-                  className="border rounded-lg p-2"
+                  onChange={(e) => setFormData({ ...formData, cnpj: formatCNPJ(e.target.value) })}
+                  className="border rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  maxLength="18"
                   required
                 />
 
@@ -272,6 +354,52 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               className="border rounded-lg p-2"
             />
+          </div>
+        </fieldset>
+
+        {/* DADOS PROFISSIONAIS */}
+        <fieldset className="border rounded-lg p-5">
+          <legend className="font-semibold text-lg flex items-center gap-2">
+            <FiUser /> Dados Profissionais
+          </legend>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+              <label className="text-sm font-medium">Função/Cargo (Opcional)</label>
+              <input
+                type="text"
+                name="funcao"
+                placeholder="Ex: Engenheiro, Arquiteto"
+                value={formData.funcao}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Tipo de Registro (Opcional)</label>
+              <select
+                name="tipo_registro_profissional"
+                value={formData.tipo_registro_profissional}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+              >
+                <option value="">Selecione...</option>
+                <option value="CREA">CREA</option>
+                <option value="CAU">CAU</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Número do Registro (Opcional)</label>
+              <input
+                type="text"
+                name="numero_registro_profissional"
+                placeholder="Ex: 12345/D-SP"
+                value={formData.numero_registro_profissional}
+                onChange={handleChange}
+                className="border rounded-lg w-full p-2"
+              />
+            </div>
           </div>
         </fieldset>
 

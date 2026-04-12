@@ -22,22 +22,37 @@ export async function listarObras(req, res) {
  */
 export async function criarObra(req, res) {
   try {
-    const { nome_obra, userId } = req.body;
-    if (!nome_obra || !userId) {
+    const { 
+      nome_obra, nome, tipo_obra, userId, id_status,
+      cep, logradouro, numero, bairro, cidade, estado,
+      latitude, longitude, data_inicio, previsao_termino,
+      valor_orcado, custo_atual, observacoes
+    } = req.body;
+
+    const finalNome = nome_obra || nome;
+    if (!finalNome || !userId) {
       return res.status(400).json({ erro: 'Nome da obra e ID do usuário são obrigatórios' });
     }
 
-
     const novaObra = await ObraModel.create({
-      nome: nome_obra,
+      nome: finalNome,
+      tipo_obra,
+      cep, logradouro, numero, bairro, cidade, estado,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
+      data_inicio: data_inicio ? new Date(data_inicio) : null,
+      previsao_termino: previsao_termino ? new Date(previsao_termino) : null,
+      valor_orcado: valor_orcado ? Number(valor_orcado) : null,
+      custo_atual: custo_atual ? Number(custo_atual) : null,
+      observacoes,
       id_usuario_responsavel: Number(userId),
-      id_status: 1,
+      id_status: id_status ? Number(id_status) : 1,
     });
 
     res.status(201).json(novaObra);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao criar obra' });
+    console.error("Erro ao criar obra:", error);
+    res.status(500).json({ erro: 'Erro ao criar obra', detalhe: error.message });
   }
 }
 

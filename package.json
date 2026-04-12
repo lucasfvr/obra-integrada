@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --env-file .env ./server.js",
-    "dev": "concurrently \"npm run dev:front\" \"npm run dev:back\"",
-    "dev:front": "npm run dev --prefix frontend/vite-project",
-    "dev:back": "npm run start --prefix backend"
+    "dev": "concurrently -c \"blue,green\" --names \"FRONTEND,BACKEND\" \"npm run frontend\" \"npm run backend\"",
+    "frontend": "npm run dev --prefix frontend/vite-project",
+    "backend": "npm run start --prefix backend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend/vite-project",
+    "db:push": "npx prisma db push --schema=backend/src/prisma/schema.prisma"
   },
   "type": "module",
   "keywords": [],
@@ -15,13 +15,12 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/adapter-pg": "^7.4.1",
-    "@prisma/client": "^7.4.1",
+    "@prisma/client": "5.22.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "prisma": "^7.4.1"
+    "prisma": "5.22.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

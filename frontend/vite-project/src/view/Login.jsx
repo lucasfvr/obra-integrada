@@ -59,24 +59,8 @@ function LoginModal({ onLogin, onClose, openRegister }) {
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) {
-          setPointerDownOnOverlay(true);
-        } else {
-          setPointerDownOnOverlay(false);
-        }
-      }}
-      onClick={(e) => {
-        if (e.target !== e.currentTarget) return;
-        if (pointerDownOnOverlay) {
-          onClose();
-        }
-        setPointerDownOnOverlay(false);
-      }}
     >
       <div
-        onMouseDown={() => setPointerDownOnOverlay(false)}
-        onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 relative"
       >
         <button

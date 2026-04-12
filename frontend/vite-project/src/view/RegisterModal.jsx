@@ -133,24 +133,8 @@
     return (
       <div
         className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget) {
-            setPointerDownOnOverlay(true);
-          } else {
-            setPointerDownOnOverlay(false);
-          }
-        }}
-        onClick={(e) => {
-          if (e.target !== e.currentTarget) return;
-          if (pointerDownOnOverlay) {
-            onClose();
-          }
-          setPointerDownOnOverlay(false);
-        }}
       >
         <div
-          onMouseDown={() => setPointerDownOnOverlay(false)}
-          onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative"
         >
           {/* Botão de fechar */}

@@ -156,7 +156,9 @@ export async function formularioCompleto(req, res) {
       senha: hashedSenha,
       telefone: celular || telefone || null,
       tipo_usuario: tipoCadastro,
-  
+      funcao: req.body.funcao || null,
+      tipo_registro_profissional: req.body.tipo_registro_profissional || null,
+      numero_registro_profissional: req.body.numero_registro_profissional || null,
     });
 
     return res.status(201).json({
