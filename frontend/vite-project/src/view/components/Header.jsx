@@ -7,7 +7,7 @@ const UserIcon = () => (
     </svg>
 );
 
-function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogout }) {
+function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogout, onDevBypass }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
@@ -57,6 +57,11 @@ function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogo
                         </div>
                     ) : (
                         <>
+                            {onDevBypass && (
+                                <button onClick={onDevBypass} className="hidden sm:block text-orange-500 font-bold border border-orange-500 px-2 py-1 rounded text-xs hover:bg-orange-500 hover:text-white transition">
+                                    [DEV] Pular Login
+                                </button>
+                            )}
                             <button onClick={onLoginClick} className="hidden sm:block text-slate-600 font-semibold hover:text-indigo-600 active:text-indigo-800 transition">
                                 Login
                             </button>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiMail, FiUser, FiMapPin, FiPhone, FiEye, FiEyeOff, FiCheck, FiX } from "react-icons/fi";
-import { validateCelular, validateTelefone, formatCPF, formatCNPJ } from "../utils/validation";
+import { validateCelular, validateTelefone, formatCPF, formatCNPJ, formatCelular, formatTelefone } from "../utils/validation";
 
 function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess }) {
   const [formData, setFormData] = useState({
@@ -56,10 +56,26 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess }) {
     else if (strengthScore === 3 || strengthScore === 4) { color = "bg-yellow-500"; text = "Boa"; width = "w-3/4"; }
     else if (strengthScore === 5) { color = "bg-green-500"; text = "Forte"; width = "w-full"; }
 
+    const hasMinLength = formData.senha.length >= 6;
+    const hasUpper = /(?=.*[A-Z])/.test(formData.senha);
+    const hasLower = /(?=.*[a-z])/.test(formData.senha);
+    const hasNumber = /(?=.*\d)/.test(formData.senha);
+
     return (
       <div className="mt-2">
+        <ul className="text-xs text-gray-600 mb-2 space-y-1">
+          <li className={`flex items-center gap-1 ${hasMinLength ? "text-green-600 font-medium" : "text-gray-500"}`}>
+            {hasMinLength ? <FiCheck className="text-green-500" /> : <FiX className="text-red-400" />} Mínimo de 6 caracteres
+          </li>
+          <li className={`flex items-center gap-1 ${hasUpper && hasLower ? "text-green-600 font-medium" : "text-gray-500"}`}>
+            {hasUpper && hasLower ? <FiCheck className="text-green-500" /> : <FiX className="text-red-400" />} Letra maiúscula e minúscula
+          </li>
+          <li className={`flex items-center gap-1 ${hasNumber ? "text-green-600 font-medium" : "text-gray-500"}`}>
+            {hasNumber ? <FiCheck className="text-green-500" /> : <FiX className="text-red-400" />} Pelo menos 1 número
+          </li>
+        </ul>
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="font-medium text-gray-500">Força da Senha:</span>
+          <span className="font-medium text-gray-500">Nível de Segurança:</span>
           <span className={`font-semibold ${color.replace('bg-', 'text-')}`}>{text}</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -124,7 +140,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    const response = await fetch("http://localhost:3000/api/users/formulario", {
+    const response = await fetch("http://localhost:5000/api/users/formulario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -336,24 +352,36 @@ const handleSubmit = async (e) => {
               </>
             )}
 
-            <input
-              type="text"
-              name="celular"
-              placeholder="Celular"
-              value={formData.celular}
-              onChange={handleChange}
-              className="border rounded-lg p-2"
-              required
-            />
+            <div>
+              <input
+                type="text"
+                name="celular"
+                placeholder="Celular Principal"
+                value={formData.celular}
+                onChange={(e) => setFormData({ ...formData, celular: formatCelular(e.target.value) })}
+                className="border rounded-lg p-2 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                maxLength="15"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">Sua forma primária de contato</p>
+            </div>
 
-            <input
-              type="text"
-              name="telefone"
-              placeholder="Telefone fixo (opcional)"
-              value={formData.telefone}
-              onChange={handleChange}
-              className="border rounded-lg p-2"
-            />
+            <div>
+              <input
+                type="text"
+                name="telefone"
+                placeholder="Celular 2 ou Telefone Fixo (Opcional)"
+                value={formData.telefone}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Aplica mascara formata de celular ou telefone baseado no tamanho do que o usuario compilar
+                  setFormData({ ...formData, telefone: val.replace(/\D/g,"").length > 10 ? formatCelular(val) : formatTelefone(val) })
+                }}
+                className="border rounded-lg p-2 w-full focus:outline-none flex-grow"
+                maxLength="15"
+              />
+              <p className="text-xs text-gray-500 mt-1">Contato secundário ou fixo</p>
+            </div>
           </div>
         </fieldset>
 

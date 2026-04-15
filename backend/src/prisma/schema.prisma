@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,20 +13,20 @@ model tb_etapa {
   id_etapa          Int                 @id @default(autoincrement())
   id_obra           Int?
   nome              String?
-  previsao_inicio   DateTime?           
-  previsao_fim      DateTime?           
+  previsao_inicio   DateTime?           @db.Date
+  previsao_fim      DateTime?           @db.Date
   id_status         Int?
-  tb_status         tb_status?          @relation(fields: [id_status], references: [id_status], onDelete: NoAction, onUpdate: NoAction)
+  tb_status         tb_status?          @relation(fields: [id_status], references: [id_status], onDelete: NoAction, onUpdate: NoAction, map: "fk_etapa_status")
   tb_obra           tb_obra?            @relation(fields: [id_obra], references: [id_obra], onDelete: NoAction, onUpdate: NoAction)
   tb_etapa_material tb_etapa_material[]
 
-  @@index([id_obra])
+  @@index([id_obra], map: "idx_etapa_obra")
 }
 
 model tb_etapa_material {
   id_etapa    Int
   id_material Int
-  quantidade  Decimal?    
+  quantidade  Decimal?    @db.Decimal(10, 2)
   tb_etapa    tb_etapa    @relation(fields: [id_etapa], references: [id_etapa], onDelete: Cascade, onUpdate: NoAction)
   tb_material tb_material @relation(fields: [id_material], references: [id_material], onDelete: NoAction, onUpdate: NoAction)
 
@@ -43,13 +43,13 @@ model tb_material {
   id_material             Int                       @id @default(autoincrement())
   nome                    String
   unidade_medida          String?
-  preco_unitario          Decimal?                  
-  criado_em               DateTime?                 @default(now()) 
-  densidade               Decimal?                  
-  resistencia             Decimal?                  
-  volume_unitario         Decimal?                  
-  peso_unitario           Decimal?                  
-  quantidade_atual        Decimal?                  
+  preco_unitario          Decimal?                  @db.Decimal(10, 2)
+  criado_em               DateTime?                 @default(now()) @db.Timestamp(6)
+  densidade               Decimal?                  @db.Decimal(10, 3)
+  resistencia             Decimal?                  @db.Decimal(10, 2)
+  volume_unitario         Decimal?                  @db.Decimal(10, 3)
+  peso_unitario           Decimal?                  @db.Decimal(10, 3)
+  quantidade_atual        Decimal?                  @db.Decimal(10, 3)
   observacoes             String?
   tb_etapa_material       tb_etapa_material[]
   tb_material_fabricante  tb_material_fabricante[]
@@ -68,7 +68,7 @@ model tb_material_fabricante {
 model tb_material_requisitado {
   id_requisicao Int
   id_material   Int
-  quantidade    Decimal?      
+  quantidade    Decimal?      @db.Decimal(10, 2)
   tb_material   tb_material   @relation(fields: [id_material], references: [id_material], onDelete: NoAction, onUpdate: NoAction)
   tb_requisicao tb_requisicao @relation(fields: [id_requisicao], references: [id_requisicao], onDelete: NoAction, onUpdate: NoAction)
 
@@ -78,33 +78,67 @@ model tb_material_requisitado {
 model tb_obra {
   id_obra                Int               @id @default(autoincrement())
   nome                   String
-  tipo_obra              String?            // Residencial, Comercial, Industrial
+  tipo_obra              String?
   logradouro             String?
-  numero                 String?           
+  numero                 String?
   bairro                 String?
   cidade                 String?
-  estado                 String?           
-  cep                    String?           
-  latitude               Decimal?          
-  longitude              Decimal?          
-  data_inicio            DateTime?         
-  previsao_termino       DateTime?         
-  data_termino_real      DateTime?         
-  valor_orcado           Decimal?          
-  custo_atual            Decimal?          
-  observacoes            String?           
+  estado                 String?           @db.Char(2)
+  cep                    String?
+  latitude               Decimal?          @db.Decimal(10, 7)
+  longitude              Decimal?          @db.Decimal(10, 7)
+  data_inicio            DateTime?         @db.Date
+  previsao_termino       DateTime?         @db.Date
+  data_termino_real      DateTime?         @db.Date
+  valor_orcado           Decimal?          @db.Decimal(12, 2)
+  custo_atual            Decimal?          @db.Decimal(12, 2)
+  observacoes            String?
   id_usuario_responsavel Int?
   id_status              Int?
-
   tb_etapa               tb_etapa[]
-  tb_status              tb_status?        @relation(fields: [id_status], references: [id_status], onDelete: NoAction, onUpdate: NoAction)
-  tb_usuario             tb_usuario?       @relation(fields: [id_usuario_responsavel], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  tb_status              tb_status?        @relation(fields: [id_status], references: [id_status], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra_status")
+  tb_usuario             tb_usuario?       @relation(fields: [id_usuario_responsavel], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra_usuario")
   tb_requisicao          tb_requisicao[]
   tb_usuario_obra        tb_usuario_obra[]
   tb_documento           tb_documento[]
   tb_obra_cliente        tb_obra_cliente[]
+  tb_diario_obra         tb_diario_obra[]
+  tb_tarefa              tb_tarefa[]
+  tb_estoque_obra        tb_estoque_obra[]
+  tb_financeiro_obra     tb_financeiro_obra[]
+  contato_emergencia_nome String?
+  contato_emergencia_fone String?
 
-  @@index([id_usuario_responsavel])
+  /// Dados Técnicos
+  area_terreno           Float?
+  area_construida        Float?
+  objetivo               String?           @db.Text
+  nome_proprietario_obra String?
+
+  /// Legalização
+  numero_alvara          String?
+  art_rrt                String?
+
+  /// Breakdown de Orçamento
+  orcamento_material     Decimal?          @db.Decimal(12, 2)
+  orcamento_mao_obra     Decimal?          @db.Decimal(12, 2)
+  orcamento_taxas        Decimal?          @db.Decimal(12, 2)
+
+  @@index([id_usuario_responsavel], map: "idx_obra_usuario")
+}
+
+/// Estoque inicial de materiais por obra (separado do catálogo global tb_material)
+model tb_estoque_obra {
+  id_estoque     Int      @id @default(autoincrement())
+  id_obra        Int
+  nome_material  String
+  unidade_medida String   @default("Unidade")
+  quantidade     Decimal  @db.Decimal(10, 3) @default(0)
+  criado_em      DateTime @default(now()) @db.Timestamp(6)
+  tb_obra        tb_obra  @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
+  tb_movimentacao tb_movimentacao_estoque[]
+
+  @@index([id_obra], map: "idx_estoque_obra")
 }
 
 model tb_papel {
@@ -116,15 +150,15 @@ model tb_papel {
 model tb_requisicao {
   id_requisicao           Int                       @id @default(autoincrement())
   id_obra                 Int?
-  quantidade_planejada    Decimal?                  
-  quantidade_usada        Decimal?                  
-  data_registro           DateTime?                 @default(now()) 
+  quantidade_planejada    Decimal?                  @db.Decimal(10, 2)
+  quantidade_usada        Decimal?                  @db.Decimal(10, 2)
+  data_registro           DateTime?                 @default(now()) @db.Timestamp(6)
   id_usuario              Int?
   tb_material_requisitado tb_material_requisitado[]
-  tb_usuario              tb_usuario?               @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  tb_usuario              tb_usuario?               @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "fk_req_usuario")
   tb_obra                 tb_obra?                  @relation(fields: [id_obra], references: [id_obra], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([id_obra])
+  @@index([id_obra], map: "idx_req_obra")
 }
 
 model tb_status {
@@ -139,36 +173,53 @@ model tb_usuario {
   nome                         String
   funcao                       String?
   telefone                     String?
-  email                        String?
-  username                     String?
+  email                        String?           @unique
+  username                     String?           @unique
   senha                        String?
   tipo_registro_profissional   String?
   numero_registro_profissional String?
   tipo_usuario                 String?
+  role                         String?           @default("USER")
+  id_cliente                   Int?              // Elo com a empresa/construtora
+  tb_cliente                   tb_cliente?       @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_cliente")
   tb_obra                      tb_obra[]
   tb_requisicao                tb_requisicao[]
   tb_usuario_obra              tb_usuario_obra[]
+  tb_diario_obra               tb_diario_obra[]
+  tb_tarefa_usuario            tb_tarefa_usuario[]
+  tb_movimentacao_estoque      tb_movimentacao_estoque[]
+  tb_financeiro_obra           tb_financeiro_obra[]
+  /// PENDENTE | VERIFICADO | INVALIDO
+  status_profissional          String?           @default("PENDENTE")
+  certificacoes                Json?             // [{nome: 'NR10', validade: '2025-01-01'}]
+  experiencias                 String?           @db.Text
+  endereco                     String?
 }
 
 model tb_usuario_obra {
   id_usuario Int
   id_obra    Int
   id_papel   Int?
-  tb_papel   tb_papel?  @relation(fields: [id_papel], references: [id_papel], onDelete: NoAction, onUpdate: NoAction)
+  tb_papel   tb_papel?  @relation(fields: [id_papel], references: [id_papel], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_obra_papel")
   tb_obra    tb_obra    @relation(fields: [id_obra], references: [id_obra], onDelete: NoAction, onUpdate: NoAction)
   tb_usuario tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  valor_dia  Decimal?   @db.Decimal(10, 2) @default(0)
 
   @@id([id_usuario, id_obra])
 }
 
 model tb_cliente {
-  id_cliente   Int               @id @default(autoincrement())
-  nome_razao   String
-  cpf_cnpj     String            @unique 
-  telefone     String?           
-  email        String?
-  criado_em    DateTime?         @default(now()) 
+  id_cliente      Int               @id @default(autoincrement())
+  nome_razao      String
+  cpf_cnpj        String            @unique
+  telefone        String?
+  email           String?
+  criado_em       DateTime?         @default(now()) @db.Timestamp(6)
+  /// ATIVO | INATIVO | TRIAL | SUSPENSO
+  status_assinatura String?          @default("ATIVO")
+  validade_plano    DateTime?        @db.Date
   tb_obra_cliente tb_obra_cliente[]
+  tb_usuario      tb_usuario[]
 }
 
 model tb_obra_cliente {
@@ -184,8 +235,98 @@ model tb_documento {
   id_documento Int       @id @default(autoincrement())
   id_obra      Int
   nome         String
-  tipo         String?    // Planta, Contrato, Licença, Foto, etc
+  tipo         String?
   url          String
-  data_upload  DateTime? @default(now()) 
+  data_upload  DateTime? @default(now()) @db.Timestamp(6)
   tb_obra      tb_obra   @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
 }
+
+/// Diário da obra — registros diários com foto e descricão
+model tb_diario_obra {
+  id_diario     Int        @id @default(autoincrement())
+  id_obra       Int
+  id_usuario    Int
+
+  /// Caminho relativo no storage: "diario/uuid-timestamp.jpg"
+  foto_url      String?
+
+  descricao     String
+  data_registro DateTime   @default(now()) @db.Timestamp(6)
+
+  /// Campos de Auditoria Geográfica (Fase 3)
+  latitude           Decimal? @db.Decimal(10, 7)
+  longitude          Decimal? @db.Decimal(10, 7)
+  status_auditoria   String   @default("AUTOMATICO") // AUTOMATICO | PENDENTE | AUTORIZADO | REPROVADO
+  justificativa_gps  String?  @db.Text
+
+  tb_obra       tb_obra    @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
+
+  tb_usuario    tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_obra], map: "idx_diario_obra")
+  @@index([id_usuario], map: "idx_diario_usuario")
+}
+
+/// Tarefas atribuídas a membros de uma obra
+model tb_tarefa {
+  id_tarefa  Int         @id @default(autoincrement())
+  id_obra    Int
+  titulo     String
+  descricao  String?
+  /// PENDENTE | EM_ANDAMENTO | CONCLUIDA
+  status     String      @default("PENDENTE")
+  /// BAIXA | NORMAL | ALTA | URGENTE
+  prioridade String      @default("NORMAL")
+  prazo      DateTime?   @db.Date
+  criado_em  DateTime    @default(now()) @db.Timestamp(6)
+  /// 0 a 100
+  percentual_concluido Int @default(0)
+
+  tb_obra            tb_obra             @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
+  tb_tarefa_usuario  tb_tarefa_usuario[]
+
+  @@index([id_obra], map: "idx_tarefa_obra")
+}
+
+model tb_tarefa_usuario {
+  id_tarefa  Int
+  id_usuario Int
+  tb_tarefa  tb_tarefa  @relation(fields: [id_tarefa], references: [id_tarefa], onDelete: Cascade)
+  tb_usuario tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@id([id_tarefa, id_usuario])
+}
+
+model tb_movimentacao_estoque {
+  id_movimentacao     Int      @id @default(autoincrement())
+  id_estoque          Int
+  id_usuario          Int
+  tipo                String   // ENTRADA | SAIDA
+  quantidade          Decimal  @db.Decimal(10, 3)
+  origem_fornecedor   String?
+  data_registro       DateTime @default(now()) @db.Timestamp(6)
+  id_financeiro       Int?     // Link opcional para o registro financeiro
+  tb_estoque          tb_estoque_obra @relation(fields: [id_estoque], references: [id_estoque], onDelete: Cascade)
+  tb_usuario          tb_usuario      @relation(fields: [id_usuario], references: [id_usuario])
+  tb_financeiro       tb_financeiro_obra? @relation(fields: [id_financeiro], references: [id_financeiro])
+}
+
+model tb_financeiro_obra {
+  id_financeiro      Int      @id @default(autoincrement())
+  id_obra            Int
+  id_usuario         Int      // Quem registrou
+  tipo               String   // RECEITA | DESPESA
+  valor              Decimal  @db.Decimal(12, 2)
+  descricao          String?  // Justificativa
+  data_vencimento    DateTime? @db.Date
+  data_pagamento     DateTime? @db.Date
+  numero_nota_fiscal String?
+  url_comprovante    String?
+  criado_em          DateTime @default(now()) @db.Timestamp(6)
+  
+  tb_obra            tb_obra  @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  tb_usuario         tb_usuario @relation(fields: [id_usuario], references: [id_usuario])
+  tb_movimentacao    tb_movimentacao_estoque[]
+}
+
+

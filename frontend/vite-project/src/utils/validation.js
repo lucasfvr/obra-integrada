@@ -141,17 +141,29 @@ export const validateName = (name) => {
   return { valid: true, message: "Nome válido" };
 };
 
+// Formata Celular: 11987654321 -> (11) 98765-4321
+export const formatCelular = (value) => {
+  const cleaned = value.replace(/\D/g, "").slice(0, 11);
+  if (cleaned.length <= 2) return cleaned;
+  if (cleaned.length <= 6) return cleaned.replace(/(\d{2})(\d+)/, "($1) $2");
+  if (cleaned.length <= 10) return cleaned.replace(/(\d{2})(\d{4})(\d+)/, "($1) $2-$3");
+  return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+};
+
+// Formata Telefone: 1133334444 -> (11) 3333-4444
+export const formatTelefone = (value) => {
+  const cleaned = value.replace(/\D/g, "").slice(0, 10);
+  if (cleaned.length <= 2) return cleaned;
+  if (cleaned.length <= 6) return cleaned.replace(/(\d{2})(\d+)/, "($1) $2");
+  return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+};
+
 // Valida celular
 export const validateCelular = (celular) => {
   const cleaned = celular.replace(/\D/g, "");
   
   if (cleaned.length !== 11) {
-    return { valid: false, message: "Celular deve ter 11 dígitos" };
-  }
-  
-  // Verifica se começa com 9 (celulares brasileiros)
-  if (cleaned[2] !== "9") {
-    return { valid: false, message: "Celular inválido" };
+    return { valid: false, message: "Celular deve ter 11 dígitos com o DDD" };
   }
   
   return { valid: true, message: "Celular válido" };
@@ -161,13 +173,8 @@ export const validateCelular = (celular) => {
 export const validateTelefone = (telefone) => {
   const cleaned = telefone.replace(/\D/g, "");
   
-  if (cleaned.length !== 10) {
-    return { valid: false, message: "Telefone deve ter 10 dígitos" };
-  }
-  
-  // Verifica se o terceiro dígito não é 9 (telefones fixos não têm 9)
-  if (cleaned[2] === "9") {
-    return { valid: false, message: "Telefone inválido" };
+  if (cleaned.length > 0 && cleaned.length !== 10) {
+    return { valid: false, message: "Telefone deve ter 10 dígitos com o DDD (Opcional)" };
   }
   
   return { valid: true, message: "Telefone válido" };

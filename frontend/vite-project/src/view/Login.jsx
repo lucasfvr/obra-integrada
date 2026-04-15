@@ -39,7 +39,7 @@ function LoginModal({ onLogin, onClose, openRegister }) {
     setErrors({});
 
     try {
-      const response = await fetch("http://localhost:3000/api/users/login", {
+      const response = await fetch("http://localhost:5000/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: usuario, password: senha }),
@@ -47,12 +47,14 @@ function LoginModal({ onLogin, onClose, openRegister }) {
 
       const data = await response.json();
       if (response.ok) {
-        onLogin(data.user);
+        // Salva token para requisicoes autenticadas
+        localStorage.setItem('obraToken', data.token);
+        onLogin({ ...data.user, token: data.token });
       } else {
         setError(data.erro || "E-mail ou senha incorretos");
       }
     } catch (err) {
-      setError("Não foi possível conectar ao servidor.");
+      setError("Nao foi possivel conectar ao servidor.");
     }
   };
 

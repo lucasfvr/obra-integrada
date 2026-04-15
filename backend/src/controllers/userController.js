@@ -64,14 +64,28 @@ export async function loginUser(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user.id_usuario, username: user.username },
+      { 
+        id: user.id_usuario, 
+        username: user.username, 
+        role: user.role || 'USER', 
+        nome: user.nome,
+        funcao: user.funcao,
+        id_cliente: user.id_cliente || null
+      },
       process.env.JWT_SECRET || 'SUPER_SECRET',
-      { expiresIn: '1h' }
+      { expiresIn: '8h' }
     );
 
     return res.status(200).json({
       mensagem: 'Login bem-sucedido!',
-      user: { id: user.id_usuario, username: user.username },
+      user: { 
+        id: user.id_usuario, 
+        username: user.username, 
+        role: user.role || 'USER', 
+        nome: user.nome, 
+        email: user.email,
+        id_cliente: user.id_cliente || null
+      },
       token,
     });
   } catch (error) {
@@ -164,9 +178,99 @@ export async function formularioCompleto(req, res) {
     return res.status(201).json({
       mensagem: 'Cadastro completo realizado com sucesso!',
       userId: novoUsuario.id_usuario,
+      role: novoUsuario.role,
     });
   } catch (error) {
     console.error('ERRO AO SALVAR FORMULÁRIO:', error);
     return res.status(500).json({ erro: 'Erro ao enviar formulário' });
+  }
+}
+
+// ==============================
+// MÉTODOS DE ADMINISTRAÇÃO
+// ==============================
+export async function getAllUsers(req, res) {
+  try {
+    const users = await prisma.tb_usuario.findMany({ 
+      select: { 
+        id_usuario: true, 
+        nome: true, 
+        email: true, 
+        tipo_usuario: true, 
+        role: true,
+        funcao: true 
+      }
+    });
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ erro: 'Erro ao listar usuários' });
+  }
+}
+
+export async function updateUserRole(req, res) {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    
+    if (!role || (role !== 'USER' && role !== 'ADMIN')) {
+      return res.status(400).json({ erro: 'Role inválida' });
+    }
+
+    const updatedUser = await prisma.tb_usuario.update({
+      where: { id_usuario: Number(id) },
+      data: { role },
+      select: { id_usuario: true, nome: true, role: true }
+    });
+
+    return res.status(200).json({ mensagem: 'Cargo atualizado com sucesso!', user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ erro: 'Erro ao atualizar cargo' });
+  }
+}
+
+// ==============================
+// OBTÉM USUÁRIOS DISPONÍVEIS (WIZARD ETAPA 3)
+// ==============================
+export async function getUsuariosDisponiveis(req, res) {
+  try {
+    const { id_cliente } = req.user;
+    
+    // Se for associado a uma construtora (Proprietário ou RH), busca da própria construtora
+    // Para simplificar: buscar todos que não são admins master.
+    // Opcionalmente podemos filtrar por query params: ?funcao=RESPONSAVEL
+    
+    let whereClause = {
+      role: { notIn: ['ADMIN_MASTER', 'ADMIN'] }
+    };
+
+    if (id_cliente) {
+      whereClause.id_cliente = id_cliente;
+    }
+
+    const { funcao } = req.query;
+    if (funcao) {
+      if (funcao === 'RESPONSAVEL') whereClause.role = 'RESPONSAVEL';
+      else if (funcao === 'TRABALHADOR') whereClause.role = 'TRABALHADOR';
+      else whereClause.funcao = funcao;
+    }
+
+    const users = await prisma.tb_usuario.findMany({
+      where: whereClause,
+      select: {
+        id_usuario: true,
+        nome: true,
+        role: true,
+        funcao: true,
+        tipo_registro_profissional: true,
+        numero_registro_profissional: true
+      }
+    });
+    
+    res.json(users);
+  } catch (error) {
+    console.error('[USER] Erro ao buscar usuários disponíveis:', error);
+    res.status(500).json({ erro: 'Erro ao buscar usuários disponíveis' });
   }
 }
