@@ -7,7 +7,7 @@
     "test:coverage": "c8 poku",
     "start": "nodemon --env-file .env ./src/server.js",
     "seed": "node --env-file .env ./src/prisma/seed.js",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --schema=src/prisma/schema.prisma"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma",
