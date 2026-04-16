@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
@@ -46,7 +47,7 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
-      const res = await apiFetch('http://localhost:5000/api/usuarios-disponiveis');
+      const res = await apiFetch('${API_BASE_URL}/api/usuarios-disponiveis');
       if (res.ok) {
         const data = await res.json();
         setAvailableUsers(data);
@@ -79,8 +80,8 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
     e.preventDefault();
     const isEdit = !!editingMember;
     const url = isEdit 
-      ? `http://localhost:5000/api/obras/${idObra}/equipe/${editingMember.id_usuario}`
-      : `http://localhost:5000/api/obras/${idObra}/equipe`;
+      ? `${API_BASE_URL}/api/obras/${idObra}/equipe/${editingMember.id_usuario}`
+      : `${API_BASE_URL}/api/obras/${idObra}/equipe`;
     
     try {
       const res = await apiFetch(url, {
@@ -104,7 +105,7 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
   const handleDelete = async (idUsuario) => {
     if (!window.confirm("Remover este membro da equipe?")) return;
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/equipe/${idUsuario}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/equipe/${idUsuario}`, {
         method: 'DELETE'
       });
       if (res.ok) {

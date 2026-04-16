@@ -6,10 +6,12 @@
     "test": "poku",
     "test:coverage": "c8 poku",
     "start": "nodemon --env-file .env ./src/server.js",
-    "seed:testes": "node --env-file=.env src/prisma/seedTestes.js"
+    "seed": "node --env-file .env ./src/prisma/seed.js",
+    "postinstall": "prisma generate"
   },
   "prisma": {
-    "schema": "src/prisma/schema.prisma"
+    "schema": "src/prisma/schema.prisma",
+    "seed": "node ./src/prisma/seed.js"
   },
   "type": "module",
   "keywords": [],

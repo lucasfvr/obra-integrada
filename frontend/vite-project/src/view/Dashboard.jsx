@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config/api.js";
 import React, { useState, useEffect } from "react";
 import ObrasList from "./ObraList.jsx";
 import MaterialForm from "./MaterialForm.jsx";
@@ -21,7 +22,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const fetchAllUsers = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/admin/users', {
+            const response = await fetch('${API_BASE_URL}/api/admin/users', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -35,7 +36,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handlePromoteAdmin = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handleDemoteAdmin = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
         if (!currentUser) return;
         setLoading(true);
         try {
-            const response = await apiFetch(`http://localhost:5000/api/obras?userId=${currentUser.id || currentUser.id_usuario}`);
+            const response = await apiFetch(`${API_BASE_URL}/api/obras?userId=${currentUser.id || currentUser.id_usuario}`);
             const res = await response.json();
             if (response.ok) {
                 // Suporte a { data, meta } ou array simples
@@ -88,7 +89,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handleAdicionarObra = async (nome_obra) => {
         try {
-            const response = await apiFetch('http://localhost:5000/api/obras', {
+            const response = await apiFetch('${API_BASE_URL}/api/obras', {
                 method: 'POST',
                 body: JSON.stringify({ nome_obra, userId: currentUser.id || currentUser.id_usuario })
             });
@@ -101,7 +102,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handleRemoverObra = async (obraId) => {
         try {
-            const response = await apiFetch(`http://localhost:5000/api/obras/${obraId}`, {
+            const response = await apiFetch(`${API_BASE_URL}/api/obras/${obraId}`, {
                 method: 'DELETE',
                 body: JSON.stringify({ userId: currentUser.id || currentUser.id_usuario })
             });

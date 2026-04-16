@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../../components/Guards/PermissaoGuard.jsx';
@@ -32,7 +33,7 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
       if (!idObra) return;
       setLoading(true);
       try {
-        const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/documentos`);
+        const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/documentos`);
         const data = await res.json();
         setDocs(data);
       } catch (e) {
@@ -53,7 +54,7 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
       formData.append('nome', uploadData.nome || selectedFile.name);
       formData.append('tipo', uploadData.tipo);
 
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/documentos`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/documentos`, {
         method: 'POST',
         body: formData
       });
@@ -131,7 +132,7 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
                     <div className="w-14 h-14 bg-slate-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all">
                       {renderIcon(doc.tipo)}
                     </div>
-                    <a href={`http://localhost:5000${doc.url}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
+                    <a href={`${API_BASE_URL}${doc.url}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                     </a>
                  </div>

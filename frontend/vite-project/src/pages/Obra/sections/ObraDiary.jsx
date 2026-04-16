@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../../components/Guards/PermissaoGuard.jsx';
@@ -45,7 +46,7 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh })
   const fetchAllEntries = async () => {
     try {
       setLoading(true);
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/diario`);
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/diario`);
       if (res.ok) {
         const resData = await res.json();
         // REQUISITO B: Suporte a { data, meta } ou array simples
@@ -125,7 +126,7 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh })
   const handleUpdate = async () => {
     try {
       setSaving(true);
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/diario/${editingEntry.id_diario}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/diario/${editingEntry.id_diario}`, {
         method: 'PUT',
         body: JSON.stringify({ descricao: newEntry.descricao })
       });
@@ -173,7 +174,7 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh })
       if (newEntry.foto) formData.append('foto', newEntry.foto);
 
       const token = localStorage.getItem('obraToken');
-      const res = await fetch(`http://localhost:5000/api/obras/${idObra}/diario`, {
+      const res = await fetch(`${API_BASE_URL}/api/obras/${idObra}/diario`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -251,7 +252,7 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh })
                  <div className="md:w-1/2 h-80 overflow-hidden relative border-r dark:border-gray-800">
                     {entry.foto_url ? (
                       <img 
-                        src={`http://localhost:5000${entry.foto_url}`} 
+                        src={`${API_BASE_URL}${entry.foto_url}`} 
                         alt="Evidência" 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />

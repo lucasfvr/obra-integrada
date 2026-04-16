@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config/api.js";
 import React, { useState } from "react";
 import { FiMail, FiUser, FiMapPin, FiPhone, FiEye, FiEyeOff, FiCheck, FiX } from "react-icons/fi";
 import { validateCelular, validateTelefone, formatCPF, formatCNPJ, formatCelular, formatTelefone } from "../utils/validation";
@@ -140,7 +141,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    const response = await fetch("http://localhost:5000/api/users/formulario", {
+    const response = await fetch("${API_BASE_URL}/api/users/formulario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

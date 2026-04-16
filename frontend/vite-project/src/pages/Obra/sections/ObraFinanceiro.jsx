@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
@@ -24,7 +25,7 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
   const fetchFinanceiro = async () => {
     try {
       setLoading(true);
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/financeiro`);
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/financeiro`);
       if (res.ok) {
         const data = await res.json();
         setRecords(data);
@@ -45,7 +46,7 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
     const total = Number(orcamentoData.orcamento_material || 0) + Number(orcamentoData.orcamento_mao_obra || 0) + Number(orcamentoData.orcamento_taxas || 0);
 
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}`, {
         method: 'PUT',
         body: JSON.stringify({
           ...obra,
@@ -67,7 +68,7 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/financeiro`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/financeiro`, {
         method: 'POST',
         body: JSON.stringify(formData)
       });

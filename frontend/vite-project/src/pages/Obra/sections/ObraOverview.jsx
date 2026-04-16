@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { toast } from 'react-hot-toast';
@@ -50,7 +51,7 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
 
   const fetchResponsibles = async () => {
     try {
-      const res = await apiFetch('http://localhost:5000/api/usuarios-disponiveis?funcao=RESPONSAVEL');
+      const res = await apiFetch('${API_BASE_URL}/api/usuarios-disponiveis?funcao=RESPONSAVEL');
       if (res.ok) {
         const data = await res.json();
         setAvailableResponsibles(data);
@@ -68,7 +69,7 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${obra.id_obra}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${obra.id_obra}`, {
         method: 'PUT',
         body: JSON.stringify({
           ...editForm,
@@ -95,7 +96,7 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${obra.id_obra}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${obra.id_obra}`, {
         method: 'DELETE'
       });
       if (res.ok) {

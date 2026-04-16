@@ -17,9 +17,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// ─── Servir arquivos de upload como estáticos ───────────────────────────────
+// Assets estáticos (Images/Uploads)
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// Agrupamento de Rotas da API
 app.use('/api', userRoutes);
 app.use('/api', obraRoutes);
 app.use('/api', diarioRoutes);
@@ -29,17 +30,14 @@ app.use('/api', financeiroRoutes);
 app.use('/api/rh', rhRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ message: 'API Obra Integrada funcionando' });
+  res.json({ message: 'API Obra Integrada — Sistema Online' });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+// Inicialização do Servidor (Evitar múltiplas instâncias em Serverless)
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Servidor escutando na porta ${PORT}`);
+  });
+}
 
-server.on('error', (e) => {
-  console.error("Server Error:", e);
-});
-
-server.on('close', () => {
-  console.log("Server stopped");
-});
+export default app;

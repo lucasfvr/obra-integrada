@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
@@ -40,8 +41,8 @@ export function ObraEstoque({ items = [], idObra, onRefresh }) {
     e.preventDefault();
     const isEdit = !!editingItem;
     const url = isEdit 
-      ? `http://localhost:5000/api/obras/estoque/${editingItem.id_estoque}`
-      : `http://localhost:5000/api/obras/${idObra}/estoque`;
+      ? `${API_BASE_URL}/api/obras/estoque/${editingItem.id_estoque}`
+      : `${API_BASE_URL}/api/obras/${idObra}/estoque`;
     
     // Preparar corpo - se for edit, usamos quantidade_nova como esperado pelo backend
     const body = { ...formData };
@@ -72,7 +73,7 @@ export function ObraEstoque({ items = [], idObra, onRefresh }) {
   const fetchHistory = async (idItem) => {
     try {
       // Endpoint que retorna tb_movimentacao_estoque vinculada
-      const res = await apiFetch(`http://localhost:5000/api/obras/estoque/${idItem}/historico`);
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/estoque/${idItem}/historico`);
       if (res.ok) {
         const data = await res.json();
         setActiveHistory(data);
@@ -86,7 +87,7 @@ export function ObraEstoque({ items = [], idObra, onRefresh }) {
   const handleDelete = async (idItem) => {
     if (!window.confirm("Deseja remover este material permanentemente?")) return;
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/estoque/${idItem}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/estoque/${idItem}`, {
         method: 'DELETE'
       });
       if (res.ok) {

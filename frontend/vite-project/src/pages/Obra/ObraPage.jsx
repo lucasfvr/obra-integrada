@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth.js';
@@ -27,7 +28,7 @@ export default function ObraPage() {
   const fetchObraDetails = async () => {
     try {
       setLoading(true);
-      const response = await apiFetch(`http://localhost:5000/api/obras/${id}`);
+      const response = await apiFetch(`${API_BASE_URL}/api/obras/${id}`);
       if (!response.ok) {
         if (response.status === 403) throw new Error("Acesso negado.");
         throw new Error("Erro ao carregar obra.");

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../config/api.js";
 /**
  * MinhasObrasPage.jsx
  *
@@ -300,7 +301,7 @@ export default function MinhasObrasPage() {
     if (!userId) return;
     setLoading(true);
     try {
-      const r = await apiFetch(`http://localhost:5000/api/obras?userId=${userId}`);
+      const r = await apiFetch(`${API_BASE_URL}/api/obras?userId=${userId}`);
       if (r.ok) {
         const res = await r.json();
         const data = Array.isArray(res) ? res : (res.data || []);
@@ -322,7 +323,7 @@ export default function MinhasObrasPage() {
     if (!obraToDelete) return;
     setDeleting(true);
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${obraToDelete}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${obraToDelete}`, {
         method: 'DELETE'
       });
       if (res.ok) {

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../components/Guards/PermissaoGuard.jsx';
@@ -44,7 +45,7 @@ export default function GestaoRH() {
         sortOrder: filtros.sortOrder
       }).toString();
 
-      const res = await apiFetch(`http://localhost:5000/api/rh?${query}`);
+      const res = await apiFetch(`${API_BASE_URL}/api/rh?${query}`);
       if (res.ok) {
         const result = await res.json();
         setFuncionarios(result.data);
@@ -79,8 +80,8 @@ export default function GestaoRH() {
 
     const method = editingFunc ? 'PUT' : 'POST';
     const url = editingFunc 
-      ? `http://localhost:5000/api/rh/${editingFunc.id_usuario}`
-      : `http://localhost:5000/api/rh`;
+      ? `${API_BASE_URL}/api/rh/${editingFunc.id_usuario}`
+      : `${API_BASE_URL}/api/rh`;
 
     try {
       const res = await apiFetch(url, {
@@ -106,7 +107,7 @@ export default function GestaoRH() {
   const handleInativar = async (id) => {
     if (!window.confirm("Deseja realmente inativar este funcionário?")) return;
     try {
-      const res = await apiFetch(`http://localhost:5000/api/rh/${id}/inativar`, { method: 'PATCH' });
+      const res = await apiFetch(`${API_BASE_URL}/api/rh/${id}/inativar`, { method: 'PATCH' });
       if (res.ok) {
         alert("Funcionário inativado");
         fetchFuncionarios(meta.page);

@@ -1,6 +1,0 @@
-# Ignora todos os arquivos de upload (imagens, docs, etc.)
-*
-
-# Mas mantém este .gitignore e o .gitkeep para preservar a estrutura de pastas
-!.gitignore
-!.gitkeep

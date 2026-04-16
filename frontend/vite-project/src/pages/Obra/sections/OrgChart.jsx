@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 
@@ -78,7 +79,7 @@ export function OrgChart({ idObra }) {
   useEffect(() => {
     const fetchOrg = async () => {
       try {
-        const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/org-chart`);
+        const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/org-chart`);
         if (res.ok) {
           const json = await res.json();
           setData(json);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FiPackage, FiFileText } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth.js";
 
 const IcoStock = () => (
@@ -73,7 +74,7 @@ function MaterialCalculator() {
                          <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-gray-900 rounded-2xl border border-slate-100 dark:border-gray-800 transition-hover hover:bg-white dark:hover:bg-gray-800 duration-300">
                             <div className="flex items-center gap-4">
                                <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500">
-                                 📦
+                                 <FiPackage size={24} className="text-slate-400" />
                                </div>
                                <div>
                                   <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{log.material}</p>
@@ -117,7 +118,7 @@ function MaterialCalculator() {
 
             {/* Alerta de Auditoria */}
             <div className="bg-amber-50 dark:bg-amber-950/20 p-6 rounded-[2rem] border border-amber-100 dark:border-amber-900/50 flex items-start gap-5">
-               <div className="text-2xl">📑</div>
+               <div className="text-2xl text-slate-400"><FiFileText /></div>
                <p className="text-[11px] font-bold text-amber-900/70 dark:text-amber-400/70 leading-relaxed">
                   Todos os registros de retirada de material são auditados e vinculados ao seu CPF. 
                   Em caso de divergência no inventário, contate o Mestre Gilberto imediatamente.

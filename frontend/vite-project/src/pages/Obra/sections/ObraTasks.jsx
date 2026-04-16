@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../../components/Guards/PermissaoGuard.jsx';
@@ -34,7 +35,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
     try {
       setLoading(true);
       // Inclui paginação e filtro na query
-      const url = `http://localhost:5000/api/obras/${idObra}/tarefas?page=${page}&limit=${LIMIT}`;
+      const url = `${API_BASE_URL}/api/obras/${idObra}/tarefas?page=${page}&limit=${LIMIT}`;
       const res = await apiFetch(url);
       if (res.ok) {
         const result = await res.json();
@@ -60,7 +61,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
 
   const handleStatusChange = async (tarefaId, newStatus) => {
     try {
-      const res = await apiFetch(`http://localhost:5000/api/tarefas/${tarefaId}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/tarefas/${tarefaId}`, {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
@@ -76,8 +77,8 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
     e.preventDefault();
     const method = editingTask ? 'PUT' : 'POST';
     const url = editingTask 
-      ? `http://localhost:5000/api/obras/${idObra}/tarefas/${editingTask.id_tarefa}`
-      : `http://localhost:5000/api/obras/${idObra}/tarefas`;
+      ? `${API_BASE_URL}/api/obras/${idObra}/tarefas/${editingTask.id_tarefa}`
+      : `${API_BASE_URL}/api/obras/${idObra}/tarefas`;
 
     try {
       // Limpamos o payload para enviar apenas o necessário e evitar erros de estrutura
@@ -112,7 +113,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
   const handleDelete = async (tarefaId) => {
     if (!window.confirm("Deseja realmente excluir esta tarefa?")) return;
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/tarefas/${tarefaId}`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/tarefas/${tarefaId}`, {
         method: 'DELETE'
       });
       if (res.ok) {

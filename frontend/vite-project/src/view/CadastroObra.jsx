@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config/api.js";
 import React, { useState } from "react";
 import { FiMapPin, FiInfo, FiDollarSign, FiUsers, FiFileText } from "react-icons/fi";
 
@@ -83,7 +84,7 @@ function CadastroObra({ currentUser, onVoltar }) {
     setSuccessMessage("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/obras", {
+      const response = await fetch("${API_BASE_URL}/api/obras", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, userId: currentUser.id }),

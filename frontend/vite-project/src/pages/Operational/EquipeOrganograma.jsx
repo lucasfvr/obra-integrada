@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
 
@@ -20,7 +21,7 @@ export function EquipeOrganograma() {
 
   useEffect(() => {
     // Busca todos os usuários da admin console (no projeto real buscaríamos vinculados à obra do usuário)
-    apiFetch(`http://localhost:5000/api/admin/users`)
+    apiFetch(`${API_BASE_URL}/api/admin/users`)
       .then(res => res.json())
       .then(data => {
         setEquipe(data);

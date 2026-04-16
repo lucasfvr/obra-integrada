@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config/api.js";
 import React, { useState, useRef, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -46,7 +47,7 @@ const Calendar: React.FC = () => {
         if (!userId) return;
 
         // 1. Buscar Tarefas Reais
-        const res = await apiFetch(`http://localhost:5000/api/tarefas?userId=${userId}`);
+        const res = await apiFetch(`${API_BASE_URL}/api/tarefas?userId=${userId}`);
         const tasks = await res.json();
         
         const taskEvents = tasks.map((t: any) => ({

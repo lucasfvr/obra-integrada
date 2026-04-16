@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import Button from '../ui/button/Button.tsx';
@@ -107,7 +108,7 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
         area_construida: parseFloat(data.area_construida) || null,
       };
 
-      const res = await apiFetch('http://localhost:5000/api/obras', {
+      const res = await apiFetch('${API_BASE_URL}/api/obras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -297,7 +298,7 @@ function EquipeSelection({ control, apiFetch }) {
   useEffect(() => {
     const fetchRH = async () => {
       try {
-        const res = await apiFetch('http://localhost:5000/api/rh?limit=100');
+        const res = await apiFetch('${API_BASE_URL}/api/rh?limit=100');
         if (res.ok) {
           const result = await res.json();
           setFuncionarios(result.data.filter(f => f.status === 'ATIVO'));

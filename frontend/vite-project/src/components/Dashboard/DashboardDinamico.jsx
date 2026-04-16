@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth }         from '../../hooks/useAuth.js';
 import { useNavigate }     from 'react-router';
@@ -755,17 +756,17 @@ export function DashboardDinamico({ currentUser }) {
     const hasAuditPower = ['ADMIN_MASTER', 'PROPRIETARIO', 'RESPONSAVEL'].includes(currentProfile);
     
     const endpoints = [
-       apiFetch(`http://localhost:5000/api/obras?userId=${userId}`).then(r => r.json()).catch(() => []),
+       apiFetch(`${API_BASE_URL}/api/obras?userId=${userId}`).then(r => r.json()).catch(() => []),
        ['RESPONSAVEL', 'MESTRE', 'PEDREIRO', 'AJUDANTE', 'PROPRIETARIO'].includes(currentProfile) 
-         ? apiFetch(`http://localhost:5000/api/tarefas?userId=${userId}`).then(r => r.json()).catch(() => [])
+         ? apiFetch(`${API_BASE_URL}/api/tarefas?userId=${userId}`).then(r => r.json()).catch(() => [])
          : Promise.resolve([]),
-       (isPlatform && !isImpersonating) ? apiFetch(`http://localhost:5000/api/admin/users`).then(r => r.json()).catch(() => []) : Promise.resolve([]),
-       isPlatform ? apiFetch(`http://localhost:5000/api/admin/metrics/global`).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
-       isPlatform ? apiFetch(`http://localhost:5000/api/admin/clients`).then(r => r.json()).catch(() => []) : Promise.resolve([]),
+       (isPlatform && !isImpersonating) ? apiFetch(`${API_BASE_URL}/api/admin/users`).then(r => r.json()).catch(() => []) : Promise.resolve([]),
+       isPlatform ? apiFetch(`${API_BASE_URL}/api/admin/metrics/global`).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
+       isPlatform ? apiFetch(`${API_BASE_URL}/api/admin/clients`).then(r => r.json()).catch(() => []) : Promise.resolve([]),
        hasAuditPower
-         ? (setLoadingPendentes(true), apiFetch(`http://localhost:5000/api/admin/metrics/pendentes`).then(r => r.json()).finally(() => setLoadingPendentes(false)).catch(() => [])) 
+         ? (setLoadingPendentes(true), apiFetch(`${API_BASE_URL}/api/admin/metrics/pendentes`).then(r => r.json()).finally(() => setLoadingPendentes(false)).catch(() => [])) 
          : Promise.resolve([]),
-       !isPlatform ? apiFetch(`http://localhost:5000/api/operational/stats?userId=${userId}`).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+       !isPlatform ? apiFetch(`${API_BASE_URL}/api/operational/stats?userId=${userId}`).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
     ];
 
     Promise.all(endpoints)
@@ -780,7 +781,7 @@ export function DashboardDinamico({ currentUser }) {
         
         // Weather opcional
         if (obrasData[0]?.cidade) {
-          apiFetch(`http://localhost:5000/api/operational/weather?cidade=${obrasData[0].cidade}`)
+          apiFetch(`${API_BASE_URL}/api/operational/weather?cidade=${obrasData[0].cidade}`)
             .then(r => r.json()).then(setWeather).catch(() => null);
         }
         
@@ -796,7 +797,7 @@ export function DashboardDinamico({ currentUser }) {
   const handleAuditar = async (idObra, idDiario, status) => {
     if (isImpersonating) return;
     try {
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/diario/${idDiario}/auditar`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/diario/${idDiario}/auditar`, {
         method: 'PATCH',
         body: JSON.stringify({ status })
       });
@@ -811,7 +812,7 @@ export function DashboardDinamico({ currentUser }) {
     try {
       // (Rest of logic truncated for brevity, the original snippet was truncated)
 
-      await apiFetch(`http://localhost:5000/api/tarefas/${id}`, {
+      await apiFetch(`${API_BASE_URL}/api/tarefas/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data)
       });
@@ -867,7 +868,7 @@ export function DashboardDinamico({ currentUser }) {
            </span>
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2 transition-colors duration-200 leading-[1.1]">
-           Olá, {nomeAtual.split(' ')[0]} 👋
+           Olá, {nomeAtual.split(' ')[0]}
         </h1>
         <p className="text-sm text-slate-600 dark:text-slate-500 max-w-md leading-relaxed transition-colors duration-200">
            {isImpersonating 
