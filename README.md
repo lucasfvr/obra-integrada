@@ -3,7 +3,7 @@
 Bem-vindo ao **Obra Integrada**.  
 Uma plataforma web desenvolvida para modernizar o gerenciamento de obras na construção civil.
 
-Acesse o sistema: https://obra-integrada.vercel.app/
+ 
 
 ---
 
