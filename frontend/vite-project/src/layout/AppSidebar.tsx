@@ -38,8 +38,8 @@ const AppSidebar: FC = () => {
 
   const isOpen = isExpanded || isMobileOpen;
   
-  const userRole = user?.role || role;
-  const userFuncao = user?.funcao;
+  const userRole = (user as any)?.role || (role as any);
+  const userFuncao = (user as any)?.funcao;
   const profile = useMemo(() => getProfile(userRole, userFuncao), [userRole, userFuncao]);
 
   const navGroups = useMemo<NavGroup[]>(() => {
@@ -51,7 +51,7 @@ const AppSidebar: FC = () => {
           items: [
             { icon: icons.dashboard,  name: "Dashboard Master", path: "/dashboard" },
             { icon: icons.clientes,   name: "Gestão Clientes",  path: "/clientes" },
-            { icon: icons.usuarios,   name: "Gestão Usuários",  path: "/dashboard" }, // Impersonação via Dash
+            { icon: icons.usuarios,   name: "Gestão RH",        path: "/rh" },
           ],
         }
       ];
@@ -65,6 +65,7 @@ const AppSidebar: FC = () => {
           items: [
             { icon: icons.dashboard,  name: "Visão Geral",    path: "/dashboard" },
             { icon: icons.obras,      name: "Minhas Obras",   path: "/obras"     },
+            { icon: icons.usuarios,   name: "Gestão RH",      path: "/rh"        },
           ],
         },
         {

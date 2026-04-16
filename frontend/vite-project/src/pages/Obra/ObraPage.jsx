@@ -148,9 +148,9 @@ export default function ObraPage() {
       <div className="mt-8 px-4 md:px-0 min-h-[400px]">
         {activeTab === 'geral'      && <div className="animate-slide-up"><ObraOverview obra={obra} onRefresh={fetchObraDetails} /></div>}
         {activeTab === 'equipe'     && <div className="animate-slide-up"><ObraTeam team={obra.tb_usuario_obra} manager={obra.tb_usuario} idObra={id} onRefresh={fetchObraDetails} /></div>}
-        {activeTab === 'diario'     && <div className="animate-slide-up"><ObraDiary initialEntries={obra.tb_diario_obra} idObra={id} onRefresh={fetchObraDetails} /></div>}
-        {activeTab === 'tarefas'    && <div className="animate-slide-up"><ObraTasks initialTasks={obra.tb_tarefa} idObra={id} team={obra.tb_usuario_obra} onRefresh={fetchObraDetails} /></div>}
-        {activeTab === 'financeiro' && <div className="animate-slide-up"><ObraFinanceiro idObra={id} /></div>}
+        {activeTab === 'diario'     && <div className="animate-slide-up"><ObraDiary initialEntries={obra.tb_diario_obra} idObra={id} team={obra.tb_usuario_obra} onRefresh={fetchObraDetails} /></div>}
+        {activeTab === 'tarefas'    && <div className="animate-slide-up"><ObraTasks initialTasks={obra.tb_tarefa} idObra={id} team={obra.tb_usuario_obra} manager={obra.tb_usuario} onRefresh={fetchObraDetails} /></div>}
+        {activeTab === 'financeiro' && <div className="animate-slide-up"><ObraFinanceiro idObra={id} obra={obra} onRefresh={fetchObraDetails} /></div>}
         {activeTab === 'estoque'    && <div className="animate-slide-up"><ObraEstoque items={obra.tb_estoque_obra} idObra={id} onRefresh={fetchObraDetails} /></div>}
         {activeTab === 'documentos' && <div className="animate-slide-up"><ObraDocuments initialDocs={obra.tb_documento} idObra={id} onRefresh={fetchObraDetails} /></div>}
         {activeTab === 'orgchart'   && <div className="animate-slide-up"><OrgChart idObra={id} /></div>}

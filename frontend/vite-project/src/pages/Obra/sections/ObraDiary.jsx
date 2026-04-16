@@ -18,8 +18,14 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export function ObraDiary({ initialEntries = [], idObra, onRefresh }) {
-  const { apiFetch, hasPermissao } = useAuth();
+export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh }) {
+  const { apiFetch, hasPermissao, user } = useAuth();
+  
+  // Verificar se o usuário faz parte da equipe
+  const isMembroEquipe = team.some(m => m.id_usuario === user?.id);
+  const isAdminOuRelacionado = ['ADMIN', 'MASTER', 'ADMIN_MASTER'].includes(user?.role);
+  const podePostar = isMembroEquipe || isAdminOuRelacionado;
+
   const [entries, setEntries] = useState(initialEntries);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -206,7 +212,7 @@ export function ObraDiary({ initialEntries = [], idObra, onRefresh }) {
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Conformidade Geográfica e Visual</p>
         </div>
         
-        {hasPermissao('criar_diario') && (
+        {hasPermissao('criar_diario') && podePostar && (
           <ReadOnlyGuard>
             <button 
               onClick={handleOpenModal}
@@ -216,6 +222,13 @@ export function ObraDiary({ initialEntries = [], idObra, onRefresh }) {
               Novo Registro Auditado
             </button>
           </ReadOnlyGuard>
+        )}
+        {hasPermissao('criar_diario') && !podePostar && (
+          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 px-4 py-2 rounded-xl">
+            <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+              Apenas membros da equipe da obra podem registrar.
+            </p>
+          </div>
         )}
       </div>
 

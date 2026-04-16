@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
+import { toast } from 'react-hot-toast';
 
 function StatCard({ label, value, subvalue, icon, color }) {
   const colors = {
@@ -82,8 +83,35 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
       }
     } catch (err) {
       console.error("Erro ao salvar obra:", err);
+      alert("Erro ao salvar as alterações da obra. Verifique sua conexão e permissões.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await apiFetch(`http://localhost:5000/api/obras/${obra.id_obra}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success("Obra excluída com sucesso.");
+        // Redireciona para o dashboard ou lista de obras
+        window.location.href = '/dashboard';
+      } else {
+        const err = await res.json();
+        toast.error(err.erro || "Erro ao excluir obra.");
+      }
+    } catch (err) {
+      console.error("Erro ao excluir obra:", err);
+      toast.error("Erro de conexão ao excluir.");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -141,13 +169,22 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
                 </button>
               </>
             ) : (
-              <button 
-                onClick={handleStartEdit} 
-                className="flex items-center gap-2 px-6 py-2 bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                Editar Informações
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleStartEdit} 
+                  className="flex items-center gap-2 px-6 py-2 bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  Editar Informações
+                </button>
+                <button 
+                  onClick={() => setShowDeleteModal(true)} 
+                  className="flex items-center gap-2 px-6 py-2 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  Excluir Obra
+                </button>
+              </div>
             )}
          </div>
 
@@ -229,6 +266,36 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
             </div>
          </div>
       </div>
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}></div>
+          <div className="relative bg-white dark:bg-gray-900 w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-scale-up border dark:border-gray-800">
+             <div className="w-20 h-20 bg-rose-50 dark:bg-rose-950/40 text-rose-600 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-lg shadow-rose-200 dark:shadow-none">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16" /></svg>
+             </div>
+             <h3 className="text-center text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">Confirmar Exclusão?</h3>
+             <p className="text-center text-gray-500 dark:text-gray-400 text-sm font-medium mb-8">Esta ação é permanente e removerá todos os dados vinculados a esta obra.</p>
+             
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-3 text-xs font-black uppercase text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white px-4 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20 active:scale-95 disabled:opacity-50"
+                >
+                  {deleting ? 'Excluindo...' : 'Sim, Excluir'}
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

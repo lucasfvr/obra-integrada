@@ -1,6 +1,7 @@
 import { UserModel } from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import prisma from '../config/prisma.js';
 
 // ==============================
 // CADASTRO RÁPIDO (VALIDA, NÃO CRIA USUÁRIO AINDA)

@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
 
-export function ObraFinanceiro({ idObra }) {
+export function ObraFinanceiro({ idObra, obra, onRefresh }) {
   const { apiFetch } = useAuth();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showOrcamentoModal, setShowOrcamentoModal] = useState(false);
+  const [orcamentoData, setOrcamentoData] = useState({
+    orcamento_material: 0,
+    orcamento_mao_obra: 0,
+    orcamento_taxas: 0
+  });
   const [formData, setFormData] = useState({
     tipo: 'DESPESA',
     valor: '',
@@ -33,6 +39,30 @@ export function ObraFinanceiro({ idObra }) {
   useEffect(() => {
     if (idObra) fetchFinanceiro();
   }, [idObra]);
+
+  const handleSalvarOrcamento = async (e) => {
+    e.preventDefault();
+    const total = Number(orcamentoData.orcamento_material || 0) + Number(orcamentoData.orcamento_mao_obra || 0) + Number(orcamentoData.orcamento_taxas || 0);
+
+    try {
+      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...obra,
+          valor_orcado: total
+        })
+      });
+      if (res.ok) {
+        toast.success("Orçamento atualizado!");
+        setShowOrcamentoModal(false);
+        if (onRefresh) onRefresh();
+      } else {
+        toast.error("Erro ao atualizar orçamento");
+      }
+    } catch (err) {
+      toast.error("Erro de conexão");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,7 +100,18 @@ export function ObraFinanceiro({ idObra }) {
   return (
     <div className="space-y-8 animate-slide-up">
       {/* Cards de Resumo Financeiro */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border dark:border-gray-800 shadow-sm group">
+           <div className="flex justify-between items-start">
+             <div>
+               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Orçamento Planejado</p>
+               <h4 className="text-2xl font-black text-slate-800 dark:text-white">R$ {Number(obra?.valor_orcado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
+             </div>
+             <button onClick={() => setShowOrcamentoModal(true)} className="p-2 bg-slate-50 dark:bg-gray-900 rounded-xl text-gray-400 group-hover:text-indigo-600 transition-colors opacity-0 group-hover:opacity-100">
+               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+             </button>
+           </div>
+        </div>
         <div className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border dark:border-gray-800 shadow-sm">
            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Receitas</p>
            <h4 className="text-2xl font-black text-emerald-600">R$ {totals.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
@@ -80,7 +121,7 @@ export function ObraFinanceiro({ idObra }) {
            <h4 className="text-2xl font-black text-rose-600">R$ {totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
         </div>
         <div className="bg-indigo-600 p-8 rounded-[2.5rem] shadow-xl shadow-indigo-500/20">
-           <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-2">Saldo Atual</p>
+           <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-2">Saldo de Caixa</p>
            <h4 className="text-2xl font-black text-white">R$ {saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
         </div>
       </div>
@@ -142,6 +183,37 @@ export function ObraFinanceiro({ idObra }) {
           </tbody>
         </table>
       </div>
+
+      {/* Modal Orçamento Planejado */}
+      {showOrcamentoModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+           <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-md shadow-2xl animate-slide-up border dark:border-gray-800">
+              <div className="p-8 border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center">
+                 <h3 className="text-xl font-black text-indigo-950 dark:text-white tracking-tight">Composição do Orçamento</h3>
+                 <button onClick={() => setShowOrcamentoModal(false)} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-rose-600 transition-colors">✕</button>
+              </div>
+              <form onSubmit={handleSalvarOrcamento} className="p-8 space-y-6">
+                 <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Material de Construção (R$)</label>
+                    <input type="number" step="0.01" className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" value={orcamentoData.orcamento_material} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_material: e.target.value})} />
+                 </div>
+                 <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Mão de Obra e Equipe (R$)</label>
+                    <input type="number" step="0.01" className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" value={orcamentoData.orcamento_mao_obra} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_mao_obra: e.target.value})} />
+                 </div>
+                 <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Taxas e Legalização (R$)</label>
+                    <input type="number" step="0.01" className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" value={orcamentoData.orcamento_taxas} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_taxas: e.target.value})} />
+                 </div>
+                 <div className="pt-4 border-t dark:border-gray-800 flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Total Calculado</span>
+                    <span className="text-xl font-black text-indigo-600">R$ {(Number(orcamentoData.orcamento_material || 0) + Number(orcamentoData.orcamento_mao_obra || 0) + Number(orcamentoData.orcamento_taxas || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                 </div>
+                 <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20 active:scale-95">Salvar Orçamento</button>
+              </form>
+           </div>
+        </div>
+      )}
 
       {/* Modal Lançamento */}
       {showModal && (

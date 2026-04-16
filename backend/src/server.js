@@ -8,6 +8,7 @@ import diarioRoutes from './routes/diarioRoutes.js';
 import tarefaRoutes from './routes/tarefaRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import financeiroRoutes from './routes/financeiroRoutes.js';
+import rhRoutes from './routes/rhRoutes.js';
 import { UPLOADS_DIR } from './config/storageService.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api', diarioRoutes);
 app.use('/api', tarefaRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', financeiroRoutes);
+app.use('/api/rh', rhRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API Obra Integrada funcionando' });

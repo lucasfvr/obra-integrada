@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import ObrasList from "./ObraList.jsx";
 import MaterialForm from "./MaterialForm.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
 function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
+    const { apiFetch } = useAuth();
     const [obras, setObras] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -67,9 +69,13 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
         if (!currentUser) return;
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:5000/api/obras?userId=${currentUser.id}`);
-            const data = await response.json();
-            if (response.ok) setObras(data);
+            const response = await apiFetch(`http://localhost:5000/api/obras?userId=${currentUser.id || currentUser.id_usuario}`);
+            const res = await response.json();
+            if (response.ok) {
+                // Suporte a { data, meta } ou array simples
+                const data = Array.isArray(res) ? res : (res.data || []);
+                setObras(data);
+            }
         } catch (error) {
             console.error("Falha ao buscar obras:", error);
         }
@@ -82,10 +88,9 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handleAdicionarObra = async (nome_obra) => {
         try {
-            const response = await fetch('http://localhost:5000/api/obras', {
+            const response = await apiFetch('http://localhost:5000/api/obras', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome_obra, userId: currentUser.id })
+                body: JSON.stringify({ nome_obra, userId: currentUser.id || currentUser.id_usuario })
             });
             if (response.ok) fetchObras();
             else alert("Erro ao adicionar obra.");
@@ -96,10 +101,9 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handleRemoverObra = async (obraId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/obras/${obraId}`, {
+            const response = await apiFetch(`http://localhost:5000/api/obras/${obraId}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUser.id })
+                body: JSON.stringify({ userId: currentUser.id || currentUser.id_usuario })
             });
             if (response.ok) fetchObras();
             else alert("Erro ao remover obra.");

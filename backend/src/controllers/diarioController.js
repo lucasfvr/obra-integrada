@@ -113,6 +113,25 @@ export async function criarEntradaDiario(req, res) {
 
     const idUsuario = req.user?.id;
 
+    // 1. Validar se o usuário pertence à equipe da obra
+    const isMembro = await prisma.tb_usuario_obra.findUnique({
+      where: {
+        id_usuario_id_obra: {
+          id_usuario: Number(idUsuario),
+          id_obra: Number(idObra)
+        }
+      }
+    });
+
+    if (!isMembro) {
+      // Admins e Master podem postar mesmo sem estar na equipe? 
+      // O requisito diz "apenas pessoas cadastradas na obra", vamos ser restritos primeiro.
+      const role = req.user?.role;
+      if (!['ADMIN', 'MASTER', 'ADMIN_MASTER'].includes(role)) {
+        return res.status(403).json({ erro: 'Apenas membros da equipe desta obra podem registrar no diário.' });
+      }
+    }
+
     const novaEntrada = await prisma.tb_diario_obra.create({
       data: {
         id_obra:           idObra,

@@ -881,10 +881,10 @@ export function DashboardDinamico({ currentUser }) {
 
       {showNovaObra && (
         <NovaObraWizard 
-          currentUser={currentUser || { id_usuario: roleAtual }} 
+          currentUser={currentUser || user} 
           apiFetch={apiFetch} 
           onClose={() => setShowNovaObra(false)} 
-          onSave={() => window.location.reload()} // Reload simplificado para atualizar tudo
+          onSave={() => window.location.reload()} 
         />
       )}
     </div>

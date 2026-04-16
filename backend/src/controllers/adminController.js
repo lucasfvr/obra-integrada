@@ -171,8 +171,17 @@ export async function getPendingDiaries(req, res) {
       whereClause.tb_obra = {
         id_usuario_responsavel: parseInt(userId)
       };
-    } else if (role !== 'ADMIN_MASTER') {
-       // Outros perfis (exceto Master) não acessam o inbox global
+    } else if (role === 'PROPRIETARIO') {
+      // Proprietário vê tudo da empresa dele
+      const id_cliente = req.user.id_cliente;
+      if (!id_cliente) return res.status(403).json({ erro: 'Proprietário sem empresa vinculada' });
+      whereClause.tb_obra = {
+        tb_obra_cliente: {
+          some: { id_cliente }
+        }
+      };
+    } else if (role !== 'ADMIN_MASTER' && role !== 'ADMIN') {
+       // Outros perfis (exceto Master/Admin) não acessam o inbox global
        return res.status(403).json({ erro: 'Acesso negado ao inbox de auditoria.' });
     }
 

@@ -30,6 +30,7 @@ import { MeuPerfilCV } from "../pages/Operational/MeuPerfilCV.jsx";
 import { UnderConstruction } from "../components/common/UnderConstruction.jsx";
 import { PermissaoGuard } from "../components/Guards/PermissaoGuard.jsx";
 import MinhasObrasPage from "../pages/Obras/MinhasObrasPage.jsx";
+import GestaoRH from "../pages/Operational/GestaoRH.jsx";
 
 function App() {
   const { 
@@ -190,6 +191,16 @@ function App() {
                 <ProtectedRoute>
                   <PermissaoGuard permissao="ver_equipe_obra" redirectToRestricted>
                     <UnderConstruction titulo="Equipe e Organograma" />
+                  </PermissaoGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/rh" 
+              element={
+                <ProtectedRoute>
+                  <PermissaoGuard permissao="gerenciar_usuarios" redirectToRestricted>
+                    <GestaoRH />
                   </PermissaoGuard>
                 </ProtectedRoute>
               } 

@@ -100,7 +100,73 @@ export async function listarObras(req, res) {
     });
   } catch (error) {
     console.error('[OBRA] Erro ao listar obras:', error);
-    res.status(500).json({ erro: 'Erro ao listar obras' });
+    res.status(500).json({ erro: 'Erro ao buscar obra' });
+  }
+}
+
+/**
+ * Retorna a hierarquia da equipe para o OrgChart (Estilo Teams)
+ */
+export async function getOrgChart(req, res) {
+  try {
+    const idObra = req.obraAccess?.idObra || Number(req.params.id);
+
+    const obra = await prisma.tb_obra.findUnique({
+      where: { id_obra: idObra },
+      include: {
+        tb_usuario: { select: { id_usuario: true, nome: true, funcao: true, role: true } },
+        tb_usuario_obra: {
+          include: {
+            tb_usuario: { select: { id_usuario: true, nome: true, funcao: true, role: true } },
+            tb_papel: true
+          }
+        }
+      }
+    });
+
+    if (!obra) {
+      return res.status(404).json({ erro: 'Obra não encontrada' });
+    }
+
+    // Nível 1: Gestor/Responsável
+    const root = {
+      id: obra.tb_usuario.id_usuario,
+      nome: obra.tb_usuario.nome,
+      funcao: obra.tb_usuario.funcao || 'Gestor do Projeto',
+      children: []
+    };
+
+    // Filtra Mestres (id_papel = 2) ou Engenheiros (id_papel = 3) para o Nível 2
+    const lideres = obra.tb_usuario_obra.filter(m => [2, 3].includes(m.id_papel));
+    const operacionais = obra.tb_usuario_obra.filter(m => ![2, 3].includes(m.id_papel));
+
+    // Se houver líderes, eles ficam abaixo do root
+    if (lideres.length > 0) {
+      root.children = lideres.map(l => ({
+        id: l.id_usuario,
+        nome: l.tb_usuario.nome,
+        funcao: l.tb_papel?.nome || 'Líder',
+        children: operacionais.map(o => ({
+          id: o.id_usuario,
+          nome: o.tb_usuario.nome,
+          funcao: o.tb_papel?.nome || 'Membro',
+          children: []
+        }))
+      }));
+    } else {
+      // Se não houver líderes, todos ficam abaixo do root
+      root.children = operacionais.map(o => ({
+        id: o.id_usuario,
+        nome: o.tb_usuario.nome,
+        funcao: o.tb_papel?.nome || 'Membro',
+        children: []
+      }));
+    }
+
+    return res.json(root);
+  } catch (error) {
+    console.error('[OBRA] Erro no OrgChart:', error);
+    res.status(500).json({ erro: 'Erro ao gerar organograma' });
   }
 }
 
@@ -259,22 +325,36 @@ export async function atualizarObra(req, res) {
 export async function deletarObra(req, res) {
   try {
     const { id } = req.params;
-    const { userId } = req.body;
+    // Puxamos do token (req.user) injetado pelo authMiddleware
+    const { id: idUsuarioLogado, role } = req.user; 
 
     const obra = await ObraModel.findById(Number(id));
     if (!obra) {
       return res.status(404).json({ erro: 'Obra não encontrada' });
     }
 
-    if (obra.id_usuario_responsavel !== Number(userId)) {
-      return res.status(403).json({ erro: 'Acesso negado.' });
+    // Autorização: Admin/Master pode tudo, outros apenas se forem os responsáveis
+    const isAdmin = ['ADMIN_MASTER', 'MASTER', 'ADMIN'].includes(role);
+    const isResponsavel = obra.id_usuario_responsavel === Number(idUsuarioLogado);
+
+    if (!isAdmin && !isResponsavel) {
+      return res.status(403).json({ erro: 'Acesso negado. Apenas o responsável ou administradores podem excluir obras.' });
     }
 
-    await ObraModel.delete(Number(id));
+    // Deletar as relações que não possuem Cascade no Prisma (tb_usuario_obra, tb_etapa, tb_requisicao)
+    // Usamos uma transação para garantir atomicidade
+    await prisma.$transaction([
+      prisma.tb_usuario_obra.deleteMany({ where: { id_obra: Number(id) } }),
+      prisma.tb_etapa.deleteMany({ where: { id_obra: Number(id) } }),
+      prisma.tb_requisicao.deleteMany({ where: { id_obra: Number(id) } }),
+      // O restante (tarefas, financeiro, estoque, documentos, diario) já tem Cascade no schema
+      prisma.tb_obra.delete({ where: { id_obra: Number(id) } })
+    ]);
+
     res.status(200).json({ mensagem: 'Obra removida com sucesso' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao deletar obra' });
+    console.error('Erro ao deletar obra:', error);
+    res.status(500).json({ erro: 'Erro interno ao deletar obra' });
   }
 }
 
@@ -282,37 +362,36 @@ export async function deletarObra(req, res) {
 export async function adicionarMembroEquipe(req, res) {
   try {
     const { id: idObra } = req.params;
-    const { id_usuario, email, nome, id_papel, valor_dia } = req.body;
+    const { id_usuario, id_papel, valor_dia } = req.body;
+    const { id_cliente } = req.user;
 
-    let targetUserId = id_usuario;
-
-    // Se nao enviou ID mas enviou e-mail, tentamos buscar ou criar
-    if (!targetUserId && email) {
-      let user = await prisma.tb_usuario.findUnique({ where: { email } });
-      
-      if (!user) {
-        // Criar usuário convidado
-        user = await prisma.tb_usuario.create({
-          data: {
-            nome: nome || email.split('@')[0],
-            email,
-            role: 'TRABALHADOR',
-            tipo_usuario: 'TRABALHADOR',
-            status_profissional: 'PENDENTE'
-          }
-        });
-      }
-      targetUserId = user.id_usuario;
+    if (!id_usuario) {
+      return res.status(400).json({ erro: 'O ID do usuário é obrigatório' });
     }
 
-    if (!targetUserId) {
-      return res.status(400).json({ erro: 'ID do usuario ou email e obrigatorio' });
+    // 1. Verificar se o usuário pertence à empresa (RH)
+    // Se não houver id_cliente, permitimos se for ADMIN/MASTER, 
+    // mas se for PROPRIETARIO/RESPONSAVEL, id_cliente é obrigatório.
+    const filterRh = { id_usuario: Number(id_usuario) };
+    if (id_cliente) {
+      filterRh.id_cliente = Number(id_cliente);
+    } else if (!['ADMIN', 'MASTER', 'ADMIN_MASTER'].includes(req.user.role)) {
+       return res.status(403).json({ erro: 'Ação permitida apenas para usuários vinculados a uma empresa.' });
     }
 
+    const usuarioNoRh = await prisma.tb_usuario.findFirst({
+      where: filterRh
+    });
+
+    if (!usuarioNoRh) {
+      return res.status(403).json({ erro: 'Este usuário não pertence ao seu RH e não pode ser adicionado à obra.' });
+    }
+
+    // 2. Criar vínculo
     const vinculo = await prisma.tb_usuario_obra.create({
       data: {
         id_obra: Number(idObra),
-        id_usuario: Number(targetUserId),
+        id_usuario: Number(id_usuario),
         id_papel: id_papel ? Number(id_papel) : null,
         valor_dia: valor_dia ? Number(valor_dia) : 0
       }
@@ -320,7 +399,10 @@ export async function adicionarMembroEquipe(req, res) {
 
     res.status(201).json(vinculo);
   } catch (error) {
-    console.error(error);
+    if (error.code === 'P2002') {
+      return res.status(400).json({ erro: 'Este colaborador já faz parte da equipe desta obra.' });
+    }
+    console.error('[OBRA] Erro ao adicionar membro:', error);
     res.status(500).json({ erro: 'Erro ao adicionar membro' });
   }
 }

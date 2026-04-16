@@ -48,13 +48,14 @@ async function main() {
   // ── 2. PAPÉIS (tb_papel) ───────────────────────────────────────────────────
   log.section('2. Criando Papéis (tb_papel)');
 
-  const papelNomes = ['Responsável', 'Trabalhador', 'Visualizador'];
+  const papelNomes = ['Membro', 'Mestre', 'Engenheiro', 'Pedreiro', 'Ajudante', 'Eletricista', 'Encanador'];
   const papelMap = {};
-  for (const nome of papelNomes) {
+  for (let i = 0; i < papelNomes.length; i++) {
+    const nome = papelNomes[i];
     const p = await prisma.tb_papel.upsert({
-      where:  { id_papel: papelNomes.indexOf(nome) + 1 },
+      where:  { id_papel: i + 1 },
       update: { nome },
-      create: { nome },
+      create: { id_papel: i + 1, nome },
     });
     papelMap[nome] = p.id_papel;
     log.ok(`Papel "${p.nome}" (id: ${p.id_papel})`);

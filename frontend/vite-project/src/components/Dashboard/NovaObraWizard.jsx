@@ -35,8 +35,6 @@ const CurrencyInput = ({ value, onChange, placeholder, disabled, className }) =>
 
 export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch }) {
   const [step, setStep] = useState(1);
-  const [usuariosDisponiveis, setUsuariosDisponiveis] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingCep, setLoadingCep] = useState(false);
   
   const { register, control, handleSubmit, watch, setValue, trigger, setError, clearErrors, formState: { errors } } = useForm({
@@ -55,30 +53,10 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
       art_rrt: '',
       data_inicio: '',
       previsao_termino: '',
-      orcamento_material: 0,
-      orcamento_mao_obra: 0,
-      orcamento_taxas: 0,
       equipe: [],
       estoque: []
     }
   });
-
-  const { fields: equipeFields, append: appendEquipe, remove: removeEquipe } = useFieldArray({ control, name: "equipe" });
-  const { fields: estoqueFields, append: appendEstoque, remove: removeEstoque } = useFieldArray({ control, name: "estoque" });
-
-  const orcamento_material = watch('orcamento_material') || 0;
-  const orcamento_mao_obra = watch('orcamento_mao_obra') || 0;
-  const orcamento_taxas    = watch('orcamento_taxas') || 0;
-  const orcamento_total    = orcamento_material + orcamento_mao_obra + orcamento_taxas;
-
-  useEffect(() => {
-    setLoadingUsers(true);
-    apiFetch('http://localhost:5000/api/usuarios-disponiveis')
-      .then(res => res.json())
-      .then(data => setUsuariosDisponiveis(Array.isArray(data) ? data : []))
-      .catch(console.error)
-      .finally(() => setLoadingUsers(false));
-  }, [apiFetch]);
 
   useEffect(() => {
     clearErrors();
@@ -110,20 +88,8 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
       clearErrors(['nome', 'tipo_obra', 'cep', 'logradouro', 'numero', 'bairro', 'cidade', 'estado', 'area_terreno', 'area_construida', 'numero_alvara', 'art_rrt']);
       isValid = await trigger(['nome', 'tipo_obra', 'cep', 'logradouro', 'numero', 'bairro', 'cidade', 'estado', 'area_terreno', 'area_construida', 'numero_alvara', 'art_rrt']);
     } else if (step === 2) {
-      clearErrors(['data_inicio', 'previsao_termino', 'orcamento_material', 'orcamento_mao_obra', 'orcamento_taxas']);
-      isValid = await trigger(['data_inicio', 'previsao_termino', 'orcamento_material', 'orcamento_mao_obra', 'orcamento_taxas']);
-    } else if (step === 3) {
-      clearErrors('equipe');
-      // Validar equipe (Mínimo 1 Responsável)
-      const equipe = watch('equipe');
-      const hasResponsavel = equipe.some(m => {
-        const u = usuariosDisponiveis.find(usr => usr.id_usuario === Number(m.id_usuario));
-        return u && (u.role === 'RESPONSAVEL' || u.funcao === 'Engenheiro');
-      });
-      if (!hasResponsavel && currentUser.role !== 'RESPONSAVEL') {
-        setError('equipe', { message: 'A equipe precisa ter pelo menos um membro responsável (Engenheiro/Arquiteto).' });
-        isValid = false;
-      }
+      clearErrors(['data_inicio', 'previsao_termino']);
+      isValid = await trigger(['data_inicio', 'previsao_termino']);
     }
     if (isValid) {
       setStep(s => s + 1);
@@ -136,7 +102,7 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
       const payload = {
         ...data,
         userId: currentUser.id_usuario || currentUser.id,
-        valor_orcado: orcamento_total,
+        valor_orcado: 0,
         area_terreno: parseFloat(data.area_terreno) || null,
         area_construida: parseFloat(data.area_construida) || null,
       };
@@ -156,6 +122,10 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
     }
   };
 
+  const onInvalid = (errors) => {
+    alert("Existem campos pendentes ou inválidos nas etapas anteriores: " + Object.keys(errors).join(', '));
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-white dark:bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-gray-800">
@@ -165,7 +135,7 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
           <div>
             <h2 className="text-2xl font-black text-slate-800 dark:text-white">Assistente de Nova Obra</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-              Etapa {step} de 4
+              Etapa {step} de 3
             </p>
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-200 dark:bg-gray-800 flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors">
@@ -175,12 +145,12 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
 
         {/* PROGRESS BAR */}
         <div className="w-full h-1 bg-slate-100 dark:bg-gray-800">
-          <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }}></div>
+          <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
 
         {/* BODY */}
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <form id="wizard-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form id="wizard-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             
             {step === 1 && (
               <div className="animate-slide-up space-y-6">
@@ -280,137 +250,15 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
                   </div>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-3xl p-6">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Composição de Custos Base</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center group">
-                      <p className="text-sm font-bold text-slate-600 dark:text-gray-300">Material de Construção *</p>
-                      <div>
-                        <Controller name="orcamento_material" control={control} rules={{ required: 'Campo obrigatório', validate: value => value > 0 || 'Valor deve ser maior que zero' }} render={({ field }) => (
-                           <CurrencyInput {...field} className="w-48 text-right p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
-                        )} />
-                        {errors.orcamento_material && <p className="text-red-500 text-xs mt-1">{errors.orcamento_material.message}</p>}
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center group">
-                      <p className="text-sm font-bold text-slate-600 dark:text-gray-300">Mão de Obra e Equipe *</p>
-                      <div>
-                        <Controller name="orcamento_mao_obra" control={control} rules={{ required: 'Campo obrigatório', validate: value => value > 0 || 'Valor deve ser maior que zero' }} render={({ field }) => (
-                           <CurrencyInput {...field} className="w-48 text-right p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
-                        )} />
-                        {errors.orcamento_mao_obra && <p className="text-red-500 text-xs mt-1">{errors.orcamento_mao_obra.message}</p>}
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center group">
-                      <p className="text-sm font-bold text-slate-600 dark:text-gray-300">Taxas e Legalização *</p>
-                      <div>
-                        <Controller name="orcamento_taxas" control={control} rules={{ required: 'Campo obrigatório', validate: value => value > 0 || 'Valor deve ser maior que zero' }} render={({ field }) => (
-                           <CurrencyInput {...field} className="w-48 text-right p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
-                        )} />
-                        {errors.orcamento_taxas && <p className="text-red-500 text-xs mt-1">{errors.orcamento_taxas.message}</p>}
-                      </div>
-                    </div>
-                    
-                    <div className="pt-4 border-t border-slate-200 dark:border-gray-700 flex justify-between items-center">
-                      <p className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-widest">Orçamento Total Planejado</p>
-                      <p className="text-2xl font-black text-slate-900 dark:text-white">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(orcamento_total)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
               </div>
             )}
 
             {step === 3 && (
               <div className="animate-slide-up space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-black text-slate-600 dark:text-gray-300 uppercase tracking-wider">Alocação de Equipe</h3>
-                  <Button variant="outline" size="sm" type="button" onClick={() => appendEquipe({ id_usuario: '', valor_dia: 0 })}>
-                    + Add Membro
-                  </Button>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4">Adicionar Membros da Equipe</h4>
+                  <EquipeSelection control={control} apiFetch={apiFetch} />
                 </div>
-
-                {equipeFields.length === 0 ? (
-                  <div className="text-center p-10 border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-[2rem]">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nenhuma equipe selecionada</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {equipeFields.map((item, index) => (
-                      <div key={item.id} className="flex items-center gap-4 bg-slate-50 dark:bg-gray-900/40 p-4 rounded-2xl border border-slate-200 dark:border-gray-800">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Colaborador</label>
-                          <select {...register(`equipe.${index}.id_usuario`, { required: true })} className="w-full p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold">
-                            <option value="">Selecione...</option>
-                            {usuariosDisponiveis.map(u => (
-                              <option key={u.id_usuario} value={u.id_usuario}>
-                                {u.nome} ({u.funcao || u.role})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="w-32">
-                          <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Diária (R$)</label>
-                          <Controller name={`equipe.${index}.valor_dia`} control={control} render={({ field }) => (
-                            <CurrencyInput {...field} className="w-full text-right p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
-                          )} />
-                        </div>
-                        <button type="button" onClick={() => removeEquipe(index)} className="mt-5 w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors">
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {errors.equipe && <p className="text-red-500 text-xs mt-4">{errors.equipe.message}</p>}
-              </div>
-            )}
-
-            {step === 4 && (
-              <div className="animate-slide-up space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-black text-slate-600 dark:text-gray-300 uppercase tracking-wider">Estoque Inicial</h3>
-                  <Button variant="outline" size="sm" type="button" onClick={() => appendEstoque({ nome_material: '', unidade_medida: 'Unidade', quantidade_inicial: 1 })}>
-                    + Add Insumo
-                  </Button>
-                </div>
-
-                {estoqueFields.length === 0 ? (
-                  <div className="text-center p-10 border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-[2rem]">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nenhum estoque inicial</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {estoqueFields.map((item, index) => (
-                      <div key={item.id} className="flex items-center gap-4 bg-slate-50 dark:bg-gray-900/40 p-4 rounded-2xl border border-slate-200 dark:border-gray-800">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Material</label>
-                          <input {...register(`estoque.${index}.nome_material`, { required: true })} placeholder="Ex: Cimento CP-II" className="w-full p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
-                        </div>
-                        <div className="w-32">
-                          <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Unidade</label>
-                          <select {...register(`estoque.${index}.unidade_medida`)} className="w-full p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold">
-                            <option value="Unidade">Un</option>
-                            <option value="Saco">Saco</option>
-                            <option value="m³">m³</option>
-                            <option value="Metro">m</option>
-                            <option value="kg">kg</option>
-                            <option value="Litro">L</option>
-                          </select>
-                        </div>
-                        <div className="w-24">
-                          <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Qtd</label>
-                          <input type="number" step="0.1" {...register(`estoque.${index}.quantidade_inicial`, { required: true })} className="w-full p-3 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-sm font-bold text-center" />
-                        </div>
-                        <button type="button" onClick={() => removeEstoque(index)} className="mt-5 w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors">
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
 
@@ -423,7 +271,7 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
             {step === 1 ? 'Cancelar' : '← Voltar'}
           </Button>
           
-          {step < 4 ? (
+          {step < 3 ? (
             <Button variant="primary" type="button" onClick={nextStep} className="px-8 font-black uppercase tracking-widest text-[10px]">
               Avançar →
             </Button>
@@ -438,3 +286,76 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
     </div>
   );
 }
+
+/**
+ * Sub-componente para seleção de equipe vinculada ao RH
+ */
+function EquipeSelection({ control, apiFetch }) {
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRH = async () => {
+      try {
+        const res = await apiFetch('http://localhost:5000/api/rh?limit=100');
+        if (res.ok) {
+          const result = await res.json();
+          setFuncionarios(result.data.filter(f => f.status === 'ATIVO'));
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRH();
+  }, [apiFetch]);
+
+  return (
+    <Controller
+      name="equipe"
+      control={control}
+      render={({ field }) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-2">
+          {loading ? (
+            <div className="col-span-2 py-10 flex flex-col items-center gap-3">
+              <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sincronizando RH...</p>
+            </div>
+          ) : funcionarios.length === 0 ? (
+            <div className="col-span-2 p-6 rounded-2xl bg-amber-50 border border-amber-100 text-center">
+               <p className="text-xs font-bold text-amber-600">Nenhum funcionário ativo no RH. Cadastre-os primeiro no módulo de RH.</p>
+            </div>
+          ) : funcionarios.map(f => {
+            const isSelected = field.value?.some(m => Number(m.id_usuario) === Number(f.id_usuario));
+            return (
+              <button
+                key={f.id_usuario}
+                type="button"
+                onClick={() => {
+                  const newValue = isSelected
+                    ? field.value.filter(m => Number(m.id_usuario) !== Number(f.id_usuario))
+                    : [...(field.value || []), { id_usuario: f.id_usuario, nome: f.nome, papel: f.cargo_base }];
+                  field.onChange(newValue);
+                }}
+                className={`p-4 rounded-2xl border text-left transition-all ${
+                  isSelected 
+                    ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-100' 
+                    : 'bg-white dark:bg-gray-800 border-slate-100 dark:border-gray-700 hover:border-indigo-200'
+                }`}
+              >
+                <div className={`text-xs font-black uppercase tracking-tight ${isSelected ? 'text-white' : 'text-slate-800 dark:text-gray-100'}`}>
+                  {f.nome}
+                </div>
+                <div className={`text-[10px] font-bold mt-1 ${isSelected ? 'text-indigo-100' : 'text-slate-400'}`}>
+                  {f.matricula} • {f.cargo_base || 'Sem cargo'}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    />
+  );
+}
+

@@ -3,7 +3,7 @@ import {
   listarObras, criarObra, atualizarObra, deletarObra, getObraById,
   adicionarMembroEquipe, removerMembroEquipe, atualizarMembroEquipe,
   adicionarItemEstoque, removerItemEstoque, atualizarItemEstoque,
-  listarHistoricoEstoque
+  listarHistoricoEstoque, getOrgChart
 } from '../controllers/obraController.js';
 import { uploadDocumento } from '../controllers/documentoController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
@@ -30,6 +30,13 @@ router.put('/obras/estoque/:idItem', authMiddleware, requireObraAccess('total'),
 router.delete('/obras/estoque/:idItem', authMiddleware, requireObraAccess('total'), removerItemEstoque);
 
 // ─── DETALHES COMPLETO (API HIDRATADA) ───────────────────────────────────────
+router.get(
+  '/obras/:id/org-chart',
+  authMiddleware,
+  requireObraAccess('leitura'),
+  getOrgChart
+);
+
 router.get(
   '/obras/:id', 
   authMiddleware, 

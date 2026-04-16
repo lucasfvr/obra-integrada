@@ -9,6 +9,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth.js';
+import { toast } from 'react-hot-toast';
 
 // ─── Ícones ────────────────────────────────────────────────────────────────────
 const Ico = ({ d, className = 'w-5 h-5' }) => (
@@ -75,7 +76,7 @@ function KpiStrip({ obras }) {
 }
 
 // ─── Obra Card (Expansível) ────────────────────────────────────────────────────
-function ObraCard({ obra, onNavigate }) {
+function ObraCard({ obra, onNavigate, onDelete }) {
   const [expandido, setExpandido] = useState(false);
 
   const orcado        = Number(obra.valor_orcado || 0);
@@ -246,8 +247,15 @@ function ObraCard({ obra, onNavigate }) {
             </div>
           )}
 
-          {/* Ação */}
-          <div className="flex justify-end pt-2">
+          {/* Ações */}
+          <div className="flex justify-end items-center gap-3 pt-2">
+            <button
+               onClick={() => onDelete(obra.id_obra)}
+               className="flex items-center gap-2 px-6 py-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+            >
+               <Ico d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-4 h-4" />
+               Excluir
+            </button>
             <button
               onClick={() => onNavigate(obra.id_obra)}
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30"
@@ -282,22 +290,56 @@ export default function MinhasObrasPage() {
   const [busca, setBusca]         = useState('');
   const [filtroStatus, setFiltroStatus] = useState('todos');
   const [ordenacao, setOrdenacao] = useState('nome');
+  
+  const [obraToDelete, setObraToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const userId = user?.id_usuario || user?.id;
 
-  useEffect(() => {
+  const fetchObras = async () => {
     if (!userId) return;
     setLoading(true);
-    apiFetch(`http://localhost:5000/api/obras?userId=${userId}`)
-      .then(r => r.json())
-      .then(res => {
-        // REQUISITO B: Suporte a { data, meta } ou array simples
+    try {
+      const r = await apiFetch(`http://localhost:5000/api/obras?userId=${userId}`);
+      if (r.ok) {
+        const res = await r.json();
         const data = Array.isArray(res) ? res : (res.data || []);
         setObras(data);
-      })
-      .catch(() => setObras([]))
-      .finally(() => setLoading(false));
+      }
+    } catch (e) {
+      console.error(e);
+      setObras([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchObras();
   }, [userId, apiFetch]);
+
+  const handleDelete = async () => {
+    if (!obraToDelete) return;
+    setDeleting(true);
+    try {
+      const res = await apiFetch(`http://localhost:5000/api/obras/${obraToDelete}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success("Obra excluída com sucesso.");
+        setObraToDelete(null);
+        fetchObras();
+      } else {
+        const err = await res.json();
+        toast.error(err.erro || "Erro ao excluir obra.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro de conexão.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const statusDisponiveis = useMemo(() =>
     ['todos', ...new Set(obras.map(o => o.tb_status?.nome).filter(Boolean))],
@@ -426,6 +468,7 @@ export default function MinhasObrasPage() {
               key={obra.id_obra}
               obra={obra}
               onNavigate={(id) => navigate(`/obra/${id}`)}
+              onDelete={(id) => setObraToDelete(id)}
             />
           ))}
         </div>
@@ -443,6 +486,37 @@ export default function MinhasObrasPage() {
               Limpar filtros →
             </button>
           )}
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {obraToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" onClick={() => !deleting && setObraToDelete(null)}></div>
+          <div className="relative bg-white dark:bg-gray-900 w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-scale-up border dark:border-gray-800">
+             <div className="w-20 h-20 bg-rose-50 dark:bg-rose-950/40 text-rose-600 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl">
+                <Ico d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-10 h-10" />
+             </div>
+             <h3 className="text-center text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">Confirmar Exclusão?</h3>
+             <p className="text-center text-gray-500 dark:text-gray-400 text-sm font-medium mb-8">Esta ação removerá permanentemente a obra e todos os seus registros.</p>
+             
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setObraToDelete(null)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-3 text-xs font-black uppercase text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 bg-rose-600 hover:bg-rose-700 text-white px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20 active:scale-95 disabled:opacity-50"
+                >
+                  {deleting ? 'Excluindo...' : 'Sim, Excluir'}
+                </button>
+             </div>
+          </div>
         </div>
       )}
     </div>

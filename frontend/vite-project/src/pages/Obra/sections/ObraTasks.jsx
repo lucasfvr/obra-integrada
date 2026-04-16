@@ -3,13 +3,18 @@ import { useAuth } from '../../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../../components/Guards/PermissaoGuard.jsx';
 import { TaskSkeleton } from "../../../components/common/SkeletonLoaders.jsx";
 
-export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
+export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null, onRefresh }) {
   const { apiFetch, hasPermissao } = useAuth();
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState('TODAS');
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const LIMIT = 9; // 3x3 grid looks better with 9 or 12 items
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -18,14 +23,24 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
     prioridade: 'NORMAL',
     prazo: ''
   });
+  
+  // Consolida o pessoal disponível (Gerente + Equipe)
+  const availableStaff = [
+    ...(manager ? [{ id_usuario: manager.id_usuario, nome: manager.nome, papel: 'Responsável' }] : []),
+    ...(team.map(m => ({ id_usuario: m.id_usuario, nome: m.tb_usuario?.nome, papel: m.tb_papel?.nome || 'Membro' })))
+  ].filter((v, i, a) => a.findIndex(t => t.id_usuario === v.id_usuario) === i); // Remove duplicatas se o gerente estiver na equipe
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const res = await apiFetch(`http://localhost:5000/api/obras/${idObra}/tarefas`);
+      // Inclui paginação e filtro na query
+      const url = `http://localhost:5000/api/obras/${idObra}/tarefas?page=${page}&limit=${LIMIT}`;
+      const res = await apiFetch(url);
       if (res.ok) {
-        const data = await res.json();
-        setTasks(data);
+        const result = await res.json();
+        // O backend retorna { data: [], meta: { totalPages, ... } }
+        setTasks(result.data || []);
+        setTotalPages(result.meta?.totalPages || 1);
       }
     } catch (e) {
       console.error(e);
@@ -36,7 +51,12 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
 
   useEffect(() => {
     fetchTasks();
-  }, [idObra]);
+  }, [idObra, page]); // Recarrega ao mudar obra ou página
+
+  // Resetar para página 1 ao trocar o filtro (embora o filtro atual seja local no frontend, no ideal seria via backend se houvesse muitas tarefas)
+  useEffect(() => {
+    setPage(1);
+  }, [filter]);
 
   const handleStatusChange = async (tarefaId, newStatus) => {
     try {
@@ -60,16 +80,29 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
       : `http://localhost:5000/api/obras/${idObra}/tarefas`;
 
     try {
+      // Limpamos o payload para enviar apenas o necessário e evitar erros de estrutura
+      const payload = {
+        titulo: formData.titulo,
+        descricao: formData.descricao,
+        id_usuarios: formData.id_usuarios.map(id => Number(id)),
+        prioridade: formData.prioridade,
+        prazo: formData.prazo
+      };
+
       const res = await apiFetch(url, {
         method,
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
+        alert(editingTask ? "Tarefa atualizada com sucesso!" : "Tarefa criada com sucesso!");
         setShowModal(false);
         setEditingTask(null);
         setFormData({ titulo: '', descricao: '', id_usuarios: [], prioridade: 'NORMAL', prazo: '' });
         fetchTasks();
         if (onRefresh) onRefresh();
+      } else {
+        const errData = await res.json();
+        alert("Erro ao salvar tarefa: " + (errData.erro || "Verifique os dados"));
       }
     } catch (e) {
       console.error(e);
@@ -83,8 +116,11 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
         method: 'DELETE'
       });
       if (res.ok) {
+        alert("Tarefa excluída com sucesso!");
         fetchTasks();
         if (onRefresh) onRefresh();
+      } else {
+        alert("Erro ao excluir tarefa.");
       }
     } catch (e) {
       console.error(e);
@@ -152,7 +188,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
                         setEditingTask(task); 
                         setFormData({
                           ...task, 
-                          id_usuarios: task.tb_tarefa_usuario?.map(v => v.id_usuario.toString()) || [],
+                          id_usuarios: task.tb_tarefa_usuario?.map(v => Number(v.id_usuario)) || [],
                           prazo: task.prazo ? task.prazo.split('T')[0] : ''
                         }); 
                         setShowModal(true); 
@@ -218,6 +254,45 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
         )}
       </div>
 
+      {/* Paginação UI */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-12 pb-8">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              page === 1 
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
+                : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-100 shadow-sm active:scale-95'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            Anterior
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Página</span>
+            <span className="h-10 w-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-200">
+              {page}
+            </span>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">de {totalPages}</span>
+          </div>
+
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              page === totalPages 
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
+                : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-100 shadow-sm active:scale-95'
+            }`}
+          >
+            Próxima
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      )}
+
       {/* Modal Nova/Editar Tarefa */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
@@ -254,28 +329,39 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], onRefresh }) {
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Quem fará? (Selecione um ou mais)</label>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
-                  {team.map(m => {
-                    const isSelected = formData.id_usuarios.includes(m.id_usuario);
-                    return (
-                      <button
-                        key={m.id_usuario}
-                        type="button"
-                        onClick={() => {
-                          const newIds = isSelected 
-                            ? formData.id_usuarios.filter(id => id !== m.id_usuario)
-                            : [...formData.id_usuarios, m.id_usuario];
-                          setFormData({ ...formData, id_usuarios: newIds });
-                        }}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-                          isSelected 
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' 
-                            : 'bg-white dark:bg-gray-900 text-gray-400 border-gray-100 dark:border-gray-800 hover:border-indigo-200'
-                        }`}
-                      >
-                        {m.tb_usuario.nome}
-                      </button>
-                    )
-                  })}
+                  {availableStaff.length === 0 ? (
+                    <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                      Nenhum membro vinculado à obra. Adicione equipe primeiro.
+                    </p>
+                  ) : (
+                    availableStaff.map(m => {
+                      const isSelected = formData.id_usuarios.map(id => Number(id)).includes(Number(m.id_usuario));
+                      return (
+                        <button
+                          key={m.id_usuario}
+                          type="button"
+                          onClick={() => {
+                            const userId = Number(m.id_usuario);
+                            const isSelected = formData.id_usuarios.map(id => Number(id)).includes(userId);
+                            
+                            const newIds = isSelected 
+                              ? formData.id_usuarios.filter(id => Number(id) !== userId)
+                              : [...formData.id_usuarios, userId];
+                            
+                            setFormData({ ...formData, id_usuarios: newIds });
+                          }}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-start ${
+                            isSelected 
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' 
+                              : 'bg-white dark:bg-gray-900 text-gray-400 border-gray-100 dark:border-gray-800 hover:border-indigo-200'
+                          }`}
+                        >
+                          <span>{m.nome}</span>
+                          <span className={`text-[8px] opacity-70 ${isSelected ? 'text-white' : 'text-indigo-500'}`}>{m.papel}</span>
+                        </button>
+                      )
+                    })
+                  )}
                 </div>
               </div>
 

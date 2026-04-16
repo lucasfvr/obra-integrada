@@ -60,8 +60,7 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
 
   const handleOpenAdd = () => {
     setEditingMember(null);
-    setInviteMode('platform');
-    setFormData({ id_usuario: '', email: '', nome: '', id_papel: 1, valor_dia: 0 });
+    setFormData({ id_usuario: '', id_papel: 1, valor_dia: 0 });
     setShowModal(true);
     fetchUsers();
   };
@@ -232,65 +231,19 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
 
               <form onSubmit={handleSubmit} className="p-8 space-y-6">
                 {!editingMember && (
-                  <div className="space-y-4">
-                    <div className="flex gap-2 p-1 bg-slate-100 dark:bg-gray-900 rounded-2xl border dark:border-gray-800">
-                      <button 
-                        type="button"
-                        onClick={() => setInviteMode('platform')}
-                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inviteMode === 'platform' ? 'bg-white dark:bg-gray-800 text-indigo-600 shadow-sm' : 'text-gray-400'}`}
-                      >
-                        Plataforma
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setInviteMode('email')}
-                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${inviteMode === 'email' ? 'bg-white dark:bg-gray-800 text-indigo-600 shadow-sm' : 'text-gray-400'}`}
-                      >
-                        E-mail
-                      </button>
-                    </div>
-
-                    {inviteMode === 'platform' ? (
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Buscar Usuário</label>
-                        <select 
-                          className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                          required
-                          value={formData.id_usuario}
-                          onChange={(e) => setFormData({...formData, id_usuario: e.target.value})}
-                        >
-                          <option value="">Selecione...</option>
-                          {availableUsers.map(u => (
-                            <option key={u.id_usuario} value={u.id_usuario}>{u.nome} ({u.role})</option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">E-mail do Profissional</label>
-                          <input 
-                            type="email"
-                            className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                            placeholder="exemplo@email.com"
-                            required
-                            value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Nome Completo</label>
-                          <input 
-                            type="text"
-                            className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                            placeholder="Nome para identificação"
-                            required
-                            value={formData.nome}
-                            onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                          />
-                        </div>
-                      </div>
-                    )}
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Selecionar do RH</label>
+                    <select 
+                      className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                      required
+                      value={formData.id_usuario}
+                      onChange={(e) => setFormData({...formData, id_usuario: e.target.value})}
+                    >
+                      <option value="">Escolha um profissional do seu RH...</option>
+                      {availableUsers.map(u => (
+                        <option key={u.id_usuario} value={u.id_usuario}>{u.nome} ({u.cargo_base || u.role})</option>
+                      ))}
+                    </select>
                   </div>
                 )}
 

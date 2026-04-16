@@ -14,13 +14,14 @@ async function main() {
   }
 
   // Seed roles
-  const papeis = ['Engenheiro Responsável', 'Arquiteto', 'Mestre de Obras', 'Pedreiro', 'Ajudante', 'Eletricista', 'Encanador', 'Cliente/Dono'];
-  for (const papel of papeis) {
-    // Check if it exists
-    const existing = await prisma.tb_papel.findFirst({ where: { nome: papel } });
-    if (!existing) {
-      await prisma.tb_papel.create({ data: { nome: papel } });
-    }
+  const papeis = ['Membro', 'Mestre', 'Engenheiro', 'Pedreiro', 'Ajudante', 'Eletricista', 'Encanador'];
+  for (let i = 0; i < papeis.length; i++) {
+    const nome = papeis[i];
+    await prisma.tb_papel.upsert({
+      where: { id_papel: i + 1 },
+      update: { nome },
+      create: { id_papel: i + 1, nome: nome },
+    });
   }
 
   // Seed Admin Area

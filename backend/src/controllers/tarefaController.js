@@ -18,6 +18,20 @@ export async function criarTarefa(req, res) {
       return res.status(400).json({ erro: 'O titulo e obrigatorio' });
     }
 
+    // Validar se os usuários pertencem à equipe da obra
+    if (id_usuarios && Array.isArray(id_usuarios) && id_usuarios.length > 0) {
+      const membrosEquipe = await prisma.tb_usuario_obra.findMany({
+        where: { id_obra: idObra },
+        select: { id_usuario: true }
+      });
+      const idsEquipe = membrosEquipe.map(m => m.id_usuario);
+      const invalidos = id_usuarios.filter(id => !idsEquipe.includes(Number(id)));
+
+      if (invalidos.length > 0) {
+        return res.status(400).json({ erro: 'Um ou mais usuários selecionados não pertencem à equipe desta obra.' });
+      }
+    }
+
     const novaTarefa = await prisma.tb_tarefa.create({
       data: {
         id_obra: idObra,
@@ -89,6 +103,27 @@ export async function atualizarTarefa(req, res) {
     const { tarefaId } = req.params;
     const { titulo, descricao, id_usuarios, prioridade, prazo, percentual_concluido } = req.body;
 
+    // Se for atualizar usuários, validar se pertencem à equipe da obra
+    if (id_usuarios && Array.isArray(id_usuarios)) {
+      const tarefaAtual = await prisma.tb_tarefa.findUnique({
+        where: { id_tarefa: Number(tarefaId) },
+        select: { id_obra: true }
+      });
+
+      if (tarefaAtual) {
+        const membrosEquipe = await prisma.tb_usuario_obra.findMany({
+          where: { id_obra: tarefaAtual.id_obra },
+          select: { id_usuario: true }
+        });
+        const idsEquipe = membrosEquipe.map(m => m.id_usuario);
+        const invalidos = id_usuarios.filter(id => !idsEquipe.includes(Number(id)));
+
+        if (invalidos.length > 0) {
+          return res.status(400).json({ erro: 'Um ou mais usuários selecionados não pertencem à equipe desta obra.' });
+        }
+      }
+    }
+
     const updateData = {
       titulo,
       descricao,
@@ -148,7 +183,11 @@ export async function deletarTarefa(req, res) {
 export async function listarTarefas(req, res) {
   try {
     const { id } = req.params; // id da obra
-    const { userId } = req.query; // id do usuario (opcional)
+    const { userId, page = 1, limit = 10 } = req.query; // id do usuario ou paginacao
+
+    const pageNumber = parseInt(page, 10) || 1;
+    const limitNumber = parseInt(limit, 10) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
 
     const where = {};
     if (id) where.id_obra = Number(id);
@@ -160,20 +199,33 @@ export async function listarTarefas(req, res) {
       };
     }
 
-    const tarefas = await prisma.tb_tarefa.findMany({
-      where,
-      orderBy: { criado_em: 'desc' },
-      include: {
-        tb_tarefa_usuario: {
-          include: {
-            tb_usuario: { select: { id_usuario: true, nome: true } }
-          }
-        },
-        tb_obra: { select: { nome: true } }
+    const [tarefas, total] = await Promise.all([
+      prisma.tb_tarefa.findMany({
+        where,
+        skip,
+        take: limitNumber,
+        orderBy: { criado_em: 'desc' },
+        include: {
+          tb_tarefa_usuario: {
+            include: {
+              tb_usuario: { select: { id_usuario: true, nome: true } }
+            }
+          },
+          tb_obra: { select: { nome: true } }
+        }
+      }),
+      prisma.tb_tarefa.count({ where })
+    ]);
+
+    return res.status(200).json({
+      data: tarefas,
+      meta: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber)
       }
     });
-
-    return res.status(200).json(tarefas);
   } catch (error) {
     console.error('[TAREFA] Erro ao listar:', error);
     return res.status(500).json({ erro: 'Erro ao buscar tarefas' });
