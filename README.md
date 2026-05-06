@@ -1,5 +1,5 @@
 <div align="center">
-## Obra Integrada
+<h1>Obra Integrada</h1> 
 
 **Plataforma SaaS para gestão integrada de obras na construção civil.**
 
