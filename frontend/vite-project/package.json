@@ -14,6 +14,7 @@
     "@react-jvectormap/world": "^1.1.2",
     "@types/leaflet": "^1.9.21",
     "apexcharts": "^5.10.6",
+    "backend": "file:../..",
     "clsx": "^2.1.1",
     "flatpickr": "^4.6.13",
     "jwt-decode": "^4.0.0",
