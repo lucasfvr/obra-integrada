@@ -1,17 +1,18 @@
 /**
  * permissions.js
  *
- * COPIA ESPELHADA DE: backend/src/config/permissions.js
+ * Fonte unica da matriz de RBAC do Obra Integrada.
+ * Usado por:
+ *   - Backend: middlewares de autorizacao (authorizationMiddleware.js)
+ *   - Frontend: copia espelhada em frontend/vite-project/src/utils/permissions.js
  *
- * O backend e a fonte unica da verdade. Ao alterar a matriz, atualize
- * OS DOIS arquivos no mesmo PR. Quando o projeto migrar para workspaces,
- * essa duplicacao sera extraida para um pacote compartilhado.
- *
- * O backend SEMPRE valida as permissoes reais em cada request.
- * Este arquivo apenas controla a visibilidade de componentes na UI.
+ * Ao alterar este arquivo, atualizar a copia do frontend no MESMO PR.
+ * Quando o projeto migrar para workspaces, esta duplicacao sera extraida
+ * para um pacote compartilhado.
  */
 
 // --- Catalogo de roles ----------------------------------------------------
+// USER e fallback para qualquer role desconhecida no banco.
 
 export const ROLES = Object.freeze({
   ADMIN_MASTER: 'ADMIN_MASTER',
@@ -26,7 +27,7 @@ export const ROLES = Object.freeze({
 export const ROLES_PLATAFORMA = [ROLES.ADMIN_MASTER, ROLES.ADMIN];
 export const ROLES_OBRA = [ROLES.RESPONSAVEL, ROLES.TRABALHADOR];
 
-// --- Labels ---------------------------------------------------------------
+// --- Labels para exibicao -------------------------------------------------
 
 export const ROLE_LABELS = Object.freeze({
   ADMIN_MASTER: 'Administrador da Plataforma',
@@ -38,7 +39,8 @@ export const ROLE_LABELS = Object.freeze({
   USER:         'Usuario',
 });
 
-// --- Matriz ---------------------------------------------------------------
+// --- Matriz de permissoes -------------------------------------------------
+// true = tem permissao. Permissao ausente do objeto = false.
 
 export const PERMISSOES = Object.freeze({
   ADMIN_MASTER: {
@@ -166,12 +168,4 @@ export function isObra(role) {
 
 export function podeImpersonar(role) {
   return hasPermissao(role, 'impersonar');
-}
-
-// --- Compat: getProfile (usado em AppSidebar.tsx) -------------------------
-// No PR #2 essa funcao ganhara logica baseada em "funcao" (Mestre, Estagiario).
-// Por enquanto retorna a role direto.
-
-export function getProfile(role /*, funcao */) {
-  return role || ROLES.USER;
 }
