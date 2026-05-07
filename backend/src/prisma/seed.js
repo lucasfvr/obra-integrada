@@ -190,7 +190,7 @@ async function main() {
   // 4. Proprietário
   const proprietario = await prisma.tb_usuario.upsert({
     where: { email: 'diretoria@vanguarda.com.br' },
-    update: { id_cliente },
+    update: { id_cliente, senha: senhaHash, status: 'ATIVO' },
     create: {
       nome: 'Dr. Ricardo Vanguarda',
       email: 'diretoria@vanguarda.com.br',
@@ -200,6 +200,25 @@ async function main() {
       tipo_usuario: 'PROPRIETARIO',
       id_cliente,
       status: 'ATIVO'
+    }
+  });
+
+  // 4.1. Estagiário (perfil de teste para o RBAC)
+  const estagiario = await prisma.tb_usuario.upsert({
+    where: { email: 'estagiario@vanguarda.com.br' },
+    update: { id_cliente, senha: senhaHash, role: 'ESTAGIARIO', status: 'ATIVO' },
+    create: {
+      nome: 'Bruno Silva (Estagiário)',
+      email: 'estagiario@vanguarda.com.br',
+      username: 'estagiario',
+      senha: senhaHash,
+      role: 'ESTAGIARIO',
+      tipo_usuario: 'ESTAGIARIO',
+      cargo_base: 'Estagiário de Engenharia',
+      id_cliente,
+      status: 'ATIVO',
+      cpf: '000.000.000-101',
+      matricula: 'VANG-2025-0101'
     }
   });
 
@@ -262,6 +281,15 @@ async function main() {
       update: { id_papel: papelMap['Engenheiro'] },
       create: { id_usuario: responsavel.id_usuario, id_obra: obra.id_obra, id_papel: papelMap['Engenheiro'] }
     });
+
+    // Vincula o estagiário à primeira obra para fins de teste do RBAC
+    if (i === 0 && estagiario) {
+      await prisma.tb_usuario_obra.upsert({
+        where: { id_usuario_id_obra: { id_usuario: estagiario.id_usuario, id_obra: obra.id_obra } },
+        update: { id_papel: papelMap['Membro'] },
+        create: { id_usuario: estagiario.id_usuario, id_obra: obra.id_obra, id_papel: papelMap['Membro'] }
+      });
+    }
 
     const equipeSize = 5 + Math.floor(Math.random() * 5);
     for (let j = 0; j < equipeSize; j++) {
