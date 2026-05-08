@@ -15,9 +15,9 @@ const router = express.Router();
  * Protegidas por autenticação e permissão 'gerenciar_usuarios'
  */
 
-router.get('/', 
-  authMiddleware, 
-  requirePermissao('gerenciar_usuarios'), 
+router.get('/',
+  authMiddleware,
+  requirePermissao('ver_rh'),
   listarFuncionarios
 );
 
