@@ -165,45 +165,45 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/materiais" 
+            <Route
+              path="/materiais"
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_materiais_obra" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_obras" redirectToRestricted>
                     <UnderConstruction titulo="Materiais e Estoque" />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/financeiro" 
+            <Route
+              path="/financeiro"
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_financeiro_obra" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_financeiro" redirectToRestricted>
                     <UnderConstruction titulo="Financeiro da Obra" />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/equipe" 
+            <Route
+              path="/equipe"
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_equipe_obra" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_equipe" redirectToRestricted>
                     <UnderConstruction titulo="Equipe e Organograma" />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/rh" 
+            <Route
+              path="/rh"
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="gerenciar_usuarios" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_rh" redirectToRestricted>
                     <GestaoRH />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
             <Route 
               path="/profile" 

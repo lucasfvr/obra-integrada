@@ -2,7 +2,6 @@ import { useCallback, type FC, type ReactNode, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../hooks/useAuth.js";
-import { isPlataforma, getProfile } from "../utils/permissions.js";
 
 // ─── Ícones inline (SVG) para evitar dependências extras ────────────────────
 
@@ -27,104 +26,63 @@ const icons = {
   usuarios:   <Icon path="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />,
 };
 
-type NavItem = { name: string; icon: ReactNode; path: string; };
+type NavItem = { name: string; icon: ReactNode; path: string; permissao?: string };
 type NavGroup = { label: string; items: NavItem[] };
 
 const AppSidebar: FC = () => {
   const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
-  const { user, role } = useAuth();
+  const { hasPermissao } = useAuth();
   const location = useLocation();
   const [tooltip, setTooltip] = useState<{ name: string; y: number } | null>(null);
 
   const isOpen = isExpanded || isMobileOpen;
-  
-  const userRole = (user as any)?.role || (role as any);
-  const userFuncao = (user as any)?.funcao;
-  const profile = useMemo(() => getProfile(userRole, userFuncao), [userRole, userFuncao]);
 
   const navGroups = useMemo<NavGroup[]>(() => {
-    // ── Nível 1: Plataforma/Administrador ─────────────────────────────────────
-    if (profile === 'ADMIN_MASTER') {
-      return [
-        {
-          label: "Governança",
-          items: [
-            { icon: icons.dashboard,  name: "Dashboard Master", path: "/dashboard" },
-            { icon: icons.clientes,   name: "Gestão Clientes",  path: "/clientes" },
-            { icon: icons.usuarios,   name: "Gestão RH",        path: "/rh" },
-          ],
-        }
-      ];
-    }
-
-    // ── Nível 2: Proprietário (Dono da Empresa) ───────────────────────────────
-    if (profile === 'PROPRIETARIO') {
-      return [
-        {
-          label: "Empresa",
-          items: [
-            { icon: icons.dashboard,  name: "Visão Geral",    path: "/dashboard" },
-            { icon: icons.obras,      name: "Minhas Obras",   path: "/obras"     },
-            { icon: icons.usuarios,   name: "Gestão RH",      path: "/rh"        },
-          ],
-        },
-        {
-          label: "Gestão",
-          items: [
-            { icon: icons.financeiro, name: "Financeiro",     path: "/financeiro" },
-            { icon: icons.documentos, name: "Documentos",     path: "/documentos" },
-          ],
-        },
-        {
-          label: "Conta",
-          items: [
-            { icon: icons.perfil,     name: "Minha Conta",   path: "/profile"   },
-          ],
-        },
-      ];
-    }
-
-    // ── Nível 2: Operacional (Canteiro de Obras) ──────────────────────────────
-    const groups: NavGroup[] = [];
-
-    // Grupo Canteiro (Geral para todos da obra)
-    const canteiroItems = [
-      { icon: icons.dashboard,  name: "Visão Geral",  path: "/dashboard" },
+    // Estrutura de menu unica baseada em permissoes da matriz RBAC.
+    // Cada item declara qual permissao precisa para aparecer.
+    // Itens sem permissao caem para todos autenticados (ex: Dashboard).
+    const allGroups: NavGroup[] = [
+      {
+        label: "Canteiro",
+        items: [
+          { icon: icons.dashboard, name: "Dashboard",    path: "/dashboard" },
+          { icon: icons.obras,     name: "Minhas Obras", path: "/obras",     permissao: "ver_obras" },
+          { icon: icons.agenda,    name: "Agenda",       path: "/calendar",  permissao: "ver_tarefas" },
+          { icon: icons.documentos, name: "Documentos",  path: "/documentos", permissao: "ver_diario" },
+        ],
+      },
+      {
+        label: "Gestao",
+        items: [
+          { icon: icons.materiais,  name: "Materiais",  path: "/materiais",  permissao: "ver_obras" },
+          { icon: icons.financeiro, name: "Financeiro", path: "/financeiro", permissao: "ver_financeiro" },
+          { icon: icons.equipe,     name: "Equipe",     path: "/equipe",     permissao: "ver_equipe" },
+          { icon: icons.usuarios,   name: "Gestao RH",  path: "/rh",         permissao: "ver_rh" },
+        ],
+      },
+      {
+        label: "Plataforma",
+        items: [
+          { icon: icons.clientes, name: "Clientes", path: "/clientes", permissao: "gerenciar_clientes" },
+        ],
+      },
+      {
+        label: "Conta",
+        items: [
+          { icon: icons.perfil, name: "Minha Conta", path: "/profile", permissao: "ver_perfil" },
+        ],
+      },
     ];
-    
-    if (['RESPONSAVEL', 'MESTRE', 'CLIENTE', 'CONVIDADO_CLIENTE'].includes(profile)) {
-      canteiroItems.push({ icon: icons.agenda, name: "Agenda", path: "/calendar" });
-    }
-    
-    canteiroItems.push({ icon: icons.obras, name: "Minhas Obras", path: "/obras" });
-    
-    groups.push({ label: "Canteiro", items: canteiroItems });
 
-    // Grupo Gestão (Administrativo da Obra)
-    if (['RESPONSAVEL', 'MESTRE', 'CLIENTE', 'CONVIDADO_CLIENTE'].includes(profile)) {
-      const gestaoItems = [
-        { icon: icons.documentos, name: "Documentos", path: "/documentos" },
-      ];
-      
-      if (profile !== 'MESTRE') {
-        gestaoItems.push({ icon: icons.materiais, name: "Materiais", path: "/materiais" });
-        gestaoItems.push({ icon: icons.financeiro, name: "Financeiro", path: "/financeiro" });
-      }
-
-      groups.push({ label: "Gestão", items: gestaoItems });
-    }
-
-    // Grupo Equipe / Conta
-    const equipeItems = [];
-    if (['RESPONSAVEL', 'MESTRE', 'CLIENTE', 'CONVIDADO_CLIENTE'].includes(profile)) {
-       equipeItems.push({ icon: icons.equipe, name: "Equipe", path: "/equipe" });
-    }
-    equipeItems.push({ icon: icons.perfil, name: "Minha Conta", path: "/profile" });
-
-    groups.push({ label: "Usuário", items: equipeItems });
-
-    return groups;
-  }, [profile]);
+    // Filtra cada grupo: mantem so os itens que o usuario tem permissao.
+    // Remove grupos que ficaram vazios.
+    return allGroups
+      .map(group => ({
+        ...group,
+        items: group.items.filter(item => !item.permissao || hasPermissao(item.permissao)),
+      }))
+      .filter(group => group.items.length > 0);
+  }, [hasPermissao]);
 
 
   const isActive = useCallback(
