@@ -1,7 +1,7 @@
 import express from 'express';
 import { registerUser, loginUser, formularioCompleto, getAllUsers, updateUserRole, getUsuariosDisponiveis } from '../controllers/userController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
-import { requireRole } from '../middlewares/authorizationMiddleware.js';
+import { requireRole, requirePermissao } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
@@ -20,8 +20,8 @@ import { getWorkerStats, getWeatherMock } from '../controllers/operationalContro
 router.get('/operational/stats', authMiddleware, getWorkerStats);
 router.get('/operational/weather', authMiddleware, getWeatherMock);
 
-// Admin routes — protegidas por autenticacao + cargo
-router.get('/admin/users', authMiddleware, requireRole('ADMIN', 'ADMIN_MASTER', 'ADMIN_DEV'), getAllUsers);
-router.put('/admin/users/:id/role', authMiddleware, requireRole('ADMIN', 'ADMIN_MASTER'), updateUserRole);
+// Admin routes — protegidas por autenticacao + permissao
+router.get('/admin/users', authMiddleware, requirePermissao('gerenciar_usuarios'), getAllUsers);
+router.put('/admin/users/:id/role', authMiddleware, requireRole('ADMIN_MASTER', 'PROPRIETARIO'), updateUserRole);
 
 export default router;

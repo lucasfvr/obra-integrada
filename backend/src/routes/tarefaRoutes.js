@@ -15,12 +15,14 @@ const router = express.Router();
 router.get(
   '/tarefas',
   authMiddleware,
+  requirePermissao('ver_tarefas'),
   listarTarefas
 );
 
 router.patch(
   '/tarefas/:tarefaId',
   authMiddleware,
+  requirePermissao('atualizar_status_tarefa'),
   atualizarStatusTarefa
 );
 
@@ -29,6 +31,7 @@ router.get(
   '/obras/:id/tarefas',
   authMiddleware,
   requireObraAccess('leitura'),
+  requirePermissao('ver_tarefas'),
   listarTarefas
 );
 
