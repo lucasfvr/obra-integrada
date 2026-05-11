@@ -10,6 +10,7 @@ import API_BASE_URL from "../../config/api.js";
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth.js';
+import { PermissaoGuard } from '../../components/Guards/PermissaoGuard.jsx';
 import { toast } from 'react-hot-toast';
 
 // ─── Ícones ────────────────────────────────────────────────────────────────────
@@ -250,13 +251,15 @@ function ObraCard({ obra, onNavigate, onDelete }) {
 
           {/* Ações */}
           <div className="flex justify-end items-center gap-3 pt-2">
-            <button
-               onClick={() => onDelete(obra.id_obra)}
-               className="flex items-center gap-2 px-6 py-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-            >
-               <Ico d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-4 h-4" />
-               Excluir
-            </button>
+            <PermissaoGuard permissao="excluir_obra">
+              <button
+                 onClick={() => onDelete(obra.id_obra)}
+                 className="flex items-center gap-2 px-6 py-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+              >
+                 <Ico d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-4 h-4" />
+                 Excluir
+              </button>
+            </PermissaoGuard>
             <button
               onClick={() => onNavigate(obra.id_obra)}
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30"
