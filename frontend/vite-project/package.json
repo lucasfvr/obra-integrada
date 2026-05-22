@@ -53,6 +53,12 @@
     "vite": "^7.1.6",
     "vite-plugin-svgr": "^3.3.0"
   },
+  "overrides": {
+    "@react-jvectormap/core": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
