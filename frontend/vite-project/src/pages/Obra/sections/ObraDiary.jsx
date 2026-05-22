@@ -24,7 +24,7 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh })
   
   // Verificar se o usuário faz parte da equipe
   const isMembroEquipe = team.some(m => m.id_usuario === user?.id);
-  const isAdminOuRelacionado = ['ADMIN', 'ADMIN_MASTER'].includes(user?.role);
+  const isAdminOuRelacionado = ['ADMIN', 'MASTER', 'ADMIN_MASTER'].includes(user?.role);
   const podePostar = isMembroEquipe || isAdminOuRelacionado;
 
   const [entries, setEntries] = useState(initialEntries);

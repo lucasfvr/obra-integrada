@@ -50,7 +50,6 @@ export async function listarFuncionarios(req, res) {
           id_usuario: true,
           matricula: true,
           nome: true,
-          cpf: true,
           email: true,
           cargo_base: true,
           status: true,
@@ -81,15 +80,11 @@ export async function listarFuncionarios(req, res) {
  */
 export async function criarFuncionario(req, res) {
   try {
-    const { nome, cpf, email, cargo_base, data_admissao, role, status } = req.body;
+    const { nome, email, cargo_base, data_admissao, role, status } = req.body;
 
     // 1. Validações de obrigatoriedade e formato
     if (!nome || nome.trim().length < 3) {
       return res.status(400).json({ erro: 'Nome completo é obrigatório (mín. 3 caracteres)' });
-    }
-    
-    if (!validarCPF(cpf)) {
-      return res.status(400).json({ erro: 'CPF inválido. Verifique os dígitos.' });
     }
 
     if (!validarEmail(email)) {
@@ -112,7 +107,6 @@ export async function criarFuncionario(req, res) {
     const novoFuncionario = await prisma.tb_usuario.create({
       data: {
         nome,
-        cpf: cpf.replace(/\D/g, ''),
         email: email.toLowerCase(),
         cargo_base: cargo_base || null,
         data_admissao: data_admissao ? new Date(data_admissao) : new Date(),
@@ -127,7 +121,7 @@ export async function criarFuncionario(req, res) {
   } catch (error) {
     if (error.code === 'P2002') {
       const field = error.meta?.target?.[0] || 'campo';
-      const mapField = { cpf: 'CPF', email: 'E-mail', matricula: 'Matrícula' };
+      const mapField = { email: 'E-mail', matricula: 'Matrícula' };
       return res.status(400).json({ erro: `O ${mapField[field] || field} informado já está cadastrado.` });
     }
     console.error('[RH] Erro ao criar:', error);
@@ -141,14 +135,11 @@ export async function criarFuncionario(req, res) {
 export async function atualizarFuncionario(req, res) {
   try {
     const { id } = req.params;
-    const { nome, cpf, email, cargo_base, data_admissao, role, status } = req.body;
+    const { nome, email, cargo_base, data_admissao, role, status } = req.body;
 
     // Validações básicas na atualização se fornecidos
     if (nome && nome.trim().length < 3) {
       return res.status(400).json({ erro: 'Nome inválido' });
-    }
-    if (cpf && !validarCPF(cpf)) {
-      return res.status(400).json({ erro: 'CPF inválido' });
     }
     if (email && !validarEmail(email)) {
       return res.status(400).json({ erro: 'E-mail inválido' });
@@ -158,7 +149,6 @@ export async function atualizarFuncionario(req, res) {
       where: { id_usuario: Number(id) },
       data: {
         nome,
-        cpf: cpf ? cpf.replace(/\D/g, '') : undefined,
         email: email ? email.toLowerCase() : undefined,
         cargo_base: cargo_base || null,
         data_admissao: data_admissao ? new Date(data_admissao) : undefined,

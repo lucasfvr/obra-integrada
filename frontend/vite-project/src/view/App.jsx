@@ -13,6 +13,7 @@ import { Toaster } from "react-hot-toast";
 // Pages
 import HomePage from "./Home.jsx";
 import LoginModal from "./Login.jsx";
+import ForgotPasswordModal from "./ForgotPasswordModal.jsx";
 import RegisterModal from "./RegisterModal.jsx";
 import FormularioCompletoPage from "./FormularioCompletoPage.jsx";
 import Header from "./components/Header.jsx";
@@ -44,6 +45,7 @@ function App() {
 
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
+  const [isForgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [formTempData, setFormTempData] = useState(null);
 
   if (isLoading) {
@@ -165,45 +167,45 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route
-              path="/materiais"
+            <Route 
+              path="/materiais" 
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_obras" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_materiais_obra" redirectToRestricted>
                     <UnderConstruction titulo="Materiais e Estoque" />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              }
+              } 
             />
-            <Route
-              path="/financeiro"
+            <Route 
+              path="/financeiro" 
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_financeiro" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_financeiro_obra" redirectToRestricted>
                     <UnderConstruction titulo="Financeiro da Obra" />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              }
+              } 
             />
-            <Route
-              path="/equipe"
+            <Route 
+              path="/equipe" 
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_equipe" redirectToRestricted>
+                  <PermissaoGuard permissao="ver_equipe_obra" redirectToRestricted>
                     <UnderConstruction titulo="Equipe e Organograma" />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              }
+              } 
             />
-            <Route
-              path="/rh"
+            <Route 
+              path="/rh" 
               element={
                 <ProtectedRoute>
-                  <PermissaoGuard permissao="ver_rh" redirectToRestricted>
+                  <PermissaoGuard permissao="gerenciar_usuarios" redirectToRestricted>
                     <GestaoRH />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              }
+              } 
             />
             <Route 
               path="/profile" 
@@ -227,11 +229,15 @@ function App() {
         {/* Modais Globais (Apenas na Home) */}
         {isLoginModalOpen && (
           <LoginModal
-            onLogin={(data) => {
-              login(data.token, data);
+            onLogin={(data, remember) => {
+              login(data.token, data, remember);
               setLoginModalOpen(false);
             }}
             onClose={() => setLoginModalOpen(false)}
+            onForgotPassword={() => {
+              setLoginModalOpen(false);
+              setForgotPasswordOpen(true);
+            }}
             openRegister={() => {
               setLoginModalOpen(false);
               setRegisterModalOpen(true);
@@ -239,10 +245,24 @@ function App() {
           />
         )}
 
+        {isForgotPasswordOpen && (
+          <ForgotPasswordModal
+            onBack={() => {
+              setForgotPasswordOpen(false);
+              setLoginModalOpen(true);
+            }}
+            onClose={() => setForgotPasswordOpen(false)}
+          />
+        )}
+
         {isRegisterModalOpen && (
           <RegisterModal
             onClose={() => setRegisterModalOpen(false)}
             onRegisterSuccess={handleRegisterSuccess}
+            onOpenLogin={() => {
+              setRegisterModalOpen(false);
+              setLoginModalOpen(true);
+            }}
           />
         )}
       </Router>

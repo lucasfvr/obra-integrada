@@ -1,7 +1,6 @@
 import API_BASE_URL from "../../../config/api.js";
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { PermissaoGuard } from '../../../components/Guards/PermissaoGuard.jsx';
 import { toast } from 'react-hot-toast';
 
 function StatCard({ label, value, subvalue, icon, color }) {
@@ -172,24 +171,20 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
               </>
             ) : (
               <div className="flex gap-2">
-                <PermissaoGuard permissao="editar_obra">
-                  <button
-                    onClick={handleStartEdit}
-                    className="flex items-center gap-2 px-6 py-2 bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    Editar Informações
-                  </button>
-                </PermissaoGuard>
-                <PermissaoGuard permissao="excluir_obra">
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="flex items-center gap-2 px-6 py-2 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    Excluir Obra
-                  </button>
-                </PermissaoGuard>
+                <button 
+                  onClick={handleStartEdit} 
+                  className="flex items-center gap-2 px-6 py-2 bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  Editar Informações
+                </button>
+                <button 
+                  onClick={() => setShowDeleteModal(true)} 
+                  className="flex items-center gap-2 px-6 py-2 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  Excluir Obra
+                </button>
               </div>
             )}
          </div>

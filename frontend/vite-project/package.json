@@ -17,6 +17,7 @@
     "backend": "file:../..",
     "clsx": "^2.1.1",
     "flatpickr": "^4.6.13",
+    "inscricaoestadual": "^0.0.5",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "react": "^19.1.1",
@@ -52,12 +53,6 @@
     "tailwindcss": "^4.1.13",
     "vite": "^7.1.6",
     "vite-plugin-svgr": "^3.3.0"
-  },
-  "overrides": {
-    "@react-jvectormap/core": {
-      "react": "$react",
-      "react-dom": "$react-dom"
-    }
   },
   "scripts": {
     "dev": "vite",

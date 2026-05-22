@@ -38,27 +38,25 @@ router.get(
   '/obras/:id/diario',
   authMiddleware,
   requireObraAccess('leitura'),
-  requirePermissao('ver_diario'),
   listarDiario
 );
 
-// ─── POST — criar entrada (RESPONSAVEL, ESTAGIARIO, MESTRE com vinculo) ──────
+// ─── POST — criar entrada (apenas RESPONSAVEL ou admin global) ────────────────
 router.post(
   '/obras/:id/diario',
   authMiddleware,
-  requireObraAccess(),
+  requireObraAccess('total'),
   requirePermissao('criar_diario'),
   uploadDiario.single('foto'),
   handleUploadError,
   criarEntradaDiario
 );
 
-// ─── DELETE — remover entrada (apenas quem tem excluir_diario) ────────────────
+// ─── DELETE — remover entrada (autoria verificada no controller) ──────────────
 router.delete(
   '/obras/:id/diario/:entradaId',
   authMiddleware,
-  requireObraAccess(),
-  requirePermissao('excluir_diario'),
+  requireObraAccess('qualquer'),
   deletarEntradaDiario
 );
 
@@ -75,7 +73,6 @@ router.patch(
   '/obras/:id/diario/:entradaId/auditar',
   authMiddleware,
   requireObraAccess('total'),
-  requirePermissao('auditar_diario'),
   atualizarStatusAuditoria
 );
 

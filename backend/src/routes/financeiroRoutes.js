@@ -6,7 +6,7 @@ import {
   getOrgChart
 } from '../controllers/financeiroController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
-import { requireObraAccess, requirePermissao } from '../middlewares/authorizationMiddleware.js';
+import { requireObraAccess } from '../middlewares/authorizationMiddleware.js';
 import multer from 'multer';
 import path from 'path';
 
@@ -26,34 +26,30 @@ const router = Router();
 
 // Endpoints protegidos por obra e auth
 router.get(
-  '/obras/:id/financeiro',
-  authMiddleware,
-  requireObraAccess('leitura'),
-  requirePermissao('ver_financeiro'),
+  '/obras/:id/financeiro', 
+  authMiddleware, 
+  requireObraAccess('parcial'), 
   listarFinanceiro
 );
 
 router.post(
-  '/obras/:id/financeiro',
-  authMiddleware,
-  requireObraAccess('total'),
-  requirePermissao('gerenciar_financeiro'),
+  '/obras/:id/financeiro', 
+  authMiddleware, 
+  requireObraAccess('total'), 
   upload.single('comprovante'),
   criarRegistroFinanceiro
 );
 
 router.delete(
-  '/financeiro/:financeiroId',
-  authMiddleware,
-  requirePermissao('gerenciar_financeiro'),
+  '/financeiro/:financeiroId', 
+  authMiddleware, 
   deletarRegistroFinanceiro
 );
 
 router.get(
-  '/obras/:id/org-chart',
-  authMiddleware,
-  requireObraAccess('leitura'),
-  requirePermissao('ver_equipe'),
+  '/obras/:id/org-chart', 
+  authMiddleware, 
+  requireObraAccess('parcial'), 
   getOrgChart
 );
 

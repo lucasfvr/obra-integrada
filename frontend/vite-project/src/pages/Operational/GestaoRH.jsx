@@ -1,7 +1,7 @@
 import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
-import { PermissaoGuard, ReadOnlyGuard } from '../../components/Guards/PermissaoGuard.jsx';
+import { ReadOnlyGuard } from '../../components/Guards/PermissaoGuard.jsx';
 
 export default function GestaoRH() {
   const { apiFetch } = useAuth();
@@ -133,14 +133,12 @@ export default function GestaoRH() {
           <p className="text-slate-500 font-medium">Controle de colaboradores com validação e filtros avançados.</p>
         </div>
         
-        <PermissaoGuard permissao="gerenciar_usuarios">
-          <button
-            onClick={() => { setEditingFunc(null); setShowModal(true); setFormData({ nome: '', cpf: '', email: '', cargo_base: '', data_admissao: '', role: 'TRABALHADOR', status: 'ATIVO' }); setErrors({}); }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-200 active:scale-95 flex items-center gap-2"
-          >
-            <span className="text-xl">+</span> Novo Colaborador
-          </button>
-        </PermissaoGuard>
+        <button 
+          onClick={() => { setEditingFunc(null); setShowModal(true); setFormData({ nome: '', cpf: '', email: '', cargo_base: '', data_admissao: '', role: 'TRABALHADOR', status: 'ATIVO' }); setErrors({}); }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-200 active:scale-95 flex items-center gap-2"
+        >
+          <span className="text-xl">+</span> Novo Colaborador
+        </button>
       </div>
 
       <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-[2.5rem] p-8 shadow-sm">
@@ -223,25 +221,23 @@ export default function GestaoRH() {
                     </span>
                   </td>
                   <td className="py-6 text-right">
-                    <PermissaoGuard permissao="gerenciar_usuarios">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => { setEditingFunc(f); setFormData({ ...f, data_admissao: f.data_admissao?.split('T')[0] || '' }); setErrors({}); setShowModal(true); }}
-                          className="p-2 hover:bg-white rounded-xl shadow-sm text-slate-400 hover:text-indigo-600 transition-all"
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => { setEditingFunc(f); setFormData({ ...f, data_admissao: f.data_admissao?.split('T')[0] || '' }); setErrors({}); setShowModal(true); }}
+                        className="p-2 hover:bg-white rounded-xl shadow-sm text-slate-400 hover:text-indigo-600 transition-all"
+                      >
+                        ✏️
+                      </button>
+                      
+                      {f.role !== 'PROPRIETARIO' && (
+                        <button 
+                          onClick={() => handleInativar(f.id_usuario)}
+                          className="p-2 hover:bg-white rounded-xl shadow-sm text-slate-400 hover:text-rose-600 transition-all"
                         >
-                          ✏️
+                          🗑️
                         </button>
-
-                        {f.role !== 'PROPRIETARIO' && (
-                          <button
-                            onClick={() => handleInativar(f.id_usuario)}
-                            className="p-2 hover:bg-white rounded-xl shadow-sm text-slate-400 hover:text-rose-600 transition-all"
-                          >
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-                    </PermissaoGuard>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

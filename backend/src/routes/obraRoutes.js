@@ -7,17 +7,17 @@ import {
 } from '../controllers/obraController.js';
 import { uploadDocumento } from '../controllers/documentoController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
-import { requireObraAccess, requirePermissao } from '../middlewares/authorizationMiddleware.js';
+import { requireObraAccess } from '../middlewares/authorizationMiddleware.js';
 import { criarUploadMiddleware, handleUploadError } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 const uploadDoc = criarUploadMiddleware('documentos');
 
 // ─── CRUD BÁSICO ─────────────────────────────────────────────────────────────
-router.get('/obras', authMiddleware, requirePermissao('ver_obras'), listarObras);
-router.post('/obras', authMiddleware, requirePermissao('criar_obra'), criarObra);
-router.put('/obras/:id', authMiddleware, requireObraAccess('total'), requirePermissao('editar_obra'), atualizarObra);
-router.delete('/obras/:id', authMiddleware, requireObraAccess('total'), requirePermissao('excluir_obra'), deletarObra);
+router.get('/obras', authMiddleware, listarObras);
+router.post('/obras', authMiddleware, criarObra);
+router.put('/obras/:id', authMiddleware, atualizarObra);
+router.delete('/obras/:id', authMiddleware, deletarObra);
 
 // ─── GESTÃO COMPLEMENTAR (EQUIPE & ESTOQUE) ──────────────────────────────────
 router.post('/obras/:id/equipe', authMiddleware, requireObraAccess('total'), adicionarMembroEquipe);
