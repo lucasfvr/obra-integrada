@@ -4,7 +4,7 @@ import logoObraIntegrada from "../assets/logo-obra-integrada.png";
 import { validateEmail, validatePasswordLogin } from "../utils/validation";
 import API_BASE_URL from "../config/api.js";
 
-function LoginModal({ onLogin, onClose, openRegister }) {
+function LoginModal({ onLogin, onClose, onForgotPassword, openRegister }) {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -40,12 +40,11 @@ function LoginModal({ onLogin, onClose, openRegister }) {
 
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem('obraToken', data.token);
-        onLogin({ ...data.user, token: data.token });
+        onLogin({ ...data.user, token: data.token }, lembrar);
       } else {
         setError(data.erro || "E-mail ou senha incorretos");
       }
-    } catch (err) {
+    } catch {
       setError("Não foi possível conectar ao servidor.");
     }
   };
@@ -72,6 +71,7 @@ function LoginModal({ onLogin, onClose, openRegister }) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
           <div>
             <div className={`relative ${errors.usuario ? 'border-red-500' : ''}`}>
               <FiMail className="absolute left-3 top-3.5 text-gray-400 text-lg" />
@@ -109,9 +109,41 @@ function LoginModal({ onLogin, onClose, openRegister }) {
             {errors.senha && <p className="text-red-500 text-xs mt-1">{errors.senha}</p>}
           </div>
 
+          <div className="flex items-center justify-between gap-3 text-sm text-gray-600">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={lembrar}
+                onChange={(e) => setLembrar(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+              <span>Lembrar-me</span>
+            </label>
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="font-semibold text-indigo-600 hover:text-indigo-700"
+            >
+              Esqueci minha senha
+            </button>
+          </div>
+
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
           <button type="submit" className="bg-indigo-600 text-white font-medium py-2.5 rounded-lg">
             Entrar
           </button>
+
+          <div className="text-center text-sm text-gray-600 mt-3">
+            Ainda não tem conta?{' '}
+            <button
+              type="button"
+              onClick={openRegister}
+              className="font-semibold text-indigo-600 hover:text-indigo-700"
+            >
+              Cadastre-se
+            </button>
+          </div>
         </form>
       </div>
     </div>

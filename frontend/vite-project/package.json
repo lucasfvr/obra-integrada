@@ -17,6 +17,7 @@
     "backend": "file:../..",
     "clsx": "^2.1.1",
     "flatpickr": "^4.6.13",
+    "inscricaoestadual": "^0.0.5",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "react": "^19.1.1",

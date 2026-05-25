@@ -169,6 +169,8 @@ model tb_usuario {
   id_usuario                   Int                       @id @default(autoincrement())
   nome                         String
   funcao                       String?
+  porte_empresa                String?
+  uso_plataforma               String?
   telefone                     String?
   email                        String?                   @unique
   username                     String?                   @unique
@@ -185,6 +187,9 @@ model tb_usuario {
   endereco                     String?
   cargo_base                   String?
   cpf                          String?                   @unique
+  cnpj                         String?                   @unique
+  razao_social                 String?
+  inscricao_estadual           String?
   data_admissao                DateTime?                 @db.Date
   matricula                    String?                   @unique
   status                       String                    @default("ATIVO")
