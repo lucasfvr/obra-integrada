@@ -8,7 +8,7 @@
  */
 export function validarCPF(cpf) {
   if (!cpf) return false;
-  
+
   // Remove caracteres não numéricos
   const cleanCPF = String(cpf).replace(/\D/g, '');
 
@@ -43,6 +43,6 @@ export function validarCPF(cpf) {
  */
 export function validarEmail(email) {
   if (!email) return false;
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9.-]{2,}\.[a-zA-Z]{2,}$/;
   return re.test(String(email).toLowerCase());
 }

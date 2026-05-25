@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router";
 
 // Layouts & Context
 import AppLayout from "../layout/AppLayout.tsx";
@@ -13,6 +13,7 @@ import { Toaster } from "react-hot-toast";
 // Pages
 import HomePage from "./Home.jsx";
 import LoginModal from "./Login.jsx";
+import ForgotPasswordModal from "./ForgotPasswordModal.jsx";
 import RegisterModal from "./RegisterModal.jsx";
 import FormularioCompletoPage from "./FormularioCompletoPage.jsx";
 import Header from "./components/Header.jsx";
@@ -32,18 +33,52 @@ import { PermissaoGuard } from "../components/Guards/PermissaoGuard.jsx";
 import MinhasObrasPage from "../pages/Obras/MinhasObrasPage.jsx";
 import GestaoRH from "../pages/Operational/GestaoRH.jsx";
 
+// Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
+// e fornecer callbacks que o Header e o form precisam pra navegar.
+function FinalizarCadastroPage({ formTempData, setFormTempData, setLoginModalOpen, setRegisterModalOpen }) {
+  const navigate = useNavigate();
+
+  const sairDoFluxo = () => {
+    setFormTempData(null);
+    navigate("/", { replace: true });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950">
+      <Header
+        onNavigate={sairDoFluxo}
+        onLoginClick={() => { sairDoFluxo(); setLoginModalOpen(true); }}
+        onRegisterClick={() => { sairDoFluxo(); setRegisterModalOpen(true); }}
+      />
+      <div className="py-10 flex justify-center">
+        <FormularioCompletoPage
+          tempId={formTempData?.id}
+          preRegisterData={formTempData?.data}
+          onSubmitSuccess={() => {
+            setFormTempData(null);
+            window.location.href = "/dashboard";
+          }}
+          onCancel={sairDoFluxo}
+        />
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
 function App() {
-  const { 
-    user, 
-    isAuthenticated, 
-    login, 
-    logout, 
+  const {
+    user,
+    isAuthenticated,
+    login,
+    logout,
     revertImpersonation,
     isLoading
   } = useAuth();
 
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
+  const [isForgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [formTempData, setFormTempData] = useState(null);
 
   if (isLoading) {
@@ -64,12 +99,12 @@ function App() {
     <AppWrapper>
       <Toaster position="top-right" reverseOrder={false} />
       <ImpersonacaoBanner onReverter={revertImpersonation} />
-      
+
       <Router>
         <Routes>
           {/* Rotas Públicas */}
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               isAuthenticated ? (
                 <Navigate to="/dashboard" replace />
@@ -79,71 +114,57 @@ function App() {
                 <HomePage
                   onLoginClick={() => setLoginModalOpen(true)}
                   onRegisterClick={() => setRegisterModalOpen(true)}
-                  onDevBypass={() => login("mock-token", { 
-                    id_usuario: 1, 
-                    username: "admin@obras.com", 
-                    nome: "Admin Testes", 
-                    role: "ADMIN_MASTER" 
-                  })}
                 />
               )
-            } 
+            }
           />
 
           <Route path="/restricted" element={<RestrictedAccess />} />
 
-          <Route 
-            path="/finalizar-cadastro" 
+          <Route
+            path="/finalizar-cadastro"
             element={
-              <div className="min-h-screen bg-slate-50 dark:bg-gray-950">
-                <Header />
-                <div className="py-10 flex justify-center">
-                  <FormularioCompletoPage
-                    tempId={formTempData?.id}
-                    preRegisterData={formTempData?.data}
-                    onSubmitSuccess={() => {
-                        setFormTempData(null);
-                        window.location.href = "/dashboard";
-                    }}
-                  />
-                </div>
-                <Footer />
-              </div>
+              <FinalizarCadastroPage
+                formTempData={formTempData}
+                setFormTempData={setFormTempData}
+                setLoginModalOpen={setLoginModalOpen}
+                setRegisterModalOpen={setRegisterModalOpen}
+              />
             }
           />
 
           {/* Shell Moderno (Autenticado) */}
           <Route element={<AppLayout />}>
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <DashboardDinamico 
-                    currentUser={user} 
-                    onLogout={logout} 
+                  <DashboardDinamico
+                    currentUser={user}
+                    onLogout={logout}
                   />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/obra/:id" 
+            <Route
+              path="/obra/:id"
               element={
                 <ProtectedRoute>
                   <PermissaoGuard permissao="ver_obras" redirectToRestricted>
                     <ObraPage />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/calendar" 
+            <Route
+              path="/calendar"
               element={
                 <ProtectedRoute>
                   <PermissaoGuard permissao="ver_tarefas" redirectToRestricted>
                     <CalendarPage />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
             <Route
               path="/obras"
@@ -155,15 +176,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route 
-              path="/documentos" 
+            <Route
+              path="/documentos"
               element={
                 <ProtectedRoute>
                   <PermissaoGuard permissao="ver_diario" redirectToRestricted>
                     <ObraDocuments />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
             <Route
               path="/materiais"
@@ -205,15 +226,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route 
-              path="/profile" 
+            <Route
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <PermissaoGuard permissao="ver_perfil" redirectToRestricted>
                     <MeuPerfilCV />
                   </PermissaoGuard>
                 </ProtectedRoute>
-              } 
+              }
             />
             {/* Redirecionar outras rotas para o dashboard se logado */}
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
@@ -227,11 +248,15 @@ function App() {
         {/* Modais Globais (Apenas na Home) */}
         {isLoginModalOpen && (
           <LoginModal
-            onLogin={(data) => {
-              login(data.token, data);
+            onLogin={(data, remember) => {
+              login(data.token, data, remember);
               setLoginModalOpen(false);
             }}
             onClose={() => setLoginModalOpen(false)}
+            onForgotPassword={() => {
+              setLoginModalOpen(false);
+              setForgotPasswordOpen(true);
+            }}
             openRegister={() => {
               setLoginModalOpen(false);
               setRegisterModalOpen(true);
@@ -239,10 +264,24 @@ function App() {
           />
         )}
 
+        {isForgotPasswordOpen && (
+          <ForgotPasswordModal
+            onBack={() => {
+              setForgotPasswordOpen(false);
+              setLoginModalOpen(true);
+            }}
+            onClose={() => setForgotPasswordOpen(false)}
+          />
+        )}
+
         {isRegisterModalOpen && (
           <RegisterModal
             onClose={() => setRegisterModalOpen(false)}
             onRegisterSuccess={handleRegisterSuccess}
+            onOpenLogin={() => {
+              setRegisterModalOpen(false);
+              setLoginModalOpen(true);
+            }}
           />
         )}
       </Router>

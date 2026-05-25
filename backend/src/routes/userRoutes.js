@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser, formularioCompleto, getAllUsers, updateUserRole, getUsuariosDisponiveis } from '../controllers/userController.js';
+import { registerUser, loginUser, forgotPassword, formularioCompleto, getAllUsers, updateUserRole, getUsuariosDisponiveis } from '../controllers/userController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireRole, requirePermissao } from '../middlewares/authorizationMiddleware.js';
 
@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/users/register', registerUser);
 router.post('/users/login', loginUser);
+router.post('/users/forgot-password', forgotPassword);
 router.post('/users/formulario', formularioCompleto);
 
 router.get('/users/profile', authMiddleware, (req, res) => {

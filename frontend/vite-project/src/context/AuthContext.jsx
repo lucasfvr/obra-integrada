@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -13,10 +14,10 @@ export function AuthProvider({ children }) {
   // Inicialização preguiçosa para evitar flashes de "não logado"
   const [user, setUser] = useState(() => {
     if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem('obraUser');
+      const savedUser = localStorage.getItem('obraUser') || sessionStorage.getItem('obraUser');
       try {
         return savedUser ? JSON.parse(savedUser) : null;
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -28,7 +29,7 @@ export function AuthProvider({ children }) {
       const savedAdmin = localStorage.getItem('originalAdminUser');
       try {
         return savedAdmin ? JSON.parse(savedAdmin) : null;
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -37,9 +38,28 @@ export function AuthProvider({ children }) {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  // Validação inicial (ex: expiração de token)
+  // Valida expiração do token ao inicializar
   useEffect(() => {
-    // Aqui poderíamos validar o token contra o backend se necessário
+    const token = localStorage.getItem('obraToken') || sessionStorage.getItem('obraToken');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const now = Date.now() / 1000; // segundos
+        if (decoded.exp && decoded.exp < now) {
+          // Token expirado — limpa tudo silenciosamente
+          localStorage.removeItem('obraToken');
+          localStorage.removeItem('obraUser');
+          sessionStorage.removeItem('obraToken');
+          sessionStorage.removeItem('obraUser');
+          setUser(null);
+        }
+      } catch {
+        // Token malformado — limpa
+        localStorage.clear();
+        sessionStorage.clear();
+        setUser(null);
+      }
+    }
     setIsLoading(false);
   }, []);
 
@@ -55,7 +75,7 @@ export function AuthProvider({ children }) {
 
   const apiFetch = useCallback(async (url, options = {}) => {
     const method = (options.method || 'GET').toUpperCase();
-    const token = localStorage.getItem('obraToken');
+    const token = localStorage.getItem('obraToken') || sessionStorage.getItem('obraToken');
 
     if (isImpersonating && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
       const msg = `Operacao ${method} negada: O sistema está em modo de SOMENTE LEITURA.`;
@@ -73,21 +93,32 @@ export function AuthProvider({ children }) {
     return fetch(url, { ...options, headers });
   }, [isImpersonating, originalAdminUser]);
 
-  const login = (token, userData) => {
+  const login = (token, userData, remember = true) => {
     const decoded = jwtDecode(token);
     const finalUser = {
       ...userData,
       ...decoded,
       id: userData.id_usuario || decoded.id,
     };
-    
-    localStorage.setItem('obraToken', token);
-    localStorage.setItem('obraUser', JSON.stringify(finalUser));
+
+    if (remember) {
+      localStorage.setItem('obraToken', token);
+      localStorage.setItem('obraUser', JSON.stringify(finalUser));
+      sessionStorage.removeItem('obraToken');
+      sessionStorage.removeItem('obraUser');
+    } else {
+      sessionStorage.setItem('obraToken', token);
+      sessionStorage.setItem('obraUser', JSON.stringify(finalUser));
+      localStorage.removeItem('obraToken');
+      localStorage.removeItem('obraUser');
+    }
+
     setUser(finalUser);
   };
 
   const logout = () => {
     localStorage.clear();
+    sessionStorage.clear();
     setUser(null);
     setOriginalAdminUser(null);
     window.location.href = '/';
