@@ -52,7 +52,7 @@ export function ObraOverview({ obra: initialObra, onRefresh }) {
 
   const fetchResponsibles = async () => {
     try {
-      const res = await apiFetch('${API_BASE_URL}/api/usuarios-disponiveis?funcao=RESPONSAVEL');
+      const res = await apiFetch(`${API_BASE_URL}/api/usuarios-disponiveis?funcao=RESPONSAVEL&cargo_base=Engenheiro`);
       if (res.ok) {
         const data = await res.json();
         setAvailableResponsibles(data);

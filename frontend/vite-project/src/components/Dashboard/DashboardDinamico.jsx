@@ -708,7 +708,7 @@ function PainelCliente({ works, canInvite = false }) {
 /** DASHBOARD DINÂMICO PRINCIPAL */
 
 export function DashboardDinamico({ currentUser }) {
-  const { role, nome, funcao, isImpersonating, apiFetch, impersonate } = useAuth();
+  const { role, nome, funcao, isImpersonating, apiFetch, impersonate, user } = useAuth();
   const navigate = useNavigate();
   
   const [obras, setObras] = useState([]);

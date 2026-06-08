@@ -2,6 +2,7 @@ import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../../components/Guards/PermissaoGuard.jsx';
+import toast from 'react-hot-toast';
 import Button from '../../../components/ui/button/Button.tsx';
 
 /**
@@ -9,7 +10,8 @@ import Button from '../../../components/ui/button/Button.tsx';
  */
 
 export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
-  const { apiFetch, isImpersonating } = useAuth();
+  const { apiFetch, isImpersonating, user } = useAuth();
+  const podeExcluir = ['ADMIN', 'ADMIN_MASTER', 'PROPRIETARIO', 'RESPONSAVEL'].includes(user?.role);
   const [docs, setDocs] = useState(initialDocs);
   const [idObra, setIdObra] = useState(propIdObra);
   const [filter, setFilter] = useState('TODOS');
@@ -20,6 +22,24 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadData, setUploadData] = useState({ nome: '', tipo: 'ADMIN' });
   const [uploading, setUploading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null });
+
+  const handleDeleteDoc = async (idDoc) => {
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/documentos/${idDoc}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success("Documento excluído com sucesso!");
+        setDocs(prev => prev.filter(d => d.id_documento !== idDoc));
+      } else {
+        const err = await res.json();
+        toast.error(err.erro || "Erro ao excluir documento");
+      }
+    } catch (e) {
+      toast.error("Erro de conexão");
+    }
+  };
   
   const categorias = [
     { id: 'TODOS', label: 'Tudo', icone: '📂' },
@@ -73,17 +93,25 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
     }
   };
 
-  const renderIcon = (type = '') => {
+  const renderIcon = (type = '', name = '') => {
     const t = type.toLowerCase();
-    if (t.includes('pdf')) return '📕';
-    if (t.includes('dwg') || t.includes('cad')) return '🏗️';
-    if (t.includes('image') || t.includes('jpg') || t.includes('png')) return '🖼️';
+    const n = name.toLowerCase();
+    if (t.includes('pdf') || n.endsWith('.pdf')) return '📕';
+    if (t.includes('dwg') || t.includes('cad') || n.endsWith('.dwg') || n.endsWith('.dxf') || n.endsWith('.rvt')) return '🏗️';
+    if (t.includes('image') || t.includes('jpg') || t.includes('png') || n.endsWith('.jpg') || n.endsWith('.jpeg') || n.endsWith('.png')) return '🖼️';
+    if (t === 'projetos') return '📐';
+    if (t === 'seguranca') return '🛡️';
+    if (t === 'admin') return '📄';
     return '📄';
   };
 
   const filteredDocs = filter === 'TODOS' 
     ? docs 
     : docs.filter(d => {
+        const knownCategories = ['ADMIN', 'PROJETOS', 'SEGURANCA'];
+        if (knownCategories.includes(d.tipo)) {
+          return d.tipo === filter;
+        }
         const cat = categorias.find(c => c.id === filter);
         const fileName = d.nome.toLowerCase();
         const fileType = (d.tipo || '').toLowerCase();
@@ -130,18 +158,31 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
               <div className="relative z-10 space-y-6">
                  <div className="flex justify-between items-start">
                     <div className="w-14 h-14 bg-slate-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                      {renderIcon(doc.tipo)}
+                      {renderIcon(doc.tipo, doc.nome)}
                     </div>
-                    <a href={`${API_BASE_URL}${doc.url}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
-                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                    </a>
+                    <div className="flex items-center gap-2">
+                       <a href={`${API_BASE_URL}${doc.url}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                       </a>
+                        {!isImpersonating && podeExcluir && (
+                          <button 
+                            onClick={() => setDeleteConfirm({ show: true, id: doc.id_documento })}
+                            className="p-2 text-slate-300 hover:text-rose-600 transition-colors"
+                            title="Excluir Documento"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        )}
+                    </div>
                  </div>
                  <div>
                     <h4 className="text-lg font-black text-slate-900 dark:text-white truncate">{doc.nome}</h4>
                     <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Sincronizado em {new Date(doc.data_upload).toLocaleDateString()}</p>
                  </div>
                  <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-slate-100 dark:bg-gray-800 rounded-lg text-[9px] font-black text-slate-500 uppercase">{doc.tipo?.split('/')[1] || 'DOC'}</span>
+                    <span className="px-3 py-1 bg-slate-100 dark:bg-gray-800 rounded-lg text-[9px] font-black text-slate-500 uppercase">
+                      {doc.tipo === 'ADMIN' ? 'ADMIN' : doc.tipo === 'PROJETOS' ? 'PROJETO' : doc.tipo === 'SEGURANCA' ? 'SEGURANÇA' : doc.tipo?.split('/')[1] || 'DOC'}
+                    </span>
                  </div>
               </div>
             </div>
@@ -189,6 +230,35 @@ export function ObraDocuments({ initialDocs = [], idObra: propIdObra }) {
                  <Button onClick={handleUpload} disabled={!selectedFile || uploading} className="w-full py-5 rounded-2xl text-xs font-black uppercase tracking-widest">{uploading ? 'Enviando...' : 'Fazer Upload'}</Button>
               </div>
            </div>
+        </div>
+      )}
+
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden border dark:border-gray-800 p-8 text-center space-y-6 animate-slide-up">
+            <div className="w-16 h-16 bg-rose-50 dark:bg-rose-950/20 text-rose-600 rounded-2xl flex items-center justify-center text-3xl mx-auto">⚠️</div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Confirmar Exclusão</h3>
+              <p className="text-xs text-slate-500 font-bold mt-2 uppercase tracking-wide">Esta ação é irreversível.</p>
+            </div>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setDeleteConfirm({ show: false, id: null })}
+                className="flex-1 py-4 bg-slate-50 dark:bg-gray-900 text-gray-500 hover:text-slate-950 dark:hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  handleDeleteDoc(deleteConfirm.id);
+                  setDeleteConfirm({ show: false, id: null });
+                }}
+                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-500/20 active:scale-95"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

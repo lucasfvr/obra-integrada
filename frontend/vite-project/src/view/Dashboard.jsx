@@ -18,11 +18,11 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const isAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'MASTER';
 
-    const token = localStorage.getItem('obraToken') || '';
+    const token = localStorage.getItem('obraToken') || sessionStorage.getItem('obraToken') || '';
 
     const fetchAllUsers = async () => {
         try {
-            const response = await fetch('${API_BASE_URL}/api/admin/users', {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -89,7 +89,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
 
     const handleAdicionarObra = async (nome_obra) => {
         try {
-            const response = await apiFetch('${API_BASE_URL}/api/obras', {
+            const response = await apiFetch(`${API_BASE_URL}/api/obras`, {
                 method: 'POST',
                 body: JSON.stringify({ nome_obra, userId: currentUser.id || currentUser.id_usuario })
             });

@@ -565,11 +565,22 @@ export async function getUsuariosDisponiveis(req, res) {
       whereClause.id_cliente = id_cliente;
     }
 
-    const { funcao } = req.query;
+    const { funcao, cargo_base } = req.query;
     if (funcao) {
       if (funcao === 'RESPONSAVEL') whereClause.role = 'RESPONSAVEL';
       else if (funcao === 'TRABALHADOR') whereClause.role = 'TRABALHADOR';
       else whereClause.funcao = funcao;
+    }
+
+    if (cargo_base) {
+      whereClause.OR = [
+        { cargo_base: cargo_base },
+        { funcao: { contains: cargo_base, mode: 'insensitive' } },
+        ...(cargo_base === 'Engenheiro' ? [
+          { funcao: { contains: 'Arq', mode: 'insensitive' } },
+          { cargo_base: { contains: 'Arq', mode: 'insensitive' } }
+        ] : [])
+      ];
     }
 
     const users = await prisma.tb_usuario.findMany({
