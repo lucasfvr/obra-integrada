@@ -27,7 +27,7 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
     confirmarEmail: "",
     senha: "",
     confirmarSenha: "",
-    tipoCadastro: preRegisterData?.tipo || "fisica",
+    tipoCadastro: preRegisterData?.tipo || "juridica",
     nome: preRegisterData?.nome || "",
     cpf: preRegisterData?.cpf ? formatCPF(preRegisterData.cpf) : "",
     cnpj: preRegisterData?.cnpj ? formatCNPJ(preRegisterData.cnpj) : "",
@@ -496,8 +496,8 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
           </div>
         </fieldset>
 
-        {/* TIPO DE CADASTRO */}
-        <fieldset className="border rounded-lg p-5">
+        {/* OCULTADO: seleção de tipo de cadastro — apenas Pessoa Jurídica disponível */}
+        <fieldset className="border rounded-lg p-5 hidden">
           <legend className="font-semibold text-lg flex items-center gap-2">
             <FiUser /> Tipo de cadastro
           </legend>

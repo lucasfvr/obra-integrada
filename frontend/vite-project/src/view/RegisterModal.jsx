@@ -9,7 +9,7 @@ import {
 } from "../utils/validation";
 
 function RegisterModal({ onClose, onRegisterSuccess, onOpenLogin }) {
-  const [tipoPessoa, setTipoPessoa] = useState("fisica");
+  const [tipoPessoa, setTipoPessoa] = useState("juridica");
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
@@ -197,7 +197,8 @@ function RegisterModal({ onClose, onRegisterSuccess, onOpenLogin }) {
           <p className="text-gray-500 text-sm">Preencha alguns dados para começar</p>
         </div>
 
-        <div className="flex justify-center gap-4 mb-4">
+        {/* OCULTADO: seleção de tipo de pessoa — apenas Pessoa Jurídica disponível */}
+        <div className="hidden">
           <button type="button"
             className={`px-3 py-1 rounded-lg text-sm font-medium ${tipoPessoa === "fisica" ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`}
             onClick={() => handleTipoPessoaChange("fisica")}>

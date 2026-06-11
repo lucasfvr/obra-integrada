@@ -47,7 +47,7 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
-      const res = await apiFetch('${API_BASE_URL}/api/usuarios-disponiveis');
+      const res = await apiFetch(`${API_BASE_URL}/api/usuarios-disponiveis`);
       if (res.ok) {
         const data = await res.json();
         setAvailableUsers(data);

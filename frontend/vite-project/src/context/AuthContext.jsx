@@ -83,7 +83,10 @@ export function AuthProvider({ children }) {
       throw new Error(msg);
     }
 
-    const headers = { 'Content-Type': 'application/json', ...options.headers };
+    const headers = { ...options.headers };
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
     if (token) headers['Authorization'] = `Bearer ${token}`;
     if (isImpersonating) {
       headers['X-Impersonation-By'] = originalAdminUser.id_usuario;
@@ -145,6 +148,8 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     role: user?.role,
+    nome: user?.nome,
+    funcao: user?.funcao,
     roleLabel: getRoleLabel(user?.role),
     isImpersonating,
     originalAdminUser,

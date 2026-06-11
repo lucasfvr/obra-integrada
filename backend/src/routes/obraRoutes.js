@@ -5,7 +5,7 @@ import {
   adicionarItemEstoque, removerItemEstoque, atualizarItemEstoque,
   listarHistoricoEstoque, getOrgChart
 } from '../controllers/obraController.js';
-import { uploadDocumento } from '../controllers/documentoController.js';
+import { uploadDocumento, deletarDocumento } from '../controllers/documentoController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireObraAccess, requirePermissao } from '../middlewares/authorizationMiddleware.js';
 import { criarUploadMiddleware, handleUploadError } from '../middlewares/uploadMiddleware.js';
@@ -52,6 +52,13 @@ router.post(
   uploadDoc.single('documento'),
   handleUploadError,
   uploadDocumento
+);
+
+router.delete(
+  '/obras/:id/documentos/:documentoId',
+  authMiddleware,
+  requireObraAccess('total'),
+  deletarDocumento
 );
 
 export default router;

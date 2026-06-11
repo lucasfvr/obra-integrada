@@ -4,7 +4,8 @@ import { useAuth } from '../../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
 
 export function ObraFinanceiro({ idObra, obra, onRefresh }) {
-  const { apiFetch } = useAuth();
+  const { apiFetch, hasPermissao } = useAuth();
+  const podeExcluir = hasPermissao('gerenciar_financeiro');
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -21,6 +22,25 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
     data_pagamento: new Date().toISOString().split('T')[0],
     numero_nota_fiscal: ''
   });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null });
+
+  const handleDeleteFinanceiro = async (idFinanceiro) => {
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/api/financeiro/${idFinanceiro}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success("Lançamento excluído!");
+        fetchFinanceiro();
+        if (onRefresh) onRefresh();
+      } else {
+        const err = await res.json();
+        toast.error(err.erro || "Erro ao excluir");
+      }
+    } catch (e) {
+      toast.error("Erro de conexão");
+    }
+  };
 
   const fetchFinanceiro = async () => {
     try {
@@ -146,12 +166,13 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
               <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Justificativa</th>
               <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</th>
               <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Valor</th>
+              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y dark:divide-gray-800">
             {records.length === 0 ? (
                <tr>
-                 <td colSpan={4} className="px-8 py-16 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">Aguardando lançamentos...</td>
+                 <td colSpan={5} className="px-8 py-16 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">Aguardando lançamentos...</td>
                </tr>
             ) : (
               records.map(rec => (
@@ -177,6 +198,17 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
                     <p className={`text-sm font-black ${rec.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
                       {rec.tipo === 'RECEITA' ? '+' : '-'} R$ {Number(rec.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    {podeExcluir && (
+                      <button 
+                        onClick={() => setDeleteConfirm({ show: true, id: rec.id_financeiro })}
+                        className="text-gray-300 hover:text-rose-600 transition-all p-2"
+                        title="Excluir Lançamento"
+                      >
+                        <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
@@ -294,8 +326,37 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
                  >
                     Confirmar Lançamento
                  </button>
-              </form>
-           </div>
+               </form>
+            </div>
+         </div>
+      )}
+
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden border dark:border-gray-800 p-8 text-center space-y-6 animate-slide-up">
+            <div className="w-16 h-16 bg-rose-50 dark:bg-rose-950/20 text-rose-600 rounded-2xl flex items-center justify-center text-3xl mx-auto">⚠️</div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Confirmar Exclusão</h3>
+              <p className="text-xs text-slate-500 font-bold mt-2 uppercase tracking-wide">Esta ação é irreversível.</p>
+            </div>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setDeleteConfirm({ show: false, id: null })}
+                className="flex-1 py-4 bg-slate-50 dark:bg-gray-900 text-gray-500 hover:text-slate-950 dark:hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  handleDeleteFinanceiro(deleteConfirm.id);
+                  setDeleteConfirm({ show: false, id: null });
+                }}
+                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-500/20 active:scale-95"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -19,13 +19,14 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh }) {
+export function ObraDiary({ initialEntries = [], idObra, team = [], manager, onRefresh }) {
   const { apiFetch, hasPermissao, user } = useAuth();
   
-  // Verificar se o usuário faz parte da equipe
+  // Verificar se o usuário faz parte da equipe, é o gestor técnico ou admin/proprietário
+  const isManager = manager?.id_usuario === user?.id;
   const isMembroEquipe = team.some(m => m.id_usuario === user?.id);
-  const isAdminOuRelacionado = ['ADMIN', 'ADMIN_MASTER'].includes(user?.role);
-  const podePostar = isMembroEquipe || isAdminOuRelacionado;
+  const isAdminOuProprietario = ['ADMIN', 'ADMIN_MASTER', 'PROPRIETARIO'].includes(user?.role);
+  const podePostar = isManager || isMembroEquipe || isAdminOuProprietario;
 
   const [entries, setEntries] = useState(initialEntries);
   const [loading, setLoading] = useState(false);
@@ -173,10 +174,8 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], onRefresh })
 
       if (newEntry.foto) formData.append('foto', newEntry.foto);
 
-      const token = localStorage.getItem('obraToken');
-      const res = await fetch(`${API_BASE_URL}/api/obras/${idObra}/diario`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/diario`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
 

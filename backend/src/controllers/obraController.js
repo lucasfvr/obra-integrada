@@ -325,20 +325,10 @@ export async function atualizarObra(req, res) {
 export async function deletarObra(req, res) {
   try {
     const { id } = req.params;
-    // Puxamos do token (req.user) injetado pelo authMiddleware
-    const { id: idUsuarioLogado, role } = req.user; 
 
     const obra = await ObraModel.findById(Number(id));
     if (!obra) {
       return res.status(404).json({ erro: 'Obra não encontrada' });
-    }
-
-    // Autorização: Admin/Master pode tudo, outros apenas se forem os responsáveis
-    const isAdmin = ['ADMIN_MASTER', 'MASTER', 'ADMIN'].includes(role);
-    const isResponsavel = obra.id_usuario_responsavel === Number(idUsuarioLogado);
-
-    if (!isAdmin && !isResponsavel) {
-      return res.status(403).json({ erro: 'Acesso negado. Apenas o responsável ou administradores podem excluir obras.' });
     }
 
     // Deletar as relações que não possuem Cascade no Prisma (tb_usuario_obra, tb_etapa, tb_requisicao)
