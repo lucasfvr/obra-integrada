@@ -1,0 +1,57 @@
+# .vercelignore
+# Arquivos e pastas a ignorar no deploy da Vercel
+
+# Dependências
+node_modules/
+backend/node_modules/
+frontend/vite-project/node_modules/
+
+# Banco de dados e arquivos de dev
+backend/src/prisma/dev.db
+backend/src/prisma/*.db
+
+# Cobertura de testes
+backend/coverage/
+backend/coverage/tmp/
+
+# Cache Vite
+frontend/vite-project/.vite/
+
+# Uploads locais (usar storage externo em produção)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Arquivos de ambiente
+.env
+backend/.env
+frontend/vite-project/.env
+
+# Seeds e scripts de desenvolvimento
+backend/seed_*.mjs
+backend/seed_out.txt
+backend/check_db.mjs
+backend/standalone_users_server.js
+backend/strip_maps.js
+
+# Schema duplicado/antigo
+backend/src/prisma/schema.prisma.postgres
+
+# Documentação (não precisa ir para o deploy)
+ob_obra_integrada/
+
+# Arquivos pesados
+banner.png
+
+# Git
+.git/
+.gitignore
+
+# Arquivos de editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
