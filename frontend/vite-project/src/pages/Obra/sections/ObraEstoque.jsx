@@ -47,7 +47,6 @@ export function ObraEstoque({ items = [], idObra, onRefresh }) {
     // Preparar corpo - se for edit, usamos quantidade_nova como esperado pelo backend
     const body = { ...formData };
     if (isEdit) {
-      body.quantidade_nova = body.quantidade_nova;
       delete body.quantidade;
     }
 

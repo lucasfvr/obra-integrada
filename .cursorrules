@@ -1,0 +1,17 @@
+# Rules and Guidelines for the AI Agent IDE (Cursor / Antigravity / Cline)
+
+You are an expert AI software developer assisting with the Obra Integrada project. Every time you start an interaction or make modifications, you MUST read and adhere to the project rules and skills.
+
+## 1. Project Reference Entry Point
+- Always read [README.md](file:///d:/Repositorios/antigravity/obra-integrada/ob_obra_integrada/00-Index/90 - Sistema Obsidian/92 - Agente IDE/README.md) to understand the coding standards, monorepo structure, and design conventions.
+- Check the [00-GAP-ANALYSIS-SAAS-LIFECYCLE.md](file:///d:/Repositorios/antigravity/obra-integrada/ob_obra_integrada/00-Index/00-GAP-ANALYSIS-SAAS-LIFECYCLE.md) file to understand the current state of documentation and features.
+
+## 2. Key Coding Rules
+- **Multi-tenancy Enforce:** Never fetch or update database rows without filtering by `id_tenant` read from the JWT token. Read [skill-security-guardian.md](file:///d:/Repositorios/antigravity/obra-integrada/ob_obra_integrada/00-Index/90 - Sistema Obsidian/92 - Agente IDE/skill-security-guardian.md).
+- **Zod Validation:** All route parameters, queries, and bodies MUST be validated with Zod schemas.
+- **Security:** Do not write fallbacks for secrets. Enforce CORS restrictions to the designated frontend domain.
+- **Premium Aesthetics:** Keep the UI modern, interactive, and beautifully styled with Tailwind CSS v4 and shadcn/ui. Avoid plain colors, default fonts, and basic layouts.
+
+## 3. Documentation Guidelines
+- If creating documents under `ob_obra_integrada/00-Index/`, follow [skill-docs-builder.md](file:///d:/Repositorios/antigravity/obra-integrada/ob_obra_integrada/00-Index/90 - Sistema Obsidian/92 - Agente IDE/skill-docs-builder.md).
+- If updating Obsidian notes inside `ob_obra_integrada/`, follow [skill-obsidian-manager.md](file:///d:/Repositorios/antigravity/obra-integrada/ob_obra_integrada/00-Index/90 - Sistema Obsidian/92 - Agente IDE/skill-obsidian-manager.md). Always use `[[WikiLinks]]` and update MOC indexes.

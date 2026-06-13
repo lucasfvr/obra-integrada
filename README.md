@@ -47,7 +47,7 @@ O projeto é desenvolvido como Trabalho de Conclusão de Curso (TCC) na discipli
 - Painel administrativo com métricas globais e impersonação
 - Dashboard dinâmico adaptado por perfil de usuário
 - Multi-tenancy nativo (várias construtoras no mesmo banco)
-- Sistema RBAC com 7 perfis ([ver matriz](docs/rbac-matriz.md))
+- Sistema RBAC com 7 perfis ([ver matriz](ob_obra_integrada/00-Index/10%20-%20Produto%20e%20Negocios/13%20-%20Perfis%20de%20Usuario%20%28RBAC%29/Matriz%20de%20Acessos%20e%20Permissoes%20%28RBAC%29%20Tecnico.md))
 
 ### 🚧 Em desenvolvimento
 - Perfil **Estagiário** com acesso intermediário
@@ -102,7 +102,7 @@ A plataforma suporta 7 perfis com permissões granulares:
 | `CLIENTE` | Cliente | Dono da obra — visualização total (read-only) |
 | `USER` | Fallback | Permissão mínima |
 
-Ver matriz detalhada em [`docs/rbac-matriz.md`](docs/rbac-matriz.md) (em construção).
+Ver matriz detalhada em [`Matriz de Acessos e Permissões (RBAC Técnico)`](ob_obra_integrada/00-Index/10%20-%20Produto%20e%20Negocios/13%20-%20Perfis%20de%20Usuario%20%28RBAC%29/Matriz%20de%20Acessos%20e%20Permissoes%20%28RBAC%29%20Tecnico.md).
 
 ---
 
@@ -200,8 +200,7 @@ obra-integrada/
 │       ├── pages/            # Telas por módulo
 │       ├── utils/            # permissions.js (espelho do backend)
 │       └── view/             # Páginas legadas (em migração)
-├── docs/                     # Documentação técnica
-│   └── auditoria-inicial/    # Auditoria de abril/2026
+├── ob_obra_integrada/         # Documentação e especificações (Obsidian Vault)
 └── package.json              # Orquestrador (concurrently)
 ```
 
@@ -222,16 +221,16 @@ main ────●────●──────────●────
 - 1 aprovação obrigatória antes do merge
 - Conventional Commits (`feat`, `fix`, `chore`, `refactor`, `docs`)
 
-Detalhes completos em [`docs/fluxo-git.md`](docs/fluxo-git.md) e [`CONTRIBUTING.md`](CONTRIBUTING.md) (em construção).
+Detalhes completos em [`Regras de Desenvolvimento Equipe.md`](ob_obra_integrada/00-Index/80%20-%20Customer%20Success%20%28CS%29%20e%20Suporte/82%20-%20Testes%20e%20Garantia%20de%20Qualidade%20%28QA%29/Regras%20de%20Desenvolvimento%20Equipe.md) e [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 
 ## Documentação técnica
 
-- 📊 [Auditoria técnica](docs/docs/auditoria-inicial/01-auditoria-tecnica.md) — diagnóstico do código, schema e segurança
-- 🚀 [Evolução do produto](docs/docs/auditoria-inicial/02-evolucao-produto.md) — benchmark e features propostas
-- 🔧 [Plano de refatoração](docs/docs/auditoria-inicial/03-plano-refatoracao.md) — ADRs e roadmap de 6 meses
-- 👥 [Workflow de equipe](docs/docs/auditoria-inicial/04-workflow-equipe.md) — divisão de responsabilidades
+- 📊 [Auditoria técnica](ob_obra_integrada/00-Index/20%20-%20Documentacao%20e%20Tecnologias/Auditoria%20Inicial/01-auditoria-tecnica.md) — diagnóstico do código, schema e segurança
+- 🚀 [Evolução do produto](ob_obra_integrada/00-Index/20%20-%20Documentacao%20e%20Tecnologias/Auditoria%20Inicial/02-evolucao-produto.md) — benchmark e features propostas
+- 🔧 [Plano de refatoração](ob_obra_integrada/00-Index/20%20-%20Documentacao%20e%20Tecnologias/Auditoria%20Inicial/03-plano-refatoracao.md) — ADRs e roadmap de 6 meses
+- 👥 [Workflow de equipe](ob_obra_integrada/00-Index/20%20-%20Documentacao%20e%20Tecnologias/Auditoria%20Inicial/04-workflow-equipe.md) — divisão de responsabilidades
 
 ---
 

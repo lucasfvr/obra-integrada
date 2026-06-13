@@ -151,7 +151,7 @@ export const validateName = (name) => {
   if (trimmed.length < 3) {
     return { valid: false, message: "Nome deve ter no mínimo 3 caracteres" };
   }
-  if (!/^[a-záéíóúãõâêôç\s\-\']+$/i.test(trimmed)) {
+  if (!/^[a-záéíóúãõâêôç\s\-']+$/i.test(trimmed)) {
     return { valid: false, message: "Nome deve conter apenas letras e caracteres válidos" };
   }
   return { valid: true, message: "Nome válido" };
