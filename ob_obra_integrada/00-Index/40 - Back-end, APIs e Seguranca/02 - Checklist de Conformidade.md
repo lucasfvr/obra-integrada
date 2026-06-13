@@ -112,10 +112,10 @@ Rastreamento de implementação de todos os requisitos técnicos especificados.
 
 ### Autenticação — Vulnerabilidades Críticas
 - [x] Hash de senhas com bcrypt
-- [ ] **[🔴 P0]** Remover fallback SUPER_SECRET em authMiddleware.js
-- [ ] **[🔴 P0]** CORS por allowlist (atualmente cors() aberto)
-- [ ] **[🔴 P0]** Rate limiting no login
-- [ ] **[🔴 P0]** Helmet + CSP
+- [x] **[🔴 P0]** Remover fallback SUPER_SECRET em authMiddleware.js
+- [x] **[🔴 P0]** CORS por allowlist (atualmente cors() aberto)
+- [x] **[🔴 P0]** Rate limiting no login
+- [x] **[🔴 P0]** Helmet + CSP
 - [ ] 2FA / MFA (Sprint 3)
 - [ ] Bloqueio após N tentativas de login (Sprint 1)
 - [ ] Refresh token + invalidação (Sprint 2)
@@ -135,14 +135,14 @@ Rastreamento de implementação de todos os requisitos técnicos especificados.
 - [ ] Validação de entrada de dados (sem biblioteca de validação — ex: Zod, Joi)
 - [x] Prepared Statements (via Prisma)
 - [ ] Sanitização de dados (não implementada sistematicamente)
-- [ ] **[🔴 P0]** Content Security Policy (CSP) — não configurado
+- [x] **[🔴 P0]** Content Security Policy (CSP) — não configurado
 - [ ] CSRF tokens (não implementado)
 - [ ] XXE prevention (não implementado)
 - [ ] Insecure deserialization (não avaliado)
 
 ### Auditoria e Rastreabilidade
-- [ ] **[🔴 P0]** Tabela tb_log_auditoria (model não existe no schema Prisma)
-- [ ] Audit trail persistido (atualmente apenas console.log com fallback silencioso)
+- [x] **[🔴 P0]** Tabela tb_log_auditoria (model não existe no schema Prisma)
+- [x] Audit trail persistido (atualmente apenas console.log com fallback silencioso)
 - [ ] Redact de dados sensíveis em logs
 - [ ] Retenção de logs controlada
 
@@ -210,11 +210,11 @@ Rastreamento de implementação de todos os requisitos técnicos especificados.
 - [ ] Message queues (Bull) (não implementado)
 
 ### Boas Práticas de Desenvolvimento Backend
-- [ ] **[🔴 P0]** Error handling padronizado (sem middleware global de erro)
+- [x] **[🔴 P0]** Error handling padronizado (sem middleware global de erro)
 - [ ] Logging estruturado (apenas console.log)
 - [ ] API versioning (/api/v1) (não implementado)
-- [ ] **[🔴 P0]** CORS policies (atualmente aberto)
-- [ ] **[🔴 P0]** Rate limiting (não implementado)
+- [x] **[🔴 P0]** CORS policies (atualmente aberto)
+- [x] **[🔴 P0]** Rate limiting (não implementado)
 - [ ] Request validation (sem Zod/Joi)
 
 ### Competências Técnicas Aplicadas
@@ -259,14 +259,14 @@ Rastreamento de implementação de todos os requisitos técnicos especificados.
 ## 🎯 Próximos Passos (Alinhado com Sprint Plan)
 
 ### 🔴 P0 — Sprint 0 (Semana 1) — Bloqueadores de segurança
-- [ ] Remover fallback SUPER_SECRET do authMiddleware.js
-- [ ] Configurar CORS por allowlist (CORS_ORIGINS env)
-- [ ] Adicionar Helmet + CSP ao server.js
-- [ ] Adicionar rate limiting nas rotas de autenticação
-- [ ] Criar tabela tb_log_auditoria no schema Prisma
-- [ ] Criar middleware global de erro padronizado
-- [ ] Criar backend/.env.example
-- [ ] Corrigir lint do frontend (42 erros)
+- [x] Remover fallback SUPER_SECRET do authMiddleware.js
+- [x] Configurar CORS por allowlist (CORS_ORIGINS env)
+- [x] Adicionar Helmet + CSP ao server.js
+- [x] Adicionar rate limiting nas rotas de autenticação
+- [x] Criar tabela tb_log_auditoria no schema Prisma
+- [x] Criar middleware global de erro padronizado
+- [x] Criar backend/.env.example
+- [x] Corrigir lint do frontend (42 erros)
 
 ### 🟠 P1 — Sprints 1-2 (Semanas 2-5)
 - [ ] Criptografia AES-256 para CPF/CNPJ

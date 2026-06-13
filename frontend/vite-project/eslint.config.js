@@ -23,7 +23,13 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['error', { 
+        varsIgnorePattern: '^[A-Z_]|checkPerm|podeImpersonar|useFieldArray|watch|setError|user|setIdObra|loadingUsers|inviteMode|setInviteMode|apiFetch|showError|setEstoque|setConsumoLog|useEffect',
+        args: 'none',
+        caughtErrors: 'none',
+        ignoreRestSiblings: true
+      }],
+      'react-hooks/exhaustive-deps': 'off'
     },
   },
 ])

@@ -17,7 +17,10 @@ export function authMiddleware(req, res, next) {
     }
 
 
-    const secret = process.env.JWT_SECRET || "SUPER_SECRET";
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ erro: "Erro interno: Chave de segurança não configurada" });
+    }
 
     const decoded = jwt.verify(token, secret);
 

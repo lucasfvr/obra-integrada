@@ -201,6 +201,7 @@ model tb_usuario {
   tb_tarefa_usuario            tb_tarefa_usuario[]
   tb_cliente                   tb_cliente?               @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_cliente")
   tb_usuario_obra              tb_usuario_obra[]
+  tb_log_auditoria             tb_log_auditoria[]
 }
 
 model tb_usuario_obra {
@@ -327,4 +328,17 @@ model tb_financeiro_obra {
   tb_obra            tb_obra                   @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
   tb_usuario         tb_usuario                @relation(fields: [id_usuario], references: [id_usuario])
   tb_movimentacao    tb_movimentacao_estoque[]
+}
+
+model tb_log_auditoria {
+  id_log      Int         @id @default(autoincrement())
+  id_usuario  Int?
+  acao        String
+  target_id   Int?
+  detalhes    String?
+  ip_address  String?
+  criado_em   DateTime    @default(now()) @db.Timestamp(6)
+  tb_usuario  tb_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull, onUpdate: NoAction, map: "fk_log_usuario")
+
+  @@index([id_usuario], map: "idx_log_usuario")
 }
