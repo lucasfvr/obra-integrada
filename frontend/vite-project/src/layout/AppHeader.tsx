@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
-import logoObraIntegrada from "../assets/logo-obra-integrada.png";
 
 const AppHeader: React.FC = () => {
-  const { toggleSidebar, toggleMobileSidebar, isExpanded, isMobileOpen } = useSidebar();
-  const isMenuOpen = isExpanded || isMobileOpen;
+  const { toggleSidebar, toggleMobileSidebar } = useSidebar();
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -32,64 +30,50 @@ const AppHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 flex w-full bg-white dark:bg-gray-950 border-b border-slate-200 dark:border-transparent z-40 transition-colors duration-200 ease-in-out">
-      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
-        <div className="flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:justify-normal lg:px-0 lg:py-4">
-          <button
-            className="relative flex items-center justify-center w-10 h-10 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 active:scale-95"
-            onClick={handleToggle}
-            aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
-          >
-            {/* Hamburger Icon */}
-            <svg 
-              className={`w-6 h-6 absolute transition-all duration-300 transform ${
-                isMenuOpen ? "opacity-0 rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"
-              }`} 
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6 w-full">
+      {/* Hambúrguer */}
+      <button
+        onClick={handleToggle}
+        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background lg:hidden"
+        aria-label="Abrir menu de navegação"
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-            {/* Close Icon (X) */}
-            <svg 
-              className={`w-6 h-6 absolute transition-all duration-300 transform ${
-                isMenuOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50 pointer-events-none"
-              }`} 
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      {/* Busca */}
+      <div className="relative hidden max-w-sm flex-1 md:block">
+        <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+        <label htmlFor="busca-global" className="sr-only">
+          Buscar obras, equipes e materiais
+        </label>
+        <input
+          id="busca-global"
+          ref={inputRef}
+          type="search"
+          placeholder="Buscar..."
+          className="h-9 w-full rounded-md border border-border bg-muted/40 pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground hover:bg-muted/60 focus-visible:border-ring focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-ring/30"
+        />
+      </div>
 
-          <Link to="/" className="lg:hidden">
-            <img src={logoObraIntegrada} alt="Logo" className="w-8 h-8 object-contain" />
-          </Link>
+      <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
+        <Link to="/obras" className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 gap-1.5 transition-colors">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="hidden sm:inline">Nova obra</span>
+        </Link>
 
-          <div className="hidden lg:block ml-4">
-            <form onSubmit={(e) => e.preventDefault()}>
-              <div className="relative group">
-                <span className="absolute -translate-y-1/2 left-4 top-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-                </span>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Pesquisar..."
-                  className="h-10 w-60 rounded-xl border-transparent bg-slate-100 dark:bg-gray-900 py-2 pl-12 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:bg-white dark:focus:bg-gray-950 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none"
-                />
-              </div>
-            </form>
-          </div>
-        </div>
+        <ThemeToggleButton />
 
-        <div className="flex items-center justify-end w-full gap-2 px-3 py-3 sm:gap-4 lg:w-auto lg:px-0 lg:py-4">
-          <div className="flex items-center gap-1 sm:gap-2 p-1 bg-slate-100/50 dark:bg-gray-900 rounded-xl transition-colors duration-200">
-            <ThemeToggleButton />
-            <div className="w-px h-4 bg-slate-200 dark:bg-gray-800 mx-1"></div>
-            <NotificationDropdown />
-            <UserDropdown />
-          </div>
-        </div>
+        <NotificationDropdown />
+
+        <div className="mx-1 hidden h-6 w-px bg-border sm:block" />
+
+        <UserDropdown />
       </div>
     </header>
   );

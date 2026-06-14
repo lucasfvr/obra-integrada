@@ -27,27 +27,31 @@ export default function UserDropdown() {
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
+        className="flex items-center gap-2 rounded-md py-1 pl-1 pr-1.5 transition-colors hover:bg-slate-100/80 dark:hover:bg-white/5 focus:outline-none"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-indigo-600 flex items-center justify-center text-white font-bold transition-all group-hover:bg-indigo-700">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
           {user?.nome?.[0] || user?.username?.[0] || "U"}
         </span>
-
-        <span className="block mr-1 font-medium text-theme-sm text-slate-700 dark:text-slate-300">
-          {user?.nome?.split(" ")[0] || user?.username || "Usuário"}
+        <span className="hidden text-left leading-tight sm:block">
+          <span className="block text-sm font-medium text-slate-900 dark:text-white leading-none mb-0.5">
+            {user?.nome || user?.username || "Usuário"}
+          </span>
+          <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight scale-95 origin-left">
+            {user?.role === 'PROPRIETARIO' ? 'Proprietário' : user?.role === 'RESPONSAVEL' ? 'Engenheiro' : user?.role || 'Usuário'}
+          </span>
         </span>
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
+          className={`stroke-slate-500 dark:stroke-slate-400 transition-transform duration-200 hidden sm:block ${
             isOpen ? "rotate-180" : ""
           }`}
-          width="18"
-          height="20"
-          viewBox="0 0 18 20"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M4.3125 8.65625L9 13.3437L13.6875 8.65625"
+            d="M3.5 6L8 10.5L12.5 6"
             stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"

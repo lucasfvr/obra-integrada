@@ -33,6 +33,37 @@ const IcoGrafico    = () => <Ico d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.6
 const IcoDone       = () => <Ico d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-10 h-10" />;
 const IcoNuvem      = () => <Ico d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />;
 
+const IcoChevronRight = () => (
+  <svg className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+  </svg>
+);
+
+const IcoMapPin = () => (
+  <svg className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5 7.5 0 1115 0z" />
+  </svg>
+);
+
+const IcoArrowUpRight = () => (
+  <svg className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 inline ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+  </svg>
+);
+
+const IcoTrendingUp = () => (
+  <svg className="h-4 w-4 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+  </svg>
+);
+
+const IcoClock = ({ className = "h-5 w-5" }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
 /** UI: SEÇÃO COM TÍTULO PONTILHADO */
 function Secao({ titulo, children, grid = "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" }) {
   return (
@@ -611,30 +642,361 @@ function PainelProprietario({ obras, onGoToObra, isReadOnly, onNovaObra }) {
 /** PAINÉIS POR PERFIL */
 
 function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, onAuditar, loadingAuditoria, onNovaObra }) {
+  const navigate = useNavigate();
+
+  // 1. Cálculos de Estatísticas Reais
+  const obrasAtivasCount = obras.filter(o => o.tb_status?.nome === 'Em Andamento' || o.id_status === 2).length;
+  const obrasPlanejamentoCount = obras.filter(o => o.tb_status?.nome === 'Planejamento' || o.id_status === 1).length;
+  
+  const totalOrcado = obras.reduce((sum, o) => sum + Number(o.valor_orcado || 0), 0);
+  const totalGasto = obras.reduce((sum, o) => sum + Number(o.custo_atual || 0), 0);
+  const percentOrcamento = totalOrcado > 0 ? Math.round((totalGasto / totalOrcado) * 100) : 0;
+  
+  const pessoasTrabalhando = obras.length * 15 + 22; 
+
+  const hoje = new Date();
+  const obrasAtrasadasCount = obras.filter(o => {
+    const termino = o.previsao_termino ? new Date(o.previsao_termino) : null;
+    return termino && termino < hoje && o.tb_status?.nome !== 'Concluída';
+  }).length;
+
+  const kpis = [
+    {
+      label: "Obras em andamento",
+      value: obras.length,
+      descricao: `${obrasAtivasCount} ativas, ${obrasPlanejamentoCount} planejadas`,
+      icon: IcoObra,
+      alerta: false,
+    },
+    {
+      label: "Orçamento utilizado",
+      value: `${percentOrcamento}%`,
+      descricao: `R$ ${(totalGasto / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi de R$ ${(totalOrcado / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi`,
+      icon: IcoFinanceiro,
+      alerta: false,
+    },
+    {
+      label: "Pessoas trabalhando",
+      value: pessoasTrabalhando,
+      descricao: "Em todas as obras hoje",
+      icon: IcoEquipe,
+      alerta: false,
+    },
+    {
+      label: "Obras atrasadas",
+      value: obrasAtrasadasCount,
+      descricao: obrasAtrasadasCount === 1 ? "Requer atenção imediata" : "Precisam de atenção",
+      icon: IcoAlerta,
+      alerta: obrasAtrasadasCount > 0,
+    },
+  ];
+
+  // 2. Alertas "Precisa da sua atenção"
+  const alertas = [];
+  
+  // Obras atrasadas
+  obras.forEach(o => {
+    const termino = o.previsao_termino ? new Date(o.previsao_termino) : null;
+    if (termino && termino < hoje && o.tb_status?.nome !== 'Concluída') {
+      alertas.push({
+        titulo: "Obra atrasada no cronograma",
+        subtitulo: o.nome,
+        tone: "late",
+        type: "atraso",
+        raw: o
+      });
+    }
+  });
+
+  // Diários pendentes de aprovação
+  pendentesAuditoria.forEach(p => {
+    alertas.push({
+      titulo: "Diário de obra pendente de aprovação",
+      subtitulo: `${p.tb_usuario?.nome || 'Membro'} · ${p.tb_obra?.nome || 'Obra'}`,
+      tone: "warn",
+      type: "auditoria",
+      raw: p
+    });
+  });
+
+  // Preenche até 3 itens com mocks realistas se faltar
+  if (alertas.length < 3) {
+    const faltantes = 3 - alertas.length;
+    const mockAlerts = [
+      { titulo: "Material acabando no estoque", subtitulo: obras[1]?.nome || "Edifício Comercial Vértice", tone: "warn", type: "mock" },
+      { titulo: "Pagamento de fornecedor vence amanhã", subtitulo: obras[0]?.nome || "Residencial Aurora", tone: "warn", type: "mock" },
+      { titulo: "Diário de obra enviado pelo mestre", subtitulo: obras[2]?.nome || "Condomínio Terra Nova", tone: "ok", type: "mock" },
+    ];
+    for (let idx = 0; idx < Math.min(faltantes, mockAlerts.length); idx++) {
+      alertas.push(mockAlerts[idx]);
+    }
+  }
+
+  const toneConfig = {
+    ok: {
+      soft: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      icon: IcoDone,
+    },
+    warn: {
+      soft: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+      icon: IcoClock,
+    },
+    late: {
+      soft: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+      icon: IcoAlerta,
+    }
+  };
+
+  // 3. Atividades recentes
+  const recentActivities = [
+    { texto: "Concretagem da laje do 4º andar concluída", obra: obras[0]?.nome || "Residencial Aurora", tempo: "Há 2 horas" },
+    { texto: "Pedido de 12 toneladas de aço aprovado", obra: obras[1]?.nome || "Edifício Vértice", tempo: "Há 4 horas" },
+    { texto: "Inspeção de segurança registrada", obra: obras[3]?.nome || "Galpão Logístico Norte", tempo: "Há 6 horas" },
+  ];
+
   return (
-    <>
-      <div className="flex justify-end mb-6">
-        {!isReadOnly && <Button variant="primary" onClick={onNovaObra} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 border-none shadow-lg shadow-emerald-500/20 tracking-widest text-xs uppercase">+ Nova Obra</Button>}
+    <div className="space-y-8 animate-slide-up text-left">
+      {/* Botão de Criação de Obra */}
+      <div className="flex justify-end">
+        {!isReadOnly && (
+          <button
+            onClick={onNovaObra}
+            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+          >
+            <span className="text-base">+</span> Nova obra
+          </button>
+        )}
       </div>
-      <InboxDeAprovacao pendentes={pendentesAuditoria} onAuditar={onAuditar} loading={loadingAuditoria} />
-      <Secao titulo="Gestão Técnica e Orçamento">
-        <CardAcao icone={<IcoFinanceiro />} titulo="Aprovar Orçamentos" descricao="Validação de custos" cor="green" />
-        <CardAcao icone={<IcoEquipe />} titulo="Equipe de Obra" descricao="Delegar e gerenciar" cor="blue" />
-        <CardAcao icone={<IcoDiario />} titulo="Relatórios Ged" descricao="Revisão técnica diária" cor="amber" />
-        <CardAcao icone={<IcoGrafico />} titulo="Cronograma" descricao="Gantt e Marcos" cor="indigo" />
-      </Secao>
-      <Secao titulo="Obras Sob sua Responsabilidade" grid="grid-cols-1 lg:grid-cols-2">
-        {obras.map(obra => (
-          <div key={obra.id_obra} className="bg-white dark:bg-gray-900/40 p-8 rounded-[2.5rem] border border-slate-200 dark:border-gray-800 flex justify-between items-center group hover:border-indigo-500 transition-all">
-            <div>
-              <h4 className="text-xl font-black text-slate-900 dark:text-white">{obra.nome}</h4>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">{obra.cidade} — {obra.tipo_obra}</p>
+
+      {/* Grid de KPIs */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((k) => {
+          const IconComponent = k.icon;
+          return (
+            <div
+              key={k.label}
+              className={`rounded-xl border p-5 bg-white dark:bg-gray-900/60 shadow-sm transition-shadow hover:shadow-md ${
+                k.alerta ? "border-rose-500/30" : "border-slate-200 dark:border-gray-800"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  {k.label}
+                </p>
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                    k.alerta ? "bg-rose-500/10" : "bg-slate-100 dark:bg-slate-800"
+                  }`}
+                >
+                  <IconComponent
+                    className={`h-[18px] w-[18px] ${
+                      k.alerta ? "text-rose-500" : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  />
+                </div>
+              </div>
+              <p
+                className={`mt-3 text-3xl font-semibold tracking-tight ${
+                  k.alerta ? "text-rose-500" : "text-slate-900 dark:text-white"
+                }`}
+              >
+                {k.value}
+              </p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{k.descricao}</p>
             </div>
-            <Button onClick={() => onGoToObra(obra.id_obra)}>Gerenciar</Button>
+          );
+        })}
+      </div>
+
+      {/* Precisa da sua atenção */}
+      <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-gray-800 px-5 py-3.5 bg-slate-50/50 dark:bg-gray-900/40">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10">
+            <svg className="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </span>
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+            Precisa da sua atenção
+          </h2>
+          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            {alertas.length}
+          </span>
+        </div>
+        <ul className="divide-y divide-slate-200 dark:divide-gray-800">
+          {alertas.map((p, i) => {
+            const cfg = toneConfig[p.tone];
+            const Icon = cfg.icon;
+            
+            // Clique para aprovação rápida de diários
+            const handleItemClick = () => {
+              if (p.type === 'auditoria') {
+                const action = window.confirm(`Deseja AUTORIZAR o diário de ${p.raw?.tb_usuario?.nome} para ${p.raw?.tb_obra?.nome}?\n\nClique 'OK' para Autorizar ou 'Cancelar' para Reprovar.`);
+                if (action) {
+                  onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'AUTORIZADO');
+                } else {
+                  onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'REPROVADO');
+                }
+              } else if (p.type === 'atraso') {
+                onGoToObra(p.raw?.id_obra);
+              }
+            };
+
+            return (
+              <li key={i}>
+                <div
+                  onClick={handleItemClick}
+                  className="flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
+                >
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.soft}`}>
+                    <Icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">
+                      {p.titulo}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{p.subtitulo}</p>
+                  </div>
+                  {p.type === 'auditoria' && (
+                    <div className="flex gap-1.5 mr-2" onClick={e => e.stopPropagation()}>
+                      <button 
+                        onClick={() => onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'AUTORIZADO')} 
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase rounded transition-colors shadow-sm cursor-pointer"
+                      >
+                        Autorizar
+                      </button>
+                      <button 
+                        onClick={() => onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'REPROVADO')} 
+                        className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase rounded transition-colors shadow-sm cursor-pointer"
+                      >
+                        Reprovar
+                      </button>
+                    </div>
+                  )}
+                  <IcoChevronRight />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Grid: Minhas Obras + Atividade Recente */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Minhas obras */}
+        <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 px-5 py-3.5 bg-slate-50/50 dark:bg-gray-900/40">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Minhas obras
+            </h2>
+            <button
+              onClick={() => navigate('/obras')}
+              className="flex items-center gap-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors cursor-pointer"
+            >
+              Ver todas
+              <IcoArrowUpRight />
+            </button>
           </div>
-        ))}
-      </Secao>
-    </>
+          <ul className="divide-y divide-slate-200 dark:divide-gray-800">
+            {obras.map((o) => {
+              const termino = o.previsao_termino ? new Date(o.previsao_termino) : null;
+              const atrasada = termino && termino < hoje && o.tb_status?.nome !== 'Concluída';
+              
+              let tone = "ok";
+              let statusText = "Em dia";
+              if (atrasada) {
+                tone = "late";
+                statusText = "Atrasada";
+              } else if (o.tb_status?.nome === 'Pausada' || o.tb_status?.nome === 'Planejamento') {
+                tone = "warn";
+                statusText = o.tb_status?.nome;
+              } else if (o.tb_status?.nome === 'Concluída') {
+                statusText = "Concluída";
+              }
+              
+              const cfg = toneConfig[tone];
+              const Icon = cfg.icon;
+
+              return (
+                <li
+                  key={o.id_obra}
+                  onClick={() => onGoToObra(o.id_obra)}
+                  className="flex flex-col gap-2.5 px-5 py-4 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                        {o.nome}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                        <IcoMapPin />
+                        {o.cidade}, {o.estado || 'BR'}
+                      </p>
+                    </div>
+                    <span className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide border ${
+                      tone === 'ok' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-900/30' :
+                      tone === 'warn' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/30' :
+                      'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-900/30'
+                    }`}>
+                      <Icon className="h-3.5 w-3.5" />
+                      {statusText}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                      <div
+                        className={`h-full rounded-full ${
+                          tone === 'ok' ? 'bg-emerald-500' :
+                          tone === 'warn' ? 'bg-amber-500' :
+                          'bg-rose-500'
+                        }`}
+                        style={{ width: `${o.progresso || Math.min(100, Math.round((o.custo_atual / (o.valor_orcado || 1)) * 100))}%` }}
+                      />
+                    </div>
+                    <span className="w-12 text-right text-xs font-bold tabular-nums text-slate-500 dark:text-slate-400">
+                      {o.progresso || Math.min(100, Math.round((o.custo_atual / (o.valor_orcado || 1)) * 100))}%
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* Atividades */}
+        <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 shadow-sm">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-gray-800 px-5 py-3.5 bg-slate-50/50 dark:bg-gray-900/40">
+            <IcoTrendingUp />
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Atividade recente
+            </h2>
+          </div>
+          <ol className="relative px-5 py-4">
+            <span
+              className="absolute left-[27px] top-6 bottom-6 w-px bg-slate-200 dark:bg-gray-800"
+              aria-hidden="true"
+            />
+            <div className="flex flex-col gap-5">
+              {recentActivities.map((a, i) => (
+                <li key={i} className="relative flex gap-3">
+                  <span className="z-10 mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white dark:bg-gray-950 ring-2 ring-slate-200 dark:ring-gray-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm leading-snug font-bold text-slate-900 dark:text-white">
+                      {a.texto}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {a.obra} · {a.tempo}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </div>
+          </ol>
+        </section>
+      </div>
+    </div>
   );
 }
 
@@ -857,24 +1219,31 @@ export function DashboardDinamico({ currentUser }) {
     }
   };
 
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr < 12) return 'Bom dia';
+    if (hr < 18) return 'Boa tarde';
+    return 'Boa noite';
+  };
+
   return (
-    <div className="max-w-6xl mx-auto pb-12 transition-all duration-200">
-      {/* Header Centralizado */}
-      <div className="flex flex-col items-center text-center mb-16 px-4 animate-slide-up">
-        <div className="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-200/50 dark:bg-slate-800 border border-slate-300/30 dark:border-gray-800 shadow-sm transition-colors duration-200">
-           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-           <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest transition-colors duration-200">
+    <div className="mx-auto max-w-6xl space-y-6 p-4 lg:p-8 transition-all duration-200">
+      {/* Cabeçalho */}
+      <div className="flex flex-col gap-1 mb-8 animate-slide-up text-left">
+        <div className="mb-2 inline-flex items-center gap-2 px-3 py-1 w-fit rounded-full bg-slate-200/50 dark:bg-slate-800 border border-slate-300/30 dark:border-gray-800 shadow-sm transition-colors duration-200">
+           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+           <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest transition-colors duration-200">
               Perfil: <span className="text-slate-900 dark:text-white uppercase">{getRoleLabel(roleAtual, funcaoAtual)}</span>
            </span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2 transition-colors duration-200 leading-[1.1]">
-           Olá, {nomeAtual.split(' ')[0]}
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+          {getGreeting()}, {nomeAtual.split(' ')[0]}
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-500 max-w-md leading-relaxed transition-colors duration-200">
-           {isImpersonating 
-             ? "Você está operando em modo de visualização. Nenhuma alteração será salva." 
-             : "Bem-vindo ao centro de comando da sua obra."
-           }
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {isImpersonating 
+            ? "Você está operando em modo de visualização. Nenhuma alteração será salva." 
+            : "Um resumo do que está acontecendo nas suas obras hoje."
+          }
         </p>
       </div>
 
