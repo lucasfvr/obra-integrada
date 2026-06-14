@@ -180,6 +180,15 @@
   },
   "active": "84b315c0687b12f3",
   "lastOpenFiles": [
+    "00-Index/70 - Gestao Agil (Scrum)/Issues/US-005 - Criar Pagina de Status da Plataforma (STATUS.md).md",
+    "00-Index/70 - Gestao Agil (Scrum)/Issues/US-004 - Configurar Ferramentas de DevOps Locais (docker-compose e CI workflow).md",
+    "00-Index/70 - Gestao Agil (Scrum)/Issues/US-003 - Criar Documento de Fluxo Git (fluxo-git.md).md",
+    "00-Index/70 - Gestao Agil (Scrum)/Issues/US-002 - Criar Templates do GitHub (PR e Issues).md",
+    "00-Index/70 - Gestao Agil (Scrum)/Issues/US-001 - Criar Especificacao OpenAPI (openapi.yaml).md",
+    "00-Index/70 - Gestao Agil (Scrum)/Issues",
+    "00-Index/10 - Produto e Negocios/14 - Metricas de Sucesso e Analytics (KPIs, Dashboards)/00 - Index - KPIs.md",
+    "00-Index/10 - Produto e Negocios/14 - Metricas de Sucesso e Analytics (KPIs, Dashboards)/KPI-003 - Metricas de Sucesso Operacionais e de Canteiro.md",
+    "00-Index/70 - Gestao Agil (Scrum)/70 - Setup Agil e Workflow da Equipe.md",
     "00-Index/10 - Produto e Negocios/Definicao de Funcionalidades do MVP.md",
     "00-Index/INDICE-COMPLETO.md",
     "00-Index/20 - Documentacao e Tecnologias/24 - Documentacao da Banca/RELATORIO_TECNICO.md",
@@ -200,21 +209,12 @@
     "00-Index/90 - Sistema Obsidian/92 - Agente IDE/skill-docs-builder.md",
     "00-Index/90 - Sistema Obsidian/92 - Agente IDE/RESUMO-PROJETO.md",
     "00-Index/90 - Sistema Obsidian/92 - Agente IDE/PROMPT-INICIAL.md",
-    "00-Index/90 - Sistema Obsidian/92 - Agente IDE/README.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/63 - Logs e Monitoramento de Performance/Problem Management.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/63 - Logs e Monitoramento de Performance/Catalogo de Sistemas.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/63 - Logs e Monitoramento de Performance/Monitoramento.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/63 - Logs e Monitoramento de Performance/Gestao de Riscos.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/63 - Logs e Monitoramento de Performance/BCP.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/63 - Logs e Monitoramento de Performance/DRP.md",
-    "00-Index/60 - Infraestrutura, Cloud e DevOps/62 - Pipelines de Deploy (CI-CD)/Rollback.md",
     "00-Index/90 - Sistema Obsidian/95 - Propostas de Atualizacao/historico",
     "00-Index/90 - Sistema Obsidian/95 - Propostas de Atualizacao",
     "00-Index/90 - Sistema Obsidian/92 - Agente IDE",
     "00-Index/40 - Back-end, APIs e Seguranca/ADRs",
     "00-Index/20 - Documentacao e Tecnologias/Requisitos",
     "00-Index/10 - Produto e Negocios/Empresa",
-    "gemini-scribe/Scheduled-Tasks/scheduled-tasks-state.json",
-    "gemini-scribe/Scheduled-Tasks/Runs"
+    "gemini-scribe/Scheduled-Tasks/scheduled-tasks-state.json"
   ]
 }

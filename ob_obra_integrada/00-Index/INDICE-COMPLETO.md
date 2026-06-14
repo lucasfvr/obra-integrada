@@ -80,11 +80,11 @@ Mapa de navegação e referência rápida para toda documentação do sistema.
 
 #### **Métricas de Sucesso (KPIs)**
 ```
-📁 10 - Produto e Negocios/14 - Metricas de Sucesso/
+📁 10 - Produto e Negocios/14 - Metricas de Sucesso e Analytics (KPIs, Dashboards)/
 ├─ 00 - Index - KPIs.md
-├─ KPI-001.md → Nível Executivo
-├─ KPI-002.md → Nível Tático
-└─ KPI-003.md → Nível Operacional
+├─ KPI-001 - Dashboards Executivos e Indicadores de Obra.md → Nível Executivo
+├─ KPI-002 - Metricas de Sucesso do Produto SaaS.md → Nível Tático
+└─ KPI-003 - Metricas de Sucesso Operacionais e de Canteiro.md → Nível Operacional
 ```
 
 #### **Estrutura Corporativa & Administração**
