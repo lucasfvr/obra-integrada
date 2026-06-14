@@ -6,16 +6,7 @@ import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader: React.FC = () => {
-  const { toggleSidebar, toggleMobileSidebar } = useSidebar();
-
-  const handleToggle = () => {
-    if (window.innerWidth >= 1024) {
-      toggleSidebar();
-    } else {
-      toggleMobileSidebar();
-    }
-  };
-
+  const { toggleMobileSidebar } = useSidebar();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -30,10 +21,10 @@ const AppHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6 w-full">
-      {/* Hambúrguer */}
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-6">
+      {/* Hambúrguer (só mobile) */}
       <button
-        onClick={handleToggle}
+        onClick={toggleMobileSidebar}
         className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background lg:hidden"
         aria-label="Abrir menu de navegação"
       >
@@ -59,8 +50,12 @@ const AppHeader: React.FC = () => {
         />
       </div>
 
-      <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
-        <Link to="/obras" className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 gap-1.5 transition-colors">
+      <div className="flex flex-1 items-center justify-end gap-1 md:flex-none">
+        {/* Botão Nova obra */}
+        <Link
+          to="/obras"
+          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-colors"
+        >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>

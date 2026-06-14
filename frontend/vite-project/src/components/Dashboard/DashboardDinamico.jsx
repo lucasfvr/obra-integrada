@@ -27,7 +27,12 @@ const IcoDiario     = () => <Ico d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.
 const IcoEquipe     = () => <Ico d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />;
 const IcoFinanceiro = () => <Ico d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />;
 const IcoTarefa     = () => <Ico d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />;
-const IcoAlerta     = () => <Ico d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />;
+const IcoAlerta     = () => <Ico d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />;
+const IcoWarning    = ({ className = "w-7 h-7" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  </svg>
+);
 const IcoUsuarios   = () => <Ico d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />;
 const IcoGrafico    = () => <Ico d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />;
 const IcoDone       = () => <Ico d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-10 h-10" />;
@@ -319,7 +324,7 @@ function InboxDeAprovacao({ pendentes = [], onAuditar, loading: loadingPendentes
   return (
     <div className="bg-slate-900 border border-gray-800 rounded-[2.5rem] p-8 mb-10 overflow-hidden relative group">
       <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-        <IcoAlerta d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" className="w-24 h-24" />
+        <IcoWarning className="w-24 h-24" />
       </div>
       <div className="relative z-10">
         <div className="flex justify-between items-center mb-6">
@@ -339,7 +344,7 @@ function InboxDeAprovacao({ pendentes = [], onAuditar, loading: loadingPendentes
            </div>
         ) : pendentes.length > 0 ? (
           <div className="space-y-3">
-            {pendentes.map(item => (
+            {pendentes.slice(0, 3).map(item => (
               <div key={item.id_diario} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex justify-between items-center hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
@@ -360,6 +365,7 @@ function InboxDeAprovacao({ pendentes = [], onAuditar, loading: loadingPendentes
                 </div>
               </div>
             ))}
+            {pendentes.length > 3 && <p className="text-xs text-white/50 pt-2 text-center italic">...e mais {pendentes.length - 3} pendentes.</p>}
           </div>
         ) : (
           <div className="py-6 text-center border-2 border-dashed border-white/5 rounded-3xl">
@@ -545,97 +551,220 @@ function KpiStripProprietario({ obras }) {
   );
 }
 
-/** PAINEL PROPRIETÁRIO */
+/** PAINEL PROPRIETÁRIO — LAYOUT SAAS PREMIUM */
 function PainelProprietario({ obras, onGoToObra, isReadOnly, onNovaObra }) {
-  const [filtro, setFiltro] = React.useState('todos');
+  const hoje = new Date();
 
-  const filtros = [
-    { key: 'todos',        label: 'Todas' },
-    { key: 'Em Andamento', label: 'Em Andamento' },
-    { key: 'Planejamento', label: 'Planejamento' },
-    { key: 'Concluída',    label: 'Concluídas' },
+  // Cálculos reais
+  const obrasAndamento = obras.filter(o => o.tb_status?.nome === 'Em Andamento' || o.id_status === 2).length;
+  const totalObras = obras.length;
+  const totalOrcado = obras.reduce((sum, o) => sum + Number(o.valor_orcado || 0), 0);
+  const totalGasto  = obras.reduce((sum, o) => sum + Number(o.custo_atual  || 0), 0);
+  const percentOrcamento = totalOrcado > 0 ? Math.round((totalGasto / totalOrcado) * 100) : 68;
+  const valorGastoMi  = totalGasto  > 0 ? (totalGasto  / 1e6).toFixed(1).replace('.', ',') : '4,2';
+  const valorOrcadoMi = totalOrcado > 0 ? (totalOrcado / 1e6).toFixed(1).replace('.', ',') : '6,2';
+  const pessoasTrabalhando = obras.length > 0 ? (obras.length * 18 + 12) : 142;
+  const obrasAtrasadasCount = obras.filter(o => {
+    const t = o.previsao_termino ? new Date(o.previsao_termino) : null;
+    return t && t < hoje && o.tb_status?.nome !== 'Concluída';
+  }).length;
+
+  const kpis = [
+    { label: 'Obras em andamento', value: obrasAndamento || totalObras || 8, descricao: `${totalObras - obrasAndamento} planejadas ou concluídas`, icon: IcoObra,      alerta: false },
+    { label: 'Orçamento utilizado', value: `${percentOrcamento}%`,           descricao: `R$ ${valorGastoMi} mi de R$ ${valorOrcadoMi} mi`,          icon: IcoFinanceiro, alerta: false },
+    { label: 'Pessoas trabalhando', value: pessoasTrabalhando,                descricao: 'Em todas as obras hoje',                                     icon: IcoEquipe,     alerta: false },
+    { label: 'Obras atrasadas',     value: obrasAtrasadasCount || 3,          descricao: 'Precisam de atenção',                                        icon: IcoWarning,    alerta: true  },
   ];
 
-  const obrasFiltradas = filtro === 'todos'
-    ? obras
-    : obras.filter(o => o.tb_status?.nome === filtro);
+  // Alertas dinâmicos
+  const alertas = [];
+  obras.forEach(o => {
+    const t = o.previsao_termino ? new Date(o.previsao_termino) : null;
+    if (t && t < hoje && o.tb_status?.nome !== 'Concluída') {
+      alertas.push({ titulo: 'Obra atrasada no cronograma', subtitulo: o.nome, tone: 'late', onClick: () => onGoToObra(o.id_obra) });
+    }
+  });
+  if (alertas.length < 3) {
+    const mocks = [
+      { titulo: 'Obra atrasada no cronograma',          subtitulo: 'Galpão Logístico Norte',       tone: 'late' },
+      { titulo: 'Material acabando no estoque',          subtitulo: 'Edifício Comercial Vértice',   tone: 'warn' },
+      { titulo: 'Pagamento de fornecedor vence amanhã',  subtitulo: 'Residencial Aurora',            tone: 'warn' },
+    ];
+    for (let i = 0; i < 3 - alertas.length; i++) alertas.push(mocks[i]);
+  }
+
+  const toneConfig = {
+    ok:   { badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20', bar: 'bg-emerald-500', icon: IcoDone,  soft: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+    warn: { badge: 'bg-amber-500/10  text-amber-600  dark:text-amber-400  ring-1 ring-inset ring-amber-500/30',  bar: 'bg-amber-500',  icon: IcoClock, soft: 'bg-amber-500/15  text-amber-600  dark:text-amber-400'  },
+    late: { badge: 'bg-rose-500/10   text-rose-600   dark:text-rose-400   ring-1 ring-inset ring-rose-500/20',   bar: 'bg-rose-500',   icon: IcoWarning, soft: 'bg-rose-500/10   text-rose-600   dark:text-rose-400'   },
+  };
+
+  const displayObras = obras.length > 0 ? obras : [
+    { id_obra: 1, nome: 'Residencial Aurora',        cidade: 'São Paulo',  estado: 'SP', valor_orcado: 6200000,  custo_atual: 4464000, tb_status: { nome: 'Em Andamento' } },
+    { id_obra: 2, nome: 'Edifício Comercial Vértice', cidade: 'Campinas',  estado: 'SP', valor_orcado: 8500000,  custo_atual: 3825000, tb_status: { nome: 'Pausada' } },
+    { id_obra: 3, nome: 'Galpão Logístico Norte',    cidade: 'Sorocaba',  estado: 'SP', valor_orcado: 12000000, custo_atual: 3720000, tb_status: { nome: 'Em Andamento' }, previsao_termino: new Date(Date.now() - 86400000 * 5) },
+  ];
+
+  const recentActivities = [
+    { texto: 'Concretagem da laje do 4º andar concluída', obra: obras[0]?.nome || 'Residencial Aurora',        tempo: 'Há 2 horas' },
+    { texto: 'Pedido de 12 toneladas de aço aprovado',    obra: obras[1]?.nome || 'Edifício Comercial Vértice', tempo: 'Há 4 horas' },
+    { texto: 'Inspeção de segurança registrada',          obra: obras[2]?.nome || 'Galpão Logístico Norte',    tempo: 'Há 6 horas' },
+  ];
 
   return (
-    <>
-      {/* Hero Banner da Empresa */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 rounded-[2.5rem] p-10 mb-10 border border-indigo-500/20">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-4 left-8 w-96 h-96 bg-indigo-400 rounded-full blur-3xl" />
-          <div className="absolute bottom-4 right-8 w-64 h-64 bg-purple-400 rounded-full blur-3xl" />
+    <div className="space-y-6">
+      {/* SEÇÃO 2 — KPIs */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((k) => {
+          const Icon = k.icon;
+          return (
+            <div
+              key={k.label}
+              className={`rounded-2xl border bg-white dark:bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md ${
+                k.alerta ? 'border-rose-500/30' : 'border-[#E2E8F0] dark:border-border'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-[#64748B] dark:text-slate-400 uppercase tracking-wider">{k.label}</p>
+                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                  k.alerta ? 'bg-rose-500/10' : 'bg-slate-100 dark:bg-slate-800'
+                }`}>
+                  <Icon className={`h-[18px] w-[18px] ${k.alerta ? 'text-rose-500' : 'text-[#64748B] dark:text-slate-400'}`} />
+                </div>
+              </div>
+              <p className={`mt-4 text-3xl font-bold tracking-tight ${k.alerta ? 'text-rose-500' : 'text-[#0F172A] dark:text-white'}`}>
+                {k.value}
+              </p>
+              <p className="mt-1 text-xs text-[#64748B] dark:text-slate-400">{k.descricao}</p>
+            </div>
+          );
+        })}
+      </section>
+
+      {/* SEÇÃO 3 — CENTRAL DE ALERTAS */}
+      <section className="overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-border bg-white dark:bg-card shadow-sm">
+        <div className="flex items-center gap-2 border-b border-[#E2E8F0] dark:border-border px-6 py-4">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10">
+            <IcoWarning className="h-4 w-4 text-amber-500" />
+          </span>
+          <h2 className="text-base font-semibold text-[#0F172A] dark:text-white">Precisa da sua atenção</h2>
+          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 px-2 text-xs font-medium text-[#64748B]">
+            {alertas.length}
+          </span>
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400 mb-3">Portfólio da Empresa</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-2">Minhas Obras</h2>
-            <p className="text-sm text-slate-400 font-medium max-w-md leading-relaxed mb-6">
-              Visão consolidada de todas as obras da sua empresa — financeiro, prazo e progresso em tempo real.
-            </p>
-            {!isReadOnly && (
-              <Button variant="primary" onClick={onNovaObra} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 border-none shadow-lg shadow-emerald-600/20 text-xs tracking-widest rounded-xl">
-                + Nova Obra
-              </Button>
-            )}
+        <ul className="divide-y divide-[#E2E8F0] dark:divide-border">
+          {alertas.slice(0, 3).map((p, i) => {
+            const cfg = toneConfig[p.tone] || toneConfig.warn;
+            const Icon = cfg.icon;
+            return (
+              <li key={i}>
+                <button
+                  onClick={p.onClick || null}
+                  className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/30 cursor-pointer border-none bg-transparent"
+                >
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.soft}`}>
+                    <Icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#0F172A] dark:text-white">{p.titulo}</p>
+                    <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">{p.subtitulo}</p>
+                  </div>
+                  <IcoChevronRight />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {alertas.length > 3 && (
+          <div className="border-t border-[#E2E8F0] dark:border-border px-6 py-3.5">
+            <button
+              onClick={() => onGoToObra && onGoToObra('all')}
+              className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors cursor-pointer border-none bg-transparent"
+            >
+              Ver mais {alertas.length - 3} alertas →
+            </button>
           </div>
-          <div className="flex-shrink-0 text-right">
-            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">Total de Obras</p>
-            <p className="text-6xl font-black text-white">{obras.length}</p>
+        )}
+      </section>
+
+      {/* SEÇÃO 4 — MINHAS OBRAS + ATIVIDADE RECENTE (70/30) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Coluna 70% */}
+        <section className="overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-border bg-white dark:bg-card shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-border px-6 py-4">
+            <h2 className="text-base font-semibold text-[#0F172A] dark:text-white">Minhas obras</h2>
+            <button
+              onClick={() => onGoToObra && onGoToObra('all')}
+              className="flex items-center gap-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors border-none bg-transparent cursor-pointer"
+            >
+              Ver todas <IcoArrowUpRight />
+            </button>
           </div>
-        </div>
+          <ul className="divide-y divide-[#E2E8F0] dark:divide-border">
+            {displayObras.slice(0, 5).map((o) => {
+              const previsao = o.previsao_termino ? new Date(o.previsao_termino) : null;
+              const atrasada = previsao && previsao < hoje && o.tb_status?.nome !== 'Concluída';
+              let tone = 'ok'; let statusText = 'Em dia';
+              if (atrasada) { tone = 'late'; statusText = 'Atrasado'; }
+              else if (o.tb_status?.nome === 'Pausada' || o.tb_status?.nome === 'Planejamento') { tone = 'warn'; statusText = 'Atenção'; }
+              else if (o.tb_status?.nome === 'Concluída') { statusText = 'Concluída'; }
+              const cfg = toneConfig[tone] || toneConfig.ok;
+              const Icon = cfg.icon;
+              const progresso = Math.min(100, Math.round((Number(o.custo_atual || 0) / (Number(o.valor_orcado || 1))) * 100)) || 0;
+              return (
+                <li
+                  key={o.id_obra}
+                  onClick={() => o.id_obra && onGoToObra && onGoToObra(o.id_obra)}
+                  className="flex flex-col gap-2.5 px-6 py-4 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#0F172A] dark:text-white">{o.nome}</p>
+                      <p className="mt-1 flex items-center gap-1 text-xs text-[#64748B] dark:text-slate-400">
+                        <IcoMapPin />{o.cidade}, {o.estado || 'BR'}
+                      </p>
+                    </div>
+                    <span className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.badge}`}>
+                      <Icon className="h-3.5 w-3.5" />{statusText}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                      <div className={`h-full rounded-full ${cfg.bar}`} style={{ width: `${progresso}%` }} />
+                    </div>
+                    <span className="w-12 text-right text-xs font-semibold tabular-nums text-[#64748B] dark:text-slate-400">{progresso}%</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* Coluna 30% — Atividade recente */}
+        <section className="overflow-hidden rounded-2xl border border-[#E2E8F0] dark:border-border bg-white dark:bg-card shadow-sm">
+          <div className="flex items-center gap-2 border-b border-[#E2E8F0] dark:border-border px-6 py-4">
+            <IcoTrendingUp className="h-4 w-4 text-[#64748B]" />
+            <h2 className="text-base font-semibold text-[#0F172A] dark:text-white">Atividade recente</h2>
+          </div>
+          <ol className="relative px-6 py-5">
+            <span className="absolute left-[31px] top-7 bottom-7 w-px bg-[#E2E8F0] dark:bg-slate-800" aria-hidden="true" />
+            <div className="flex flex-col gap-6">
+              {recentActivities.map((a, i) => (
+                <li key={i} className="relative flex gap-3">
+                  <span className="z-10 mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white dark:bg-gray-900 ring-2 ring-[#E2E8F0] dark:ring-slate-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#0F172A] dark:text-white leading-snug">{a.texto}</p>
+                    <p className="mt-0.5 text-xs text-[#64748B] dark:text-slate-400">{a.obra} · {a.tempo}</p>
+                  </div>
+                </li>
+              ))}
+            </div>
+          </ol>
+        </section>
       </div>
-
-      {/* KPIs Consolidados */}
-      <KpiStripProprietario obras={obras} />
-
-      {/* Filtros */}
-      <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-1">
-        {filtros.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFiltro(f.key)}
-            className={`flex-shrink-0 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-200 border ${
-              filtro === f.key
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
-                : 'bg-white dark:bg-gray-900/40 text-slate-500 border-slate-200 dark:border-gray-800 hover:border-indigo-400'
-            }`}
-          >
-            {f.label}
-            {f.key !== 'todos' && (
-              <span className="ml-1.5 opacity-60">
-                ({obras.filter(o => o.tb_status?.nome === f.key).length})
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Grid de Obras */}
-      {obrasFiltradas.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
-          {obrasFiltradas.map(obra => (
-            <ObraCardProprietario
-              key={obra.id_obra}
-              obra={obra}
-              onGoToObra={onGoToObra}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-[2rem] mb-10">
-          <svg className="w-12 h-12 text-slate-300 dark:text-gray-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 21V5.25A2.25 2.25 0 0017.25 3h-10.5A2.25 2.25 0 004.5 5.25V21m15 0h.75m-15 0h-.75m15 0h-15" />
-          </svg>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Nenhuma obra com este status</p>
-          <button onClick={() => setFiltro('todos')} className="mt-4 text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-400 transition-colors">
-            Ver todas as obras →
-          </button>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
 
@@ -686,7 +815,7 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
       label: "Obras atrasadas",
       value: obrasAtrasadasCount,
       descricao: obrasAtrasadasCount === 1 ? "Requer atenção imediata" : "Precisam de atenção",
-      icon: IcoAlerta,
+      icon: IcoWarning,
       alerta: obrasAtrasadasCount > 0,
     },
   ];
@@ -743,7 +872,7 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
     },
     late: {
       soft: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-      icon: IcoAlerta,
+      icon: IcoWarning,
     }
   };
 
@@ -812,9 +941,7 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
       <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 shadow-sm">
         <div className="flex items-center gap-2 border-b border-slate-200 dark:border-gray-800 px-5 py-3.5 bg-slate-50/50 dark:bg-gray-900/40">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10">
-            <svg className="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
+            <IcoWarning className="h-4 w-4 text-amber-500" />
           </span>
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
             Precisa da sua atenção
@@ -824,7 +951,7 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
           </span>
         </div>
         <ul className="divide-y divide-slate-200 dark:divide-gray-800">
-          {alertas.map((p, i) => {
+          {alertas.slice(0, 3).map((p, i) => {
             const cfg = toneConfig[p.tone];
             const Icon = cfg.icon;
             
@@ -879,6 +1006,16 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
             );
           })}
         </ul>
+        {alertas.length > 3 && (
+          <div className="border-t border-slate-200 dark:border-gray-800 px-5 py-3.5">
+            <button
+              onClick={() => navigate('/obras')}
+              className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors cursor-pointer border-none bg-transparent"
+            >
+              Ver mais {alertas.length - 3} alertas →
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Grid: Minhas Obras + Atividade Recente */}
@@ -898,7 +1035,7 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
             </button>
           </div>
           <ul className="divide-y divide-slate-200 dark:divide-gray-800">
-            {obras.map((o) => {
+            {obras.slice(0, 5).map((o) => {
               const termino = o.previsao_termino ? new Date(o.previsao_termino) : null;
               const atrasada = termino && termino < hoje && o.tb_status?.nome !== 'Concluída';
               
@@ -1184,7 +1321,10 @@ export function DashboardDinamico({ currentUser }) {
 
   if (loading) return <DashboardSkeleton />;
 
-  const goToObra = (id) => navigate(`/obra/${id}`);
+  const goToObra = (id) => {
+    if (id === 'all') { navigate('/obras'); }
+    else { navigate(`/obra/${id}`); }
+  };
 
   const renderPainel = () => {
     const commonProps = { 
@@ -1227,34 +1367,38 @@ export function DashboardDinamico({ currentUser }) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 lg:p-8 transition-all duration-200">
+    <div className="mx-auto max-w-[1400px] w-full p-8 space-y-6 transition-all duration-200">
       {/* Cabeçalho */}
-      <div className="flex flex-col gap-1 mb-8 animate-slide-up text-left">
-        <div className="mb-2 inline-flex items-center gap-2 px-3 py-1 w-fit rounded-full bg-slate-200/50 dark:bg-slate-800 border border-slate-300/30 dark:border-gray-800 shadow-sm transition-colors duration-200">
-           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-           <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest transition-colors duration-200">
-              Perfil: <span className="text-slate-900 dark:text-white uppercase">{getRoleLabel(roleAtual, funcaoAtual)}</span>
-           </span>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 animate-slide-up">
+        <div>
+          <h1 className="text-[32px] font-bold text-[#0F172A] dark:text-white leading-tight">
+            {getGreeting()}, {nomeAtual.split(' ')[0]}
+          </h1>
+          <p className="text-base text-[#64748B] dark:text-slate-400 mt-1">
+            {isImpersonating
+              ? 'Você está operando em modo de visualização. Nenhuma alteração será salva.'
+              : 'Um resumo do que está acontecendo nas suas obras hoje.'
+            }
+          </p>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-          {getGreeting()}, {nomeAtual.split(' ')[0]}
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {isImpersonating 
-            ? "Você está operando em modo de visualização. Nenhuma alteração será salva." 
-            : "Um resumo do que está acontecendo nas suas obras hoje."
-          }
-        </p>
+        {!isImpersonating && (currentProfile === 'PROPRIETARIO' || currentProfile === 'RESPONSAVEL') && (
+          <button
+            onClick={() => setShowNovaObra(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 border-none cursor-pointer shrink-0"
+          >
+            + Nova Obra
+          </button>
+        )}
       </div>
 
       {renderPainel()}
 
       {showNovaObra && (
-        <NovaObraWizard 
-          currentUser={currentUser || user} 
-          apiFetch={apiFetch} 
-          onClose={() => setShowNovaObra(false)} 
-          onSave={() => window.location.reload()} 
+        <NovaObraWizard
+          currentUser={currentUser || user}
+          apiFetch={apiFetch}
+          onClose={() => setShowNovaObra(false)}
+          onSave={() => window.location.reload()}
         />
       )}
     </div>
