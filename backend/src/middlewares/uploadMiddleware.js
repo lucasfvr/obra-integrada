@@ -33,7 +33,7 @@ const TAMANHO_MAX_DOC = 10 * 1024 * 1024;
  */
 export function criarUploadMiddleware(subpasta = 'geral') {
   const destino = path.join(UPLOADS_DIR, subpasta);
-  const isDoc = subpasta === 'documentos';
+  const isDoc = subpasta === 'documentos' || subpasta === 'financeiro';
 
   // Garante que a subpasta existe
   if (!fs.existsSync(destino)) {

@@ -67,9 +67,19 @@ export function requirePermissao(permissao) {
 export function requireObraAccess(nivelMinimo = 'qualquer') {
   return async (req, res, next) => {
     try {
-      const idObra    = Number(req.params.id);
+      let idObra    = Number(req.params.id);
       const idUsuario = req.user?.id;
       const role      = req.user?.role;
+
+      if ((!idObra || isNaN(idObra)) && req.params.idItem) {
+        const item = await prisma.tb_estoque_obra.findUnique({
+          where: { id_estoque: Number(req.params.idItem) },
+          select: { id_obra: true }
+        });
+        if (item) {
+          idObra = item.id_obra;
+        }
+      }
 
       if (!idObra || isNaN(idObra)) {
         return res.status(400).json({ erro: 'ID da obra invalido' });

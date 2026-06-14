@@ -7,20 +7,9 @@ import {
 } from '../controllers/financeiroController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireObraAccess, requirePermissao } from '../middlewares/authorizationMiddleware.js';
-import multer from 'multer';
-import path from 'path';
+import { criarUploadMiddleware, handleUploadError } from '../middlewares/uploadMiddleware.js';
 
-// Configura multer para comprovantes financeiros
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/financeiro');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'comp-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-const upload = multer({ storage });
+const upload = criarUploadMiddleware('financeiro');
 
 const router = Router();
 
@@ -39,6 +28,7 @@ router.post(
   requireObraAccess('total'),
   requirePermissao('gerenciar_financeiro'),
   upload.single('comprovante'),
+  handleUploadError,
   criarRegistroFinanceiro
 );
 

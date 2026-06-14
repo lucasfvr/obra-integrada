@@ -227,6 +227,16 @@ function App() {
               }
             />
             <Route
+              path="/clientes"
+              element={
+                <ProtectedRoute>
+                  <PermissaoGuard permissao="gerenciar_clientes" redirectToRestricted>
+                    <UnderConstruction titulo="Clientes / Tenants" />
+                  </PermissaoGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/profile"
               element={
                 <ProtectedRoute>
