@@ -2,6 +2,7 @@ import { useCallback, type FC, type ReactNode, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../hooks/useAuth.js";
+import logoObraIntegrada from "../assets/logo-obra-integrada.png";
 
 // ─── Ícones inline (SVG) para evitar dependências extras ────────────────────
 
@@ -118,13 +119,13 @@ const AppSidebar: FC = () => {
         <div className="flex items-center justify-between h-16 px-3 shrink-0">
           {isOpen && (
             <Link to="/" className="flex items-center gap-2 overflow-hidden">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 font-bold text-gray-950 text-sm shrink-0">OI</div>
+              <img src={logoObraIntegrada} alt="Logo" className="w-8 h-8 object-contain shrink-0" />
               <span className="text-sm font-semibold text-white whitespace-nowrap">Obra Integrada</span>
             </Link>
           )}
           {!isOpen && (
             <Link to="/" className="mx-auto">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 font-bold text-gray-950 text-sm">OI</div>
+              <img src={logoObraIntegrada} alt="Logo" className="w-8 h-8 object-contain" />
             </Link>
           )}
         </div>
@@ -160,7 +161,7 @@ const AppSidebar: FC = () => {
                           relative flex items-center gap-3 mx-2 my-0.5 px-3 py-2 rounded-lg
                           text-sm font-medium transition-all duration-150 group
                           ${active
-                            ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                            ? "bg-orange-500/15 text-orange-500 dark:text-orange-400 border border-orange-500/30"
                             : "text-gray-400 hover:bg-gray-800 hover:text-gray-100 border border-transparent"
                           }
                           ${!isOpen ? "justify-center px-0 py-2.5" : ""}
@@ -168,10 +169,10 @@ const AppSidebar: FC = () => {
                       >
                         {/* Active bar */}
                         {active && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-amber-400 rounded-r-full" />
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-orange-500 rounded-r-full" />
                         )}
 
-                        <span className={`shrink-0 ${active ? "text-amber-400" : "text-gray-500 group-hover:text-gray-300"}`}>
+                        <span className={`shrink-0 ${active ? "text-orange-500" : "text-gray-500 group-hover:text-gray-300"}`}>
                           {item.icon}
                         </span>
 
