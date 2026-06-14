@@ -24,6 +24,15 @@ Mapa de navegação e referência rápida para toda documentação do sistema.
 
 ### **TIER 2: Produto e Negócios**
 
+#### **Planejamento de Negócio e MVP**
+```
+📁 10 - Produto e Negocios/
+├─ Definicao de Funcionalidades do MVP.md (NOVO)
+├─ Lean Canvas.md
+├─ Business Model Canvas.md
+└─ Analise de Mercado.md
+```
+
 #### **Dicionários e MOCs**
 ```
 📁 10 - Produto e Negocios/11 - Dicionarios e MOCs/
