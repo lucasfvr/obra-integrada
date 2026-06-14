@@ -206,22 +206,44 @@ obra-integrada/
 
 ---
 
-## Workflow de desenvolvimento
+## Metodologia Ágil e Workflow da Equipe
 
-O projeto adota **GitHub Flow** com feature branches curtas:
+A gestão e desenvolvimento do **Obra Integrada** são conduzidos sob uma metodologia ágil adaptada (Scrum + Kanban), integrada ao GitHub Projects e com regras estritas de fluxo de trabalho para garantir a qualidade contínua.
 
-```
-main ────●────●──────────●──────●────
-         │                       ↑
-         └──── feature/xxxx ────┘
-```
+### 📊 Quadro Kanban (GitHub Projects)
+O progresso das tarefas é acompanhado no quadro oficial do repositório, estruturado com as seguintes colunas:
+1. **📋 Backlog**: Registro geral de ideias, requisitos e melhorias.
+2. **🎯 A Fazer (Sprint)**: Tarefas prioritárias selecionadas para a Sprint ativa (sprint backlog).
+3. **⚙️ Em Andamento**: Tarefas ativas sendo desenvolvidas (limite WIP: 6 tarefas simultâneas).
+4. **🔍 Em Revisão**: Pull Requests abertos aguardando revisão de código (meta de resolução: <24h).
+5. **🚫 Bloqueado**: Itens com impedimentos externos (ex: APIs de terceiros, validações).
+6. **✅ Concluído**: Código testado, aprovado e mesclado na branch `main`.
 
-- Toda alteração nasce em uma branch (`feature/`, `fix/`, `chore/`, `docs/`)
-- Squash & merge para histórico linear e legível
-- 1 aprovação obrigatória antes do merge
-- Conventional Commits (`feat`, `fix`, `chore`, `refactor`, `docs`)
+### 🔄 Cerimônias Ágeis
+- **Daily Async**: Alinhamento diário assíncrono via GitHub Discussions e WhatsApp para status rápido.
+- **Weekly Sync (Mondays 18h00)**: Reunião semanal de planejamento, acompanhamento de progresso e remoção de impedimentos.
+- **Retrospectiva & Planejamento**: A cada 4 semanas, para melhoria contínua de processos e estimativas de próximas sprints.
 
-Detalhes completos em [`Regras de Desenvolvimento Equipe.md`](ob_obra_integrada/00-Index/80%20-%20Customer%20Success%20%28CS%29%20e%20Suporte/82%20-%20Testes%20e%20Garantia%20de%20Qualidade%20%28QA%29/Regras%20de%20Desenvolvimento%20Equipe.md) e [`CONTRIBUTING.md`](CONTRIBUTING.md).
+### 🌿 Padrão de Branches e Versionamento
+Adotamos um modelo Trunk-Based Development leve (de vida curta):
+- **main**: Sempre funcional e release-ready.
+- **Feature Branches**:
+  - `feat/<modulo>-<descricao>` ou `feature/`: Novas funcionalidades (ex: `feat/diario-gps`).
+  - `fix/<modulo>-<descricao>`: Correção de bugs (ex: `fix/auth-jwt`).
+  - `chore/<descricao>`: Manutenção, dependências ou setup (ex: `chore/prisma-update`).
+  - `docs/<descricao>`: Apenas documentação (ex: `docs/setup-agil`).
+  - `refactor/<descricao>`: Alterações de arquitetura sem novas features.
+
+### 🛡️ Regras de Pull Request (PR) e Proteção
+- **Bloqueio de Push Direto**: Alterações na branch `main` só são permitidas via Pull Request.
+- **Revisão por Pares**: Exigência de pelo menos 1 aprovação de revisor antes de realizar o merge.
+- **Histórico Linear**: Apenas **Squash & Merge** é habilitado no GitHub para evitar merge commits redundantes.
+- **Conventional Commits**: Todos os commits e títulos de PR devem seguir o padrão (ex: `feat(auth): add rate limiter`).
+
+Detalhes adicionais podem ser consultados nos guias de apoio:
+- 📖 [`CONTRIBUTING.md`](CONTRIBUTING.md) — Guia de onboarding e contribuição do desenvolvedor.
+- ⚙️ [`Regras de Desenvolvimento Equipe.md`](ob_obra_integrada/00-Index/80%20-%20Customer%20Success%20%28CS%29%20e%20Suporte/82%20-%20Testes%20e%20Garantia%20de%20Qualidade%20%28QA%29/Regras%20de%20Desenvolvimento%20Equipe.md) — Diretrizes de qualidade de código, versionamento de documentos e isolamento multi-tenant.
+- 📂 [`70 - Setup Agil e Workflow da Equipe.md`](ob_obra_integrada/00-Index/70%20-%20Gestao%20Agil%20%28Scrum%29/70%20-%20Setup%20Agil%20e%20Workflow%20da%20Equipe.md) — Documentação interna completa da gestão do projeto.
 
 ---
 

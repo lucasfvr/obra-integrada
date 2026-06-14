@@ -368,9 +368,19 @@ Mapa de navegação e referência rápida para toda documentação do sistema.
 
 ### **TIER 8: Gestão Ágil e Desenvolvimento**
 
+#### **Setup Ágil e Workflow**
+```
+📁 70 - Gestao Agil (Scrum)/
+├─ 70 - Setup Agil e Workflow da Equipe.md (NOVO)
+│  ├─ Quadro Kanban (GitHub Projects v2)
+│  ├─ Cerimônias Ágeis (Dailies, Syncs, Retros)
+│  ├─ Padrões de Commit & Branches
+│  └─ Fluxo de Pull Requests & CI
+```
+
 #### **Backlog do Produto**
 ```
-📁 70 - Gestao Agil/71 - Backlog/
+📁 70 - Gestao Agil (Scrum)/71 - Backlog do Produto (Epicos)/
 ├─ 00 - Index - Backlog.md
 ├─ 8 Épicos
 ├─ Story Points
@@ -380,7 +390,7 @@ Mapa de navegação e referência rápida para toda documentação do sistema.
 
 #### **Sprints e Retrospectivas**
 ```
-📁 70 - Gestao Agil/72 - Sprints/
+📁 70 - Gestao Agil (Scrum)/72 - Sprints Ativas e Retrospectivas/
 ├─ 00 - Index - Sprints.md
 ├─ 2-week Sprints
 ├─ Daily Standup
@@ -509,6 +519,7 @@ Mapa de navegação e referência rápida para toda documentação do sistema.
 - Estratégia de testes → [Index QA](00-Index/80%20-%20Customer%20Success%20%28CS%29%20e%20Suporte/82%20-%20Testes%20e%20Garantia%20de%20Qualidade%20%28QA%29/00%20-%20Index%20-%20QA.md)
 
 **PLANEJAMENTO & AGILE**
+- Setup Ágil e Workflow da Equipe → [Setup Ágil](00-Index/70%20-%20Gestao%20Agil%20%28Scrum%29/70%20-%20Setup%20Agil%20e%20Workflow%20da%20Equipe.md)
 - Roadmap 2026 → [Index Backlog](00-Index/70%20-%20Gestao%20Agil%20%28Scrum%29/71%20-%20Backlog%20do%20Produto%20%28Epicos%29/00%20-%20Index%20-%20Backlog.md)
 - Sprints atuais → [Index Sprints](00-Index/70%20-%20Gestao%20Agil%20%28Scrum%29/72%20-%20Sprints%20Ativas%20e%20Retrospectivas/00%20-%20Index%20-%20Sprints.md)
 
@@ -530,10 +541,10 @@ Mapa de navegação e referência rápida para toda documentação do sistema.
 | **Backend** | 95% | 11/12 | ✅ Pronto |
 | **Frontend** | 90% | 10/11 | ✅ Pronto |
 | **Infraestrutura** | 85% | 9/11 | ⚠️ Em andamento |
-| **Agile** | 100% | 8/8 | ✅ Completo |
+| **Agile** | 100% | 9/9 | ✅ Completo |
 | **CS & Suporte** | 100% | 9/9 | ✅ Completo |
 | **Sistema Obsidian** | 100% | 7/7 | ✅ Completo |
-| **TOTAL** | **94%** | **84/90** | ✅ Documentação Robusta |
+| **TOTAL** | **94%** | **85/91** | ✅ Documentação Robusta |
 
 ---
 
