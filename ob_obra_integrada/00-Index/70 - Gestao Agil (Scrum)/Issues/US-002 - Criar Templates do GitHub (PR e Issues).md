@@ -2,7 +2,7 @@
 tags: [story, sprint, devops, github, templates]
 epic: [EPIC-001]
 points: 2
-status: To Do
+status: In Progress
 ---
 # US-002 - Criar Templates do GitHub (PR e Issues)
 
