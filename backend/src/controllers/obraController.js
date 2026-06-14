@@ -1,5 +1,6 @@
 import { ObraModel } from '../models/obra.js';
 import prisma from '../config/prisma.js';
+import { registrarLog, getIp } from '../utils/auditLogger.js';
 
 /**
  * Lista apenas as obras do usuário que fez a requisição
@@ -340,6 +341,15 @@ export async function deletarObra(req, res) {
       // O restante (tarefas, financeiro, estoque, documentos, diario) já tem Cascade no schema
       prisma.tb_obra.delete({ where: { id_obra: Number(id) } })
     ]);
+
+    // Auditoria
+    await registrarLog({
+      idUsuario: req.user?.id,
+      acao: 'OBRA_EXCLUIR',
+      targetId: Number(id),
+      detalhes: { nome: obra.nome },
+      ip: getIp(req)
+    });
 
     res.status(200).json({ mensagem: 'Obra removida com sucesso' });
   } catch (error) {

@@ -14,31 +14,7 @@
 
 import prisma from '../config/prisma.js';
 import { getPublicUrl, deleteFile } from '../config/storageService.js';
-
-// ─── Helper: registra auditoria ───────────────────────────────────────────────
-async function registrarLog({ idUsuario, acao, targetId = null, detalhes = null, ip = null }) {
-  try {
-    // Tenta salvar no banco. Se a tabela nao existir ainda, apenas loga no console.
-    await prisma.tb_log_auditoria.create({
-      data: {
-        id_usuario: idUsuario,
-        acao,
-        target_id: targetId,
-        detalhes: detalhes ? JSON.stringify(detalhes) : null,
-        ip_address: ip,
-      },
-    }).catch(() => {
-      // Tabela ainda nao criada — apenas loga no console sem quebrar
-      console.info(`[AUDIT] ${acao} | usuario=${idUsuario} target=${targetId} | ${JSON.stringify(detalhes)}`);
-    });
-  } catch {
-    console.info(`[AUDIT] ${acao} | usuario=${idUsuario}`);
-  }
-}
-
-function getIp(req) {
-  return req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null;
-}
+import { registrarLog, getIp } from '../utils/auditLogger.js';
 
 // ─── GET /api/obras/:id/diario ────────────────────────────────────────────────
 export async function listarDiario(req, res) {

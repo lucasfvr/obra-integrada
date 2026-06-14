@@ -2,6 +2,7 @@ import { UserModel } from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma.js';
+import { registrarLog, getIp } from '../utils/auditLogger.js';
 
 // Funções de validação
 const validateCPF = (cpf) => {
@@ -537,6 +538,15 @@ export async function updateUserRole(req, res) {
       where: { id_usuario: Number(id) },
       data: { role },
       select: { id_usuario: true, nome: true, role: true }
+    });
+
+    // Auditoria
+    await registrarLog({
+      idUsuario: req.user?.id,
+      acao: 'USER_CARGO_ALTERAR',
+      targetId: Number(id),
+      detalhes: { role, nome: updatedUser.nome },
+      ip: getIp(req)
     });
 
     return res.status(200).json({ mensagem: 'Cargo atualizado com sucesso!', user: updatedUser });
