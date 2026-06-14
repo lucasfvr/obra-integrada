@@ -20,5 +20,6 @@ So that **eu possa verificar se há indisponibilidade ou manutenções ativas no
 - [ ] Arquivo criado e revisado
 
 ## Relacionadas
+- **GitHub Issue:** [#84](https://github.com/lucasfvr/obra-integrada/issues/84)
 - [[47 - Mapa de Documentos Reais da Plataforma]]
 - [[63 - Monitoring e Observabilidade]]

@@ -27,5 +27,6 @@ So that **eu possa integrar o frontend de forma consistente e validar os contrat
 - O arquivo deve ser salvo como `backend/openapi.yaml` para servir de referência ao backend.
 
 ## Relacionadas
+- **GitHub Issue:** [#86](https://github.com/lucasfvr/obra-integrada/issues/86)
 - [[47 - Mapa de Documentos Reais da Plataforma]]
 - [[OWASP ASVS]]

@@ -20,5 +20,6 @@ So that **o fluxo de desenvolvimento, revisões de código e reporte de erros se
 - [x] Commits integrados no repositório
 
 ## Relacionadas
+- **GitHub Issue:** [#82](https://github.com/lucasfvr/obra-integrada/issues/82)
 - [[47 - Mapa de Documentos Reais da Plataforma]]
 - [[70 - Setup Agil e Workflow da Equipe]]

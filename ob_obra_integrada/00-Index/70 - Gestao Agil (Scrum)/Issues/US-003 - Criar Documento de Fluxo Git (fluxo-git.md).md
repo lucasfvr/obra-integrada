@@ -22,5 +22,6 @@ So that **eu possa criar branches, realizar commits no formato correto e submete
 - [x] Commit e merge integrados
 
 ## Relacionadas
+- **GitHub Issue:** [#87](https://github.com/lucasfvr/obra-integrada/issues/87)
 - [[47 - Mapa de Documentos Reais da Plataforma]]
 - [[70 - Setup Agil e Workflow da Equipe]]

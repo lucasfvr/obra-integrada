@@ -20,5 +20,6 @@ So that **eu possa rodar a aplicação localmente de forma idêntica à produç�
 - [ ] Pipeline do GitHub Actions descrita e válida
 
 ## Relacionadas
+- **GitHub Issue:** [#83](https://github.com/lucasfvr/obra-integrada/issues/83)
 - [[47 - Mapa de Documentos Reais da Plataforma]]
 - [[70 - Setup Agil e Workflow da Equipe]]
