@@ -3,3 +3,6 @@ node_modules
 .env
 
 /generated/prisma
+
+# Vault Obsidian (Apenas Local)
+ob_obra_integrada/
