@@ -2,7 +2,7 @@
 tags: [story, sprint, documentacao, workflow, git]
 epic: [EPIC-001]
 points: 3
-status: To Do
+status: In Progress
 ---
 # US-003 - Criar Documento de Fluxo Git (fluxo-git.md)
 

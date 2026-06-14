@@ -295,10 +295,11 @@ VERMELHO (❌) = Não existe — FALTA
 | **LGPD — Dados** | Política de Retenção | ⚠️ Parcial |
 | **Técnico** | Auditoria Técnica | ✅ (abril/2026) |
 | **Técnico** | Checklist Conformidade | ✅ (corrigido jun/2026) |
-| **Técnico** | backend/.env.example | ❌ |
-| **Técnico** | openapi.yaml | ❌ |
-| **Técnico** | SECURITY.md | ❌ |
-| **Técnico** | CONTRIBUTING.md | ❌ |
+| **Técnico** | backend/.env.example | ✅ |
+| **Técnico** | openapi.yaml | ✅ |
+| **Técnico** | SECURITY.md | ✅ |
+| **Técnico** | CONTRIBUTING.md | ✅ |
+| **Técnico** | fluxo-git.md | ✅ |
 | **Técnico** | docker-compose.yml | ❌ |
 | **Técnico** | .github/workflows/ci.yml | ❌ |
 | **Jurídico** | Contrato SaaS | ❌ |
