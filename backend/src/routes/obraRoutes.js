@@ -25,7 +25,7 @@ router.put('/obras/:id/equipe/:idUsuario', authMiddleware, requireObraAccess('to
 router.delete('/obras/:id/equipe/:idUsuario', authMiddleware, requireObraAccess('total'), removerMembroEquipe);
 
 router.post('/obras/:id/estoque', authMiddleware, requireObraAccess('total'), adicionarItemEstoque);
-router.get('/obras/estoque/:idItem/historico', authMiddleware, requireObraAccess('parcial'), listarHistoricoEstoque);
+router.get('/obras/estoque/:idItem/historico', authMiddleware, requireObraAccess('leitura'), listarHistoricoEstoque);
 router.put('/obras/estoque/:idItem', authMiddleware, requireObraAccess('total'), atualizarItemEstoque);
 router.delete('/obras/estoque/:idItem', authMiddleware, requireObraAccess('total'), removerItemEstoque);
 
