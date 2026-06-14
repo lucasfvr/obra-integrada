@@ -300,6 +300,8 @@ VERMELHO (❌) = Não existe — FALTA
 | **Técnico** | SECURITY.md | ✅ |
 | **Técnico** | CONTRIBUTING.md | ✅ |
 | **Técnico** | fluxo-git.md | ✅ |
+| **Técnico** | .github/PULL_REQUEST_TEMPLATE.md | ✅ |
+| **Técnico** | .github/ISSUE_TEMPLATE/ | ✅ |
 | **Técnico** | docker-compose.yml | ❌ |
 | **Técnico** | .github/workflows/ci.yml | ❌ |
 | **Jurídico** | Contrato SaaS | ❌ |
