@@ -112,24 +112,46 @@ export async function criarEntradaDiario(req, res) {
     }
 
     const idUsuario = req.user?.id;
+    const role      = req.user?.role;
 
-    // 1. Validar se o usuário pertence à equipe da obra
-    const isMembro = await prisma.tb_usuario_obra.findUnique({
-      where: {
-        id_usuario_id_obra: {
-          id_usuario: Number(idUsuario),
-          id_obra: Number(idObra)
+    // 1. Validar se o usuário pertence à equipe da obra, é gestor técnico, proprietário ou admin
+    const isPlatformAdmin = ['ADMIN', 'MASTER', 'ADMIN_MASTER'].includes(role);
+    let autorizado = isPlatformAdmin;
+
+    if (!autorizado) {
+      const isMembro = await prisma.tb_usuario_obra.findUnique({
+        where: {
+          id_usuario_id_obra: {
+            id_usuario: Number(idUsuario),
+            id_obra: Number(idObra)
+          }
         }
-      }
-    });
+      });
+      if (isMembro) autorizado = true;
+    }
 
-    if (!isMembro) {
-      // Admins e Master podem postar mesmo sem estar na equipe? 
-      // O requisito diz "apenas pessoas cadastradas na obra", vamos ser restritos primeiro.
-      const role = req.user?.role;
-      if (!['ADMIN', 'MASTER', 'ADMIN_MASTER'].includes(role)) {
-        return res.status(403).json({ erro: 'Apenas membros da equipe desta obra podem registrar no diário.' });
+    if (!autorizado) {
+      const obra = await prisma.tb_obra.findUnique({
+        where: { id_obra: Number(idObra) },
+        select: { id_usuario_responsavel: true }
+      });
+      if (obra && obra.id_usuario_responsavel === Number(idUsuario)) {
+        autorizado = true;
       }
+    }
+
+    if (!autorizado && role === 'PROPRIETARIO') {
+      const idClienteUsuario = req.user?.id_cliente;
+      if (idClienteUsuario) {
+        const obraDaEmpresa = await prisma.tb_obra_cliente.findFirst({
+          where: { id_obra: Number(idObra), id_cliente: Number(idClienteUsuario) }
+        });
+        if (obraDaEmpresa) autorizado = true;
+      }
+    }
+
+    if (!autorizado) {
+      return res.status(403).json({ erro: 'Apenas membros da equipe, responsáveis ou gestores da obra podem registrar no diário.' });
     }
 
     const novaEntrada = await prisma.tb_diario_obra.create({
