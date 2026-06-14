@@ -7,7 +7,7 @@ import logoObraIntegrada from "../assets/logo-obra-integrada.png";
 // ─── Ícones inline (SVG) para evitar dependências extras ────────────────────
 
 const Icon = ({ path, d2 }: { path?: string; d2?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
     {path && <path d={path} />}
     {d2 && <path d={d2} />}
   </svg>
@@ -27,7 +27,7 @@ const icons = {
   usuarios:   <Icon path="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />,
 };
 
-type NavItem = { name: string; icon: ReactNode; path: string; permissao?: string };
+type NavItem = { name: string; icon: ReactNode; path: string; permissao?: string; badge?: string };
 type NavGroup = { label: string; items: NavItem[] };
 
 const AppSidebar: FC = () => {
@@ -39,26 +39,23 @@ const AppSidebar: FC = () => {
   const isOpen = isExpanded || isMobileOpen;
 
   const navGroups = useMemo<NavGroup[]>(() => {
-    // Estrutura de menu unica baseada em permissoes da matriz RBAC.
-    // Cada item declara qual permissao precisa para aparecer.
-    // Itens sem permissao caem para todos autenticados (ex: Dashboard).
     const allGroups: NavGroup[] = [
       {
         label: "Canteiro",
         items: [
-          { icon: icons.dashboard, name: "Dashboard",    path: "/dashboard" },
-          { icon: icons.obras,     name: "Minhas Obras", path: "/obras",     permissao: "ver_obras" },
-          { icon: icons.agenda,    name: "Agenda",       path: "/calendar",  permissao: "ver_tarefas" },
+          { icon: icons.dashboard, name: "Painel",       path: "/dashboard" },
+          { icon: icons.obras,     name: "Obras",        path: "/obras",     permissao: "ver_obras", badge: "8" },
+          { icon: icons.agenda,    name: "Cronograma",   path: "/calendar",  permissao: "ver_tarefas" },
           { icon: icons.documentos, name: "Documentos",  path: "/documentos", permissao: "ver_diario" },
         ],
       },
       {
-        label: "Gestao",
+        label: "Gestão",
         items: [
-          { icon: icons.materiais,  name: "Materiais",  path: "/materiais",  permissao: "ver_obras" },
-          { icon: icons.financeiro, name: "Financeiro", path: "/financeiro", permissao: "ver_financeiro" },
-          { icon: icons.equipe,     name: "Equipe",     path: "/equipe",     permissao: "ver_equipe" },
-          { icon: icons.usuarios,   name: "Gestao RH",  path: "/rh",         permissao: "ver_rh" },
+          { icon: icons.materiais,  name: "Materiais",  path: "/materiais",  permissao: "ver_obras", badge: "3" },
+          { icon: icons.financeiro, name: "Orçamento",  path: "/financeiro", permissao: "ver_financeiro" },
+          { icon: icons.equipe,     name: "Funcionários", path: "/equipe",     permissao: "ver_equipe" },
+          { icon: icons.usuarios,   name: "Gestão RH",  path: "/rh",         permissao: "ver_rh" },
         ],
       },
       {
@@ -75,8 +72,6 @@ const AppSidebar: FC = () => {
       },
     ];
 
-    // Filtra cada grupo: mantem so os itens que o usuario tem permissao.
-    // Remove grupos que ficaram vazios.
     return allGroups
       .map(group => ({
         ...group,
@@ -85,23 +80,17 @@ const AppSidebar: FC = () => {
       .filter(group => group.items.length > 0);
   }, [hasPermissao]);
 
-
   const isActive = useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
   );
-
-  const handleToggle = () => {
-    if (window.innerWidth >= 1024) toggleSidebar();
-    else toggleMobileSidebar();
-  };
 
   return (
     <>
       {/* Backdrop mobile */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden transition-opacity duration-300"
           onClick={toggleMobileSidebar}
         />
       )}
@@ -109,24 +98,46 @@ const AppSidebar: FC = () => {
       <aside
         className={`
           fixed top-0 left-0 h-screen z-50 flex flex-col
-          bg-gray-950
+          bg-sidebar border-r border-sidebar-border text-sidebar-foreground
           transition-all duration-200 ease-in-out
           ${isOpen ? "w-[260px]" : "w-[70px]"}
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* ── Logo ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between h-16 px-3 shrink-0">
-          {isOpen && (
-            <Link to="/" className="flex items-center gap-2 overflow-hidden">
-              <img src={logoObraIntegrada} alt="Logo" className="w-8 h-8 object-contain shrink-0" />
-              <span className="text-sm font-semibold text-white whitespace-nowrap">Obra Integrada</span>
+        {/* ── Brand ──────────────────────────────────────────────────────── */}
+        <div className="flex h-16 items-center justify-between px-4 shrink-0">
+          {isOpen ? (
+            <Link to="/" className="flex items-center gap-2.5 rounded-md focus:outline-none">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary shrink-0">
+                <img src={logoObraIntegrada} alt="Logo" className="h-[22px] w-[22px] object-contain" />
+              </div>
+              <div className="leading-tight text-left">
+                <p className="text-sm font-semibold text-foreground">
+                  Obra Integrada
+                </p>
+                <p className="text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-tighter">
+                  Gestão de obras
+                </p>
+              </div>
+            </Link>
+          ) : (
+            <Link to="/" className="mx-auto focus:outline-none">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
+                <img src={logoObraIntegrada} alt="Logo" className="h-[22px] w-[22px] object-contain" />
+              </div>
             </Link>
           )}
-          {!isOpen && (
-            <Link to="/" className="mx-auto">
-              <img src={logoObraIntegrada} alt="Logo" className="w-8 h-8 object-contain" />
-            </Link>
+
+          {isMobileOpen && (
+            <button
+              onClick={toggleMobileSidebar}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground lg:hidden focus:outline-none"
+              aria-label="Fechar menu"
+            >
+              <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
         </div>
 
@@ -136,11 +147,11 @@ const AppSidebar: FC = () => {
             <div key={group.label} className="mb-4">
               {/* Rótulo da categoria */}
               {isOpen ? (
-                <p className="px-4 mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                <p className="px-4 mb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/60 text-left">
                   {group.label}
                 </p>
               ) : (
-                <div className="mx-3 mb-1 border-t border-gray-800" />
+                <div className="mx-3 mb-1 border-t border-sidebar-border" />
               )}
 
               <ul>
@@ -158,26 +169,27 @@ const AppSidebar: FC = () => {
                         }}
                         onMouseLeave={() => setTooltip(null)}
                         className={`
-                          relative flex items-center gap-3 mx-2 my-0.5 px-3 py-2 rounded-lg
-                          text-sm font-medium transition-all duration-150 group
+                          relative flex items-center gap-2.5 mx-2 my-0.5 px-2.5 py-2 rounded-md
+                          text-sm font-medium transition-colors group
                           ${active
-                            ? "bg-orange-500/15 text-orange-500 dark:text-orange-400 border border-orange-500/30"
-                            : "text-gray-400 hover:bg-gray-800 hover:text-gray-100 border border-transparent"
+                            ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                            : "font-normal text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                           }
                           ${!isOpen ? "justify-center px-0 py-2.5" : ""}
                         `}
                       >
-                        {/* Active bar */}
-                        {active && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-orange-500 rounded-r-full" />
-                        )}
-
-                        <span className={`shrink-0 ${active ? "text-orange-500" : "text-gray-500 group-hover:text-gray-300"}`}>
+                        <span className={`shrink-0 ${active ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"}`}>
                           {item.icon}
                         </span>
 
                         {isOpen && (
-                          <span className="truncate">{item.name}</span>
+                          <span className="truncate flex-1 text-left">{item.name}</span>
+                        )}
+
+                        {isOpen && item.badge && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-accent px-1.5 text-[10px] font-bold text-sidebar-foreground/70">
+                            {item.badge}
+                          </span>
                         )}
                       </Link>
                     </li>
@@ -190,15 +202,15 @@ const AppSidebar: FC = () => {
 
         {/* ── Rodapé da sidebar ───────────────────────────────────────── */}
         {isOpen && (
-          <div className="shrink-0 px-4 py-3 border-t border-gray-800 text-center">
+          <div className="shrink-0 px-4 py-3 border-t border-sidebar-border text-center bg-sidebar">
              <div className="mb-2">
-                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest leading-none">Status</p>
+                <p className="text-[10px] font-black text-sidebar-foreground/40 uppercase tracking-widest leading-none">Status</p>
                 <div className="flex items-center justify-center gap-1 mt-1">
                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                   <p className="text-[8px] font-bold text-gray-500 uppercase">Sistema Online</p>
+                   <p className="text-[8px] font-bold text-sidebar-foreground/60 uppercase">Sistema Online</p>
                 </div>
              </div>
-            <p className="text-[9px] text-gray-700 font-medium">
+            <p className="text-[9px] text-sidebar-foreground/50 font-medium">
               © {new Date().getFullYear()} Obra Integrada
             </p>
           </div>
@@ -208,7 +220,7 @@ const AppSidebar: FC = () => {
       {/* Tooltip para modo recolhido */}
       {tooltip && !isOpen && (
         <div
-          className="fixed z-[9999] left-[78px] px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg pointer-events-none border border-gray-700"
+          className="fixed z-[9999] left-[78px] px-2 py-1 rounded bg-slate-900 dark:bg-slate-800 text-white text-xs whitespace-nowrap shadow-lg pointer-events-none border border-slate-200 dark:border-gray-800"
           style={{ top: tooltip.y, transform: "translateY(-50%)" }}
         >
           {tooltip.name}

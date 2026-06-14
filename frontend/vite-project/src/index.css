@@ -2,6 +2,110 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.205 0.01 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.205 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.205 0.01 260);
+  --primary: oklch(0.55 0.22 262);
+  --primary-foreground: oklch(0.99 0.005 260);
+  --secondary: oklch(0.97 0.005 260);
+  --secondary-foreground: oklch(0.3 0.01 260);
+  --muted: oklch(0.97 0.005 260);
+  --muted-foreground: oklch(0.55 0.015 260);
+  --accent: oklch(0.965 0.01 262);
+  --accent-foreground: oklch(0.45 0.18 262);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0.005 260);
+  --success: oklch(0.6 0.15 150);
+  --success-foreground: oklch(0.99 0.01 150);
+  --warning: oklch(0.72 0.16 65);
+  --warning-foreground: oklch(0.28 0.04 65);
+  --border: oklch(0.925 0.006 260);
+  --input: oklch(0.925 0.006 260);
+  --ring: oklch(0.55 0.22 262);
+  --sidebar: oklch(0.99 0.003 260);
+  --sidebar-foreground: oklch(0.4 0.01 260);
+  --sidebar-primary: oklch(0.55 0.22 262);
+  --sidebar-primary-foreground: oklch(0.99 0.005 260);
+  --sidebar-accent: oklch(0.965 0.008 262);
+  --sidebar-accent-foreground: oklch(0.45 0.18 262);
+  --sidebar-border: oklch(0.925 0.006 260);
+  --sidebar-ring: oklch(0.55 0.22 262);
+}
+
+.dark {
+  --background: oklch(0.16 0.006 260);
+  --foreground: oklch(0.96 0.004 260);
+  --card: oklch(0.196 0.008 260);
+  --card-foreground: oklch(0.96 0.004 260);
+  --popover: oklch(0.196 0.008 260);
+  --popover-foreground: oklch(0.96 0.004 260);
+  --primary: oklch(0.62 0.2 262);
+  --primary-foreground: oklch(0.99 0.005 260);
+  --secondary: oklch(0.26 0.01 260);
+  --secondary-foreground: oklch(0.96 0.004 260);
+  --muted: oklch(0.26 0.01 260);
+  --muted-foreground: oklch(0.7 0.012 260);
+  --accent: oklch(0.3 0.03 262);
+  --accent-foreground: oklch(0.85 0.08 262);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.99 0.005 260);
+  --success: oklch(0.68 0.15 150);
+  --success-foreground: oklch(0.16 0.02 150);
+  --warning: oklch(0.78 0.15 65);
+  --warning-foreground: oklch(0.2 0.04 65);
+  --border: oklch(0.28 0.01 260);
+  --input: oklch(0.3 0.01 260);
+  --ring: oklch(0.62 0.2 262);
+  --sidebar: oklch(0.18 0.007 260);
+  --sidebar-foreground: oklch(0.7 0.012 260);
+  --sidebar-primary: oklch(0.62 0.2 262);
+  --sidebar-primary-foreground: oklch(0.99 0.005 260);
+  --sidebar-accent: oklch(0.3 0.03 262);
+  --sidebar-accent-foreground: oklch(0.85 0.08 262);
+  --sidebar-border: oklch(0.28 0.01 260);
+  --sidebar-ring: oklch(0.62 0.2 262);
+}
+
 @layer base {
   body {
     @apply antialiased text-slate-900 bg-slate-50 dark:bg-gray-950 dark:text-slate-100 transition-colors duration-200 ease-in-out;
