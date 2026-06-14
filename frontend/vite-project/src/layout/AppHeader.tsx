@@ -4,6 +4,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import logoObraIntegrada from "../assets/logo-obra-integrada.png";
 
 const AppHeader: React.FC = () => {
   const { toggleSidebar, toggleMobileSidebar, isExpanded, isMobileOpen } = useSidebar();
@@ -61,7 +62,7 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link to="/" className="lg:hidden">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 font-bold text-gray-950 text-sm">OI</div>
+            <img src={logoObraIntegrada} alt="Logo" className="w-8 h-8 object-contain" />
           </Link>
 
           <div className="hidden lg:block ml-4">
