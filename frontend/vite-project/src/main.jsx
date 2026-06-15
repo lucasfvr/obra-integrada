@@ -8,14 +8,17 @@ import App from './view/App.jsx'
 import { ThemeProvider } from './context/ThemeContext.tsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { SidebarProvider } from './context/SidebarContext.tsx'
+import { ToastProvider } from './context/ToastContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <ThemeProvider>
-        <SidebarProvider>
-          <App />
-        </SidebarProvider>
+        <ToastProvider>
+          <SidebarProvider>
+            <App />
+          </SidebarProvider>
+        </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   </StrictMode>,

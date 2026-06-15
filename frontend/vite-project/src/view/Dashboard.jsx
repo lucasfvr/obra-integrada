@@ -3,9 +3,11 @@ import React, { useState, useEffect } from "react";
 import ObrasList from "./ObraList.jsx";
 import MaterialForm from "./MaterialForm.jsx";
 import { useAuth } from "../hooks/useAuth.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
     const { apiFetch } = useAuth();
+    const { toast } = useToast();
     const [obras, setObras] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -46,7 +48,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
             });
             if (response.ok) fetchAllUsers();
         } catch (err) {
-            alert('Falha ao promover');
+            toast.error('Falha ao promover usuário.', 'Erro');
         }
     };
 
@@ -62,7 +64,7 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
             });
             if (response.ok) fetchAllUsers();
         } catch (err) {
-            alert('Falha ao rebaixar');
+            toast.error('Falha ao rebaixar usuário.', 'Erro');
         }
     };
 
@@ -94,9 +96,9 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
                 body: JSON.stringify({ nome_obra, userId: currentUser.id || currentUser.id_usuario })
             });
             if (response.ok) fetchObras();
-            else alert("Erro ao adicionar obra.");
+            else toast.error('Erro ao adicionar obra.', 'Erro');
         } catch (error) {
-            alert("Falha na conexao ao adicionar obra.");
+            toast.error('Falha na conexão ao adicionar obra.', 'Erro de conexão');
         }
     };
 
@@ -107,9 +109,9 @@ function Dashboard({ onLogout, currentUser, onNavigate, onImpersonate }) {
                 body: JSON.stringify({ userId: currentUser.id || currentUser.id_usuario })
             });
             if (response.ok) fetchObras();
-            else alert("Erro ao remover obra.");
+            else toast.error('Erro ao remover obra.', 'Erro');
         } catch (error) {
-            alert("Falha na conexao ao remover obra.");
+            toast.error('Falha na conexão ao remover obra.', 'Erro de conexão');
         }
     };
 

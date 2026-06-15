@@ -79,7 +79,8 @@ export function AuthProvider({ children }) {
 
     if (isImpersonating && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
       const msg = `Operacao ${method} negada: O sistema está em modo de SOMENTE LEITURA.`;
-      alert(msg);
+      // Dispara evento customizado para ser capturado pelo ToastProvider
+      window.dispatchEvent(new CustomEvent('obra:toast', { detail: { type: 'error', title: 'Modo Leitura', message: msg } }));
       throw new Error(msg);
     }
 

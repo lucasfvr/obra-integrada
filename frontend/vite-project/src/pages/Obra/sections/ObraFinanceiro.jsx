@@ -1,5 +1,6 @@
 import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
 
@@ -113,163 +114,187 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
 
   if (loading) return (
      <div className="flex flex-col gap-6 animate-pulse">
-        <div className="h-40 bg-gray-100 dark:bg-gray-800 rounded-[2.5rem]" />
-        <div className="h-96 bg-gray-50 dark:bg-gray-900 rounded-[2.5rem]" />
+        <div className="h-40 bg-muted rounded-xl" />
+        <div className="h-96 bg-muted rounded-xl" />
      </div>
   );
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="space-y-6 animate-slide-up">
       {/* Cards de Resumo Financeiro */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border dark:border-gray-800 shadow-sm group">
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm group">
            <div className="flex justify-between items-start">
              <div>
-               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Orçamento Planejado</p>
-               <h4 className="text-2xl font-black text-slate-800 dark:text-white">R$ {Number(obra?.valor_orcado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
+               <p className="text-sm font-medium text-muted-foreground mb-1">Orçamento Planejado</p>
+               <h4 className="text-2xl font-semibold tracking-tight text-foreground">R$ {Number(obra?.valor_orcado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
              </div>
-             <button onClick={() => setShowOrcamentoModal(true)} className="p-2 bg-slate-50 dark:bg-gray-900 rounded-xl text-gray-400 group-hover:text-indigo-600 transition-colors opacity-0 group-hover:opacity-100">
-               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+             <button onClick={() => {
+               setOrcamentoData({
+                 orcamento_material: Number(obra?.valor_orcado || 0) * 0.5,
+                 orcamento_mao_obra: Number(obra?.valor_orcado || 0) * 0.4,
+                 orcamento_taxas: Number(obra?.valor_orcado || 0) * 0.1
+               });
+               setShowOrcamentoModal(true);
+             }} className="p-1.5 bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-all opacity-0 group-hover:opacity-100">
+               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
              </button>
            </div>
         </div>
-        <div className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border dark:border-gray-800 shadow-sm">
-           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Receitas</p>
-           <h4 className="text-2xl font-black text-emerald-600">R$ {totals.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm">
+           <p className="text-sm font-medium text-muted-foreground mb-1">Total Receitas</p>
+           <h4 className="text-2xl font-semibold tracking-tight text-emerald-600">R$ {totals.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
         </div>
-        <div className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border dark:border-gray-800 shadow-sm">
-           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Despesas</p>
-           <h4 className="text-2xl font-black text-rose-600">R$ {totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
+        <div className="bg-card border border-border p-5 rounded-xl shadow-sm">
+           <p className="text-sm font-medium text-muted-foreground mb-1">Total Despesas</p>
+           <h4 className="text-2xl font-semibold tracking-tight text-destructive">R$ {totals.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
         </div>
-        <div className="bg-indigo-600 p-8 rounded-[2.5rem] shadow-xl shadow-indigo-500/20">
-           <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-2">Saldo de Caixa</p>
-           <h4 className="text-2xl font-black text-white">R$ {saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
+        <div className="bg-primary p-5 rounded-xl text-primary-foreground shadow-sm">
+           <p className="text-sm font-medium text-primary-foreground/80 mb-1">Saldo de Caixa</p>
+           <h4 className="text-2xl font-semibold tracking-tight">R$ {saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h4>
         </div>
       </div>
 
-      <div className="flex justify-between items-center px-2">
-         <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Fluxo de Caixa da Obra</h3>
+      <div className="flex justify-between items-center px-1">
+         <h3 className="text-sm font-semibold text-foreground">Fluxo de Caixa da Obra</h3>
          <button 
            onClick={() => setShowModal(true)}
-           className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+           className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
          >
            Novo Lançamento
          </button>
       </div>
 
       {/* Tabela de Lançamentos */}
-      <div className="bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-[2.5rem] overflow-hidden shadow-sm">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 dark:bg-gray-900 border-b dark:border-gray-800">
-            <tr>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Data / Doc</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Justificativa</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Valor</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y dark:divide-gray-800">
-            {records.length === 0 ? (
-               <tr>
-                 <td colSpan={5} className="px-8 py-16 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">Aguardando lançamentos...</td>
-               </tr>
-            ) : (
-              records.map(rec => (
-                <tr key={rec.id_financeiro} className="hover:bg-slate-50/50 dark:hover:bg-gray-900 transition-colors">
-                  <td className="px-8 py-6">
-                    <p className="text-xs font-black text-slate-800 dark:text-white uppercase">
-                      {new Date(rec.data_pagamento || rec.criado_em).toLocaleDateString()}
-                    </p>
-                    {rec.numero_nota_fiscal && (
-                       <p className="text-[9px] font-bold text-indigo-500 uppercase mt-1">NF: {rec.numero_nota_fiscal}</p>
-                    )}
-                  </td>
-                  <td className="px-8 py-6">
-                    <p className="text-sm font-bold text-gray-600 dark:text-gray-400">{rec.descricao}</p>
-                    <p className="text-[9px] text-gray-400 uppercase font-black mt-1">Lançado por: {rec.tb_usuario?.nome}</p>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${rec.tipo === 'RECEITA' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
-                      {rec.tipo}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <p className={`text-sm font-black ${rec.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
-                      {rec.tipo === 'RECEITA' ? '+' : '-'} R$ {Number(rec.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    {podeExcluir && (
-                      <button 
-                        onClick={() => setDeleteConfirm({ show: true, id: rec.id_financeiro })}
-                        className="text-gray-300 hover:text-rose-600 transition-all p-2"
-                        title="Excluir Lançamento"
-                      >
-                        <svg className="w-5 h-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full text-left">
+            <thead className="bg-muted/30 border-b border-border">
+              <tr>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Data / Doc</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Justificativa</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase">Tipo</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase text-right">Valor</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {records.length === 0 ? (
+                 <tr>
+                   <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground font-semibold text-xs">Aguardando lançamentos...</td>
+                 </tr>
+              ) : (
+                records.map(rec => (
+                  <tr key={rec.id_financeiro} className="hover:bg-muted/30 transition-colors group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="text-sm font-semibold text-foreground leading-none">
+                        {new Date(rec.data_pagamento || rec.criado_em).toLocaleDateString()}
+                      </p>
+                      {rec.numero_nota_fiscal && (
+                         <p className="text-[10px] font-medium text-primary mt-1">NF: {rec.numero_nota_fiscal}</p>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-foreground">{rec.descricao}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium mt-1">Lançado por: {rec.tb_usuario?.nome}</p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${rec.tipo === 'RECEITA' ? 'bg-emerald-500/10 text-emerald-600 border-transparent' : 'bg-destructive/10 text-destructive border-transparent'}`}>
+                        {rec.tipo}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <p className={`text-sm font-semibold ${rec.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-foreground'}`}>
+                        {rec.tipo === 'RECEITA' ? '+' : '-'} R$ {Number(rec.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                      {podeExcluir && (
+                        <button 
+                          onClick={() => setDeleteConfirm({ show: true, id: rec.id_financeiro })}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          title="Excluir Lançamento"
+                        >
+                          <svg className="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal Orçamento Planejado */}
-      {showOrcamentoModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-           <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-md shadow-2xl animate-slide-up border dark:border-gray-800">
-              <div className="p-8 border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center">
-                 <h3 className="text-xl font-black text-indigo-950 dark:text-white tracking-tight">Composição do Orçamento</h3>
-                 <button onClick={() => setShowOrcamentoModal(false)} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-rose-600 transition-colors">✕</button>
+      {showOrcamentoModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+           <div className="bg-card rounded-xl w-full max-w-md shadow-lg overflow-hidden border border-border animate-slide-up">
+              <div className="p-5 border-b border-border bg-muted/30 flex justify-between items-center">
+                 <h3 className="text-base font-semibold text-foreground tracking-tight">Composição do Orçamento</h3>
+                 <button onClick={() => setShowOrcamentoModal(false)} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">✕</button>
               </div>
-              <form onSubmit={handleSalvarOrcamento} className="p-8 space-y-6">
+              <form onSubmit={handleSalvarOrcamento} className="p-5 space-y-4">
                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Material de Construção (R$)</label>
-                    <input type="number" step="0.01" className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" value={orcamentoData.orcamento_material} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_material: e.target.value})} />
-                 </div>
-                 <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Mão de Obra e Equipe (R$)</label>
-                    <input type="number" step="0.01" className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" value={orcamentoData.orcamento_mao_obra} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_mao_obra: e.target.value})} />
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Material de Construção (R$)</label>
+                    <input type="number" step="0.01" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={orcamentoData.orcamento_material} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_material: e.target.value})} />
                  </div>
                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Taxas e Legalização (R$)</label>
-                    <input type="number" step="0.01" className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" value={orcamentoData.orcamento_taxas} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_taxas: e.target.value})} />
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Mão de Obra e Equipe (R$)</label>
+                    <input type="number" step="0.01" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={orcamentoData.orcamento_mao_obra} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_mao_obra: e.target.value})} />
                  </div>
-                 <div className="pt-4 border-t dark:border-gray-800 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Total Calculado</span>
-                    <span className="text-xl font-black text-indigo-600">R$ {(Number(orcamentoData.orcamento_material || 0) + Number(orcamentoData.orcamento_mao_obra || 0) + Number(orcamentoData.orcamento_taxas || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                 <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Taxas e Legalização (R$)</label>
+                    <input type="number" step="0.01" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={orcamentoData.orcamento_taxas} onChange={(e) => setOrcamentoData({...orcamentoData, orcamento_taxas: e.target.value})} />
                  </div>
-                 <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20 active:scale-95">Salvar Orçamento</button>
+                 <div className="pt-4 border-t border-border flex justify-between items-center">
+                    <span className="text-xs font-medium text-muted-foreground">Total Calculado</span>
+                    <span className="text-lg font-semibold text-primary">R$ {(Number(orcamentoData.orcamento_material || 0) + Number(orcamentoData.orcamento_mao_obra || 0) + Number(orcamentoData.orcamento_taxas || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                 </div>
+                 <div className="pt-4 flex gap-3 justify-end border-t border-border">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowOrcamentoModal(false)} 
+                      className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      Salvar Orçamento
+                    </button>
+                 </div>
               </form>
            </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Lançamento */}
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-           <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-slide-up border dark:border-gray-800">
-              <div className="p-8 border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center">
-                 <h3 className="text-xl font-black text-indigo-950 dark:text-white tracking-tight">Novo Lançamento Financeiro</h3>
-                 <button onClick={() => setShowModal(false)} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-rose-600 transition-colors">✕</button>
+      {showModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+           <div className="bg-card rounded-xl w-full max-w-lg shadow-lg overflow-hidden border border-border animate-slide-up">
+              <div className="p-5 border-b border-border bg-muted/30 flex justify-between items-center">
+                 <h3 className="text-base font-semibold text-foreground tracking-tight">Novo Lançamento Financeiro</h3>
+                 <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">✕</button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                 <div className="flex gap-2 p-1 bg-slate-100 dark:bg-gray-900 rounded-2xl border dark:border-gray-800">
+              <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                 <div className="flex gap-2 p-1 bg-muted rounded-lg border border-border">
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, tipo: 'RECEITA'})}
-                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.tipo === 'RECEITA' ? 'bg-white dark:bg-gray-800 text-emerald-600 shadow-sm' : 'text-gray-400'}`}
+                      className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${formData.tipo === 'RECEITA' ? 'bg-card text-emerald-600 shadow-sm' : 'text-muted-foreground'}`}
                     >
                       Receita
                     </button>
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, tipo: 'DESPESA'})}
-                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.tipo === 'DESPESA' ? 'bg-white dark:bg-gray-800 text-rose-600 shadow-sm' : 'text-gray-400'}`}
+                      className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all ${formData.tipo === 'DESPESA' ? 'bg-card text-destructive shadow-sm' : 'text-muted-foreground'}`}
                     >
                       Despesa
                     </button>
@@ -277,21 +302,21 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
 
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Valor (R$)</label>
+                       <label className="block text-xs font-medium text-muted-foreground mb-1">Valor (R$)</label>
                        <input 
                          type="number"
                          step="0.01"
-                         className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                         className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                          required
                          value={formData.valor}
                          onChange={(e) => setFormData({...formData, valor: e.target.value})}
                        />
                     </div>
                     <div>
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Data Pagamento</label>
+                       <label className="block text-xs font-medium text-muted-foreground mb-1">Data Pagamento</label>
                        <input 
                          type="date"
-                         className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                         className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                          required
                          value={formData.data_pagamento}
                          onChange={(e) => setFormData({...formData, data_pagamento: e.target.value})}
@@ -300,9 +325,9 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
                  </div>
 
                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Justificativa / Descrição</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Justificativa / Descrição</label>
                     <input 
-                      className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                      className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       required
                       placeholder="Ex: Pagamento de diárias - Equipe A"
                       value={formData.descricao}
@@ -311,38 +336,48 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
                  </div>
 
                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Nº Nota Fiscal (Opcional)</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Nº Nota Fiscal (Opcional)</label>
                     <input 
-                      className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                      className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       placeholder="Ex: 556/2026"
                       value={formData.numero_nota_fiscal}
                       onChange={(e) => setFormData({...formData, numero_nota_fiscal: e.target.value})}
                     />
                  </div>
 
-                 <button 
-                   type="submit"
-                   className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95 ${formData.tipo === 'RECEITA' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'} text-white`}
-                 >
-                    Confirmar Lançamento
-                 </button>
+                 <div className="pt-4 flex gap-3 justify-end border-t border-border">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowModal(false)} 
+                      className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit"
+                      className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      Confirmar Lançamento
+                    </button>
+                 </div>
                </form>
-            </div>
-         </div>
+           </div>
+        </div>,
+        document.body
       )}
 
-      {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden border dark:border-gray-800 p-8 text-center space-y-6 animate-slide-up">
-            <div className="w-16 h-16 bg-rose-50 dark:bg-rose-950/20 text-rose-600 rounded-2xl flex items-center justify-center text-3xl mx-auto">⚠️</div>
+      {deleteConfirm.show && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl w-full max-w-sm shadow-lg border border-border p-6 text-center space-y-4 animate-slide-up">
+            <div className="w-12 h-12 bg-destructive/10 text-destructive rounded-full flex items-center justify-center text-xl mx-auto">⚠️</div>
             <div>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Confirmar Exclusão</h3>
-              <p className="text-xs text-slate-500 font-bold mt-2 uppercase tracking-wide">Esta ação é irreversível.</p>
+              <h3 className="text-base font-semibold text-foreground tracking-tight">Confirmar Exclusão</h3>
+              <p className="text-xs text-muted-foreground mt-1">Esta ação é irreversível.</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3 justify-center pt-2">
               <button 
                 onClick={() => setDeleteConfirm({ show: false, id: null })}
-                className="flex-1 py-4 bg-slate-50 dark:bg-gray-900 text-gray-500 hover:text-slate-950 dark:hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancelar
               </button>
@@ -351,13 +386,14 @@ export function ObraFinanceiro({ idObra, obra, onRefresh }) {
                   handleDeleteFinanceiro(deleteConfirm.id);
                   setDeleteConfirm({ show: false, id: null });
                 }}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-500/20 active:scale-95"
+                className="px-4 py-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs font-semibold rounded-lg transition-colors"
               >
                 Excluir
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

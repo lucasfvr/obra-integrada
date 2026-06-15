@@ -1,7 +1,12 @@
 import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import Button from '../ui/button/Button.tsx';
+import { useToast } from '../../context/ToastContext.jsx';
+
+const labelClass = "block text-sm font-medium text-foreground mb-1.5";
+const inputClass = "w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
 
 /**
  * Currency Input customizado para não depender de libs extras
@@ -37,6 +42,7 @@ const CurrencyInput = ({ value, onChange, placeholder, disabled, className }) =>
 export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch }) {
   const [step, setStep] = useState(1);
   const [loadingCep, setLoadingCep] = useState(false);
+  const { toast } = useToast();
   
   const { register, control, handleSubmit, watch, setValue, trigger, setError, clearErrors, formState: { errors } } = useForm({
     defaultValues: {
@@ -62,6 +68,12 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
   useEffect(() => {
     clearErrors();
   }, [step, clearErrors]);
+
+  // Travar scroll do body enquanto o wizard estiver aberto
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   const handleCepBlur = async (e) => {
     const cep = e.target.value.replace(/\D/g, '');
@@ -119,34 +131,43 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
       if (onSave) onSave();
       onClose();
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message || 'Erro ao salvar obra.', 'Erro');
     }
   };
 
   const onInvalid = (errors) => {
-    alert("Existem campos pendentes ou inválidos nas etapas anteriores: " + Object.keys(errors).join(', '));
+    toast.warning(
+      'Existem campos pendentes ou inválidos: ' + Object.keys(errors).join(', '),
+      'Formulário incompleto'
+    );
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-gray-800">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-card w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-border">
         
         {/* HEADER */}
-        <div className="px-8 py-6 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center bg-slate-50/50 dark:bg-gray-900/50">
+        <div className="px-6 py-5 border-b border-border flex justify-between items-center bg-muted/30">
           <div>
-            <h2 className="text-2xl font-black text-slate-800 dark:text-white">Assistente de Nova Obra</h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Assistente de Nova Obra</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Etapa {step} de 3
             </p>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-200 dark:bg-gray-800 flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors">
-            ✕
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-md bg-transparent hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            aria-label="Fechar"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
         {/* PROGRESS BAR */}
-        <div className="w-full h-1 bg-slate-100 dark:bg-gray-800">
-          <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
+        <div className="w-full h-1 bg-muted">
+          <div className="h-full bg-primary transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
 
         {/* BODY */}
@@ -157,13 +178,13 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
               <div className="animate-slide-up space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Nome do Empreendimento *</label>
-                    <input {...register('nome', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Nome do Empreendimento *</label>
+                    <input {...register('nome', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.nome && <p className="text-red-500 text-xs mt-1">{errors.nome.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Tipo de Obra *</label>
-                    <select {...register('tipo_obra', { required: 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold">
+                    <label className={labelClass}>Tipo de Obra *</label>
+                    <select {...register('tipo_obra', { required: 'Campo obrigatório' })} className={inputClass}>
                       <option value="">Selecione...</option>
                       <option value="Residencial">Residencial</option>
                       <option value="Comercial">Comercial</option>
@@ -176,59 +197,59 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1">
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">CEP * {loadingCep && <span className="text-indigo-500 animate-pulse">(Buscando...)</span>}</label>
-                    <input {...register('cep', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} onBlur={handleCepBlur} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>CEP * {loadingCep && <span className="text-indigo-500 animate-pulse">(Buscando...)</span>}</label>
+                    <input {...register('cep', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} onBlur={handleCepBlur} className={inputClass} />
                     {errors.cep && <p className="text-red-500 text-xs mt-1">{errors.cep.message}</p>}
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Avenida / Rua *</label>
-                    <input {...register('logradouro', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Avenida / Rua *</label>
+                    <input {...register('logradouro', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.logradouro && <p className="text-red-500 text-xs mt-1">{errors.logradouro.message}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Número *</label>
-                    <input {...register('numero', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Número *</label>
+                    <input {...register('numero', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.numero && <p className="text-red-500 text-xs mt-1">{errors.numero.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Bairro *</label>
-                    <input {...register('bairro', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Bairro *</label>
+                    <input {...register('bairro', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.bairro && <p className="text-red-500 text-xs mt-1">{errors.bairro.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Cidade *</label>
-                    <input {...register('cidade', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Cidade *</label>
+                    <input {...register('cidade', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.cidade && <p className="text-red-500 text-xs mt-1">{errors.cidade.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">UF *</label>
-                    <input {...register('estado', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} maxLength={2} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold uppercase" />
+                    <label className={labelClass}>UF *</label>
+                    <input {...register('estado', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} maxLength={2} className={`${inputClass} uppercase`} />
                     {errors.estado && <p className="text-red-500 text-xs mt-1">{errors.estado.message}</p>}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4 border-t border-slate-100 dark:border-gray-800">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4 border-t border-border">
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Terreno (m²) *</label>
-                    <input type="number" step="0.01" {...register('area_terreno', { required: 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Terreno (m²) *</label>
+                    <input type="number" step="0.01" {...register('area_terreno', { required: 'Campo obrigatório' })} className={inputClass} />
                     {errors.area_terreno && <p className="text-red-500 text-xs mt-1">{errors.area_terreno.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Construída (m²) *</label>
-                    <input type="number" step="0.01" {...register('area_construida', { required: 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Construída (m²) *</label>
+                    <input type="number" step="0.01" {...register('area_construida', { required: 'Campo obrigatório' })} className={inputClass} />
                     {errors.area_construida && <p className="text-red-500 text-xs mt-1">{errors.area_construida.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Nº Alvará *</label>
-                    <input {...register('numero_alvara', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Nº Alvará *</label>
+                    <input {...register('numero_alvara', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.numero_alvara && <p className="text-red-500 text-xs mt-1">{errors.numero_alvara.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">ART / RRT *</label>
-                    <input {...register('art_rrt', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>ART / RRT *</label>
+                    <input {...register('art_rrt', { required: 'Campo obrigatório', validate: value => value.trim() !== '' || 'Campo obrigatório' })} className={inputClass} />
                     {errors.art_rrt && <p className="text-red-500 text-xs mt-1">{errors.art_rrt.message}</p>}
                   </div>
                 </div>
@@ -237,27 +258,25 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
 
             {step === 2 && (
               <div className="animate-slide-up space-y-8">
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Início da Obra *</label>
-                    <input type="date" {...register('data_inicio', { required: 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Início da Obra *</label>
+                    <input type="date" {...register('data_inicio', { required: 'Campo obrigatório' })} className={inputClass} />
                     {errors.data_inicio && <p className="text-red-500 text-xs mt-1">{errors.data_inicio.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Previsão de Término *</label>
-                    <input type="date" {...register('previsao_termino', { required: 'Campo obrigatório' })} className="w-full p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 text-sm font-bold" />
+                    <label className={labelClass}>Previsão de Término *</label>
+                    <input type="date" {...register('previsao_termino', { required: 'Campo obrigatório' })} className={inputClass} />
                     {errors.previsao_termino && <p className="text-red-500 text-xs mt-1">{errors.previsao_termino.message}</p>}
                   </div>
                 </div>
-
               </div>
             )}
 
             {step === 3 && (
               <div className="animate-slide-up space-y-6">
                 <div>
-                  <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4">Adicionar Membros da Equipe</h4>
+                  <h4 className="text-sm font-semibold text-foreground mb-4">Adicionar Membros da Equipe</h4>
                   <EquipeSelection control={control} apiFetch={apiFetch} />
                 </div>
               </div>
@@ -267,24 +286,25 @@ export default function NovaObraWizard({ onClose, onSave, currentUser, apiFetch 
         </div>
 
         {/* FOOTER */}
-        <div className="px-8 py-6 border-t border-slate-100 dark:border-gray-800 flex justify-between items-center bg-slate-50/50 dark:bg-gray-900/50">
-          <Button variant="outline" type="button" onClick={step === 1 ? onClose : prevStep} className="px-8 font-black uppercase tracking-widest text-[10px]">
+        <div className="px-6 py-4 border-t border-border flex justify-between items-center bg-muted/30">
+          <Button variant="outline" size="sm" type="button" onClick={step === 1 ? onClose : prevStep} className="h-9">
             {step === 1 ? 'Cancelar' : '← Voltar'}
           </Button>
           
           {step < 3 ? (
-            <Button variant="primary" type="button" onClick={nextStep} className="px-8 font-black uppercase tracking-widest text-[10px]">
+            <Button variant="primary" size="sm" type="button" onClick={nextStep} className="h-9">
               Avançar →
             </Button>
           ) : (
-            <Button variant="primary" type="submit" form="wizard-form" className="px-8 bg-emerald-600 hover:bg-emerald-700 border-none font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-600/30">
+            <Button variant="primary" size="sm" type="submit" form="wizard-form" className="h-9 bg-emerald-600 hover:bg-emerald-500 text-white border-none shadow-sm">
               Concluir Cadastro
             </Button>
           )}
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -320,12 +340,12 @@ function EquipeSelection({ control, apiFetch }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-2">
           {loading ? (
             <div className="col-span-2 py-10 flex flex-col items-center gap-3">
-              <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sincronizando RH...</p>
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent animate-spin rounded-full"></div>
+              <p className="text-xs text-muted-foreground">Sincronizando RH...</p>
             </div>
           ) : funcionarios.length === 0 ? (
-            <div className="col-span-2 p-6 rounded-2xl bg-amber-50 border border-amber-100 text-center">
-               <p className="text-xs font-bold text-amber-600">Nenhum funcionário ativo no RH. Cadastre-os primeiro no módulo de RH.</p>
+            <div className="col-span-2 p-6 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+               <p className="text-xs font-medium text-amber-600 dark:text-amber-400">Nenhum funcionário ativo no RH. Cadastre-os primeiro no módulo de RH.</p>
             </div>
           ) : funcionarios.map(f => {
             const isSelected = field.value?.some(m => Number(m.id_usuario) === Number(f.id_usuario));
@@ -339,16 +359,16 @@ function EquipeSelection({ control, apiFetch }) {
                     : [...(field.value || []), { id_usuario: f.id_usuario, nome: f.nome, papel: f.cargo_base }];
                   field.onChange(newValue);
                 }}
-                className={`p-4 rounded-2xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                   isSelected 
-                    ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-100' 
-                    : 'bg-white dark:bg-gray-800 border-slate-100 dark:border-gray-700 hover:border-indigo-200'
+                    ? 'bg-primary border-primary text-primary-foreground shadow-sm' 
+                    : 'bg-card border-border hover:border-primary text-foreground'
                 }`}
               >
-                <div className={`text-xs font-black uppercase tracking-tight ${isSelected ? 'text-white' : 'text-slate-800 dark:text-gray-100'}`}>
+                <div className={`text-sm font-semibold ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
                   {f.nome}
                 </div>
-                <div className={`text-[10px] font-bold mt-1 ${isSelected ? 'text-indigo-100' : 'text-slate-400'}`}>
+                <div className={`text-xs mt-1 ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                   {f.matricula} • {f.cargo_base || 'Sem cargo'}
                 </div>
               </button>

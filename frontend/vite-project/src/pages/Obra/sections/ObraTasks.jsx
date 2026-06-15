@@ -1,11 +1,14 @@
 import API_BASE_URL from "../../../config/api.js";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ReadOnlyGuard } from '../../../components/Guards/PermissaoGuard.jsx';
 import { TaskSkeleton } from "../../../components/common/SkeletonLoaders.jsx";
+import { useToast } from '../../../context/ToastContext.jsx';
 
 export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null, onRefresh }) {
   const { apiFetch, hasPermissao } = useAuth();
+  const { toast, showConfirm } = useToast();
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState('TODAS');
   const [showModal, setShowModal] = useState(false);
@@ -95,7 +98,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        alert(editingTask ? "Tarefa atualizada com sucesso!" : "Tarefa criada com sucesso!");
+        toast.success(editingTask ? 'Tarefa atualizada com sucesso!' : 'Tarefa criada com sucesso!', editingTask ? 'Atualizada' : 'Criada');
         setShowModal(false);
         setEditingTask(null);
         setFormData({ titulo: '', descricao: '', id_usuarios: [], prioridade: 'NORMAL', prazo: '' });
@@ -103,7 +106,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
         if (onRefresh) onRefresh();
       } else {
         const errData = await res.json();
-        alert("Erro ao salvar tarefa: " + (errData.erro || "Verifique os dados"));
+        toast.error('Erro ao salvar tarefa: ' + (errData.erro || 'Verifique os dados'), 'Erro');
       }
     } catch (e) {
       console.error(e);
@@ -111,17 +114,24 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
   };
 
   const handleDelete = async (tarefaId) => {
-    if (!window.confirm("Deseja realmente excluir esta tarefa?")) return;
+    const confirmed = await showConfirm({
+      title: 'Excluir Tarefa',
+      message: 'Deseja realmente excluir esta tarefa? Esta ação não pode ser desfeita.',
+      confirmLabel: 'Sim, excluir',
+      cancelLabel: 'Cancelar',
+      type: 'danger'
+    });
+    if (!confirmed) return;
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/tarefas/${tarefaId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
-        alert("Tarefa excluída com sucesso!");
+        toast.success('Tarefa excluída com sucesso!', 'Excluída');
         fetchTasks();
         if (onRefresh) onRefresh();
       } else {
-        alert("Erro ao excluir tarefa.");
+        toast.error('Erro ao excluir tarefa.', 'Erro');
       }
     } catch (e) {
       console.error(e);
@@ -133,15 +143,19 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
   if (loading) return <TaskSkeleton />;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Controles Superiores */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-1">
-        <div className="flex gap-2 p-1.5 bg-slate-100 dark:bg-gray-900/50 rounded-2xl w-fit border dark:border-gray-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit border border-border">
           {['TODAS', 'PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-white dark:bg-gray-800 text-indigo-600 shadow-sm border border-slate-200 dark:border-gray-700' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                filter === f 
+                  ? 'bg-card text-foreground border border-border shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               {f === 'EM_ANDAMENTO' ? 'ANDAMENTO' : f === 'CONCLUIDA' ? 'CONCLUÍDAS' : f}
             </button>
@@ -156,9 +170,9 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
                 setFormData({ titulo: '', descricao: '', id_usuarios: [], prioridade: 'NORMAL', prazo: '' }); 
                 setShowModal(true); 
               }}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center gap-2 justify-center"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 justify-center"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Nova Tarefa
             </button>
           </ReadOnlyGuard>
@@ -166,20 +180,30 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
       </div>
 
       {/* Grid de Tarefas Overhaul */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTasks.length === 0 ? (
-          <div className="col-span-full py-24 text-center text-gray-400 font-bold bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-[2rem] border-dashed">
+          <div className="col-span-full py-16 text-center text-muted-foreground font-semibold bg-card border border-dashed border-border rounded-xl">
             Nenhuma tarefa encontrada neste status.
           </div>
         ) : (
           filteredTasks.map(task => (
-            <div key={task.id_tarefa} className="relative group bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-all border-l-8 flex flex-col h-full" style={{ borderLeftColor: task.status === 'CONCLUIDA' ? '#10b981' : task.status === 'EM_ANDAMENTO' ? '#3b82f6' : '#94a3b8' }}>
+            <div 
+              key={task.id_tarefa} 
+              className="relative bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all border-l-4 flex flex-col h-full" 
+              style={{ borderLeftColor: task.status === 'CONCLUIDA' ? 'var(--success)' : task.status === 'EM_ANDAMENTO' ? 'var(--primary)' : 'var(--muted-foreground)' }}
+            >
               <div className="flex justify-between items-start mb-4">
                  <div className="flex gap-2">
-                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${task.status === 'CONCLUIDA' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : task.status === 'EM_ANDAMENTO' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                      {task.status.replace('_', ' ')}
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      task.status === 'CONCLUIDA' 
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20' 
+                        : task.status === 'EM_ANDAMENTO' 
+                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-inset ring-blue-500/20' 
+                          : 'bg-muted text-muted-foreground ring-1 ring-inset ring-border'
+                    }`}>
+                      {task.status === 'EM_ANDAMENTO' ? 'Andamento' : task.status === 'CONCLUIDA' ? 'Concluída' : 'Pendente'}
                     </span>
-                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-50 dark:bg-gray-800 text-gray-400 border dark:border-gray-700`}>
+                    <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-muted text-muted-foreground">
                       {task.prioridade}
                     </span>
                  </div>
@@ -193,37 +217,37 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
                           prazo: task.prazo ? task.prazo.split('T')[0] : ''
                         }); 
                         setShowModal(true); 
-                      }} className="text-gray-300 hover:text-indigo-600 transition-colors p-1">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                      }} className="text-muted-foreground hover:text-primary transition-colors p-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
                       </button>
-                      <button onClick={() => handleDelete(task.id_tarefa)} className="text-gray-300 hover:text-rose-600 transition-colors p-1">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      <button onClick={() => handleDelete(task.id_tarefa)} className="text-muted-foreground hover:text-destructive transition-colors p-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                    </div>
                  )}
               </div>
               
-              <h4 className="text-lg font-black text-gray-900 dark:text-white mb-2 leading-tight tracking-tight">{task.titulo}</h4>
-              <p className="text-sm text-gray-500 line-clamp-2 mb-6 font-medium leading-relaxed">{task.descricao || 'Sem detalhes técnicos.'}</p>
+              <h4 className="text-sm font-semibold text-foreground mb-1 leading-tight">{task.titulo}</h4>
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-4 font-normal leading-relaxed">{task.descricao || 'Sem detalhes técnicos.'}</p>
               
-              <div className="flex items-center justify-between mt-auto pt-6 border-t dark:border-gray-800">
-                <div className="flex -space-x-3 overflow-hidden">
-                  {task.tb_tarefa_usuario?.slice(0, 3).map((v, i) => (
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
+                <div className="flex -space-x-2 overflow-hidden">
+                  {task.tb_tarefa_usuario?.slice(0, 3).map((v) => (
                     <div 
                       key={v.id_usuario} 
                       title={v.tb_usuario?.nome}
-                      className="inline-block h-8 w-8 rounded-full ring-4 ring-white dark:ring-gray-900 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 border dark:border-transparent flex items-center justify-center text-[10px] font-black"
+                      className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-muted text-muted-foreground border border-border flex items-center justify-center text-[10px] font-semibold"
                     >
                       {v.tb_usuario?.nome?.charAt(0).toUpperCase() || '?'}
                     </div>
                   ))}
                   {task.tb_tarefa_usuario?.length > 3 && (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full ring-4 ring-white dark:ring-gray-900 bg-gray-100 text-gray-500 text-[10px] font-bold">
+                    <div className="flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-card bg-muted text-muted-foreground text-[9px] font-semibold">
                       +{task.tb_tarefa_usuario.length - 3}
                     </div>
                   )}
                   {(!task.tb_tarefa_usuario || task.tb_tarefa_usuario.length === 0) && (
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ninguém listado</span>
+                    <span className="text-xs text-muted-foreground">Não atribuída</span>
                   )}
                 </div>
                 
@@ -233,7 +257,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
                        {task.status === 'PENDENTE' && (
                           <button 
                             onClick={() => handleStatusChange(task.id_tarefa, 'EM_ANDAMENTO')}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-md shadow-indigo-500/10 active:scale-90"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
                           >
                              Iniciar
                           </button>
@@ -241,7 +265,7 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
                        {task.status === 'EM_ANDAMENTO' && (
                           <button 
                             onClick={() => handleStatusChange(task.id_tarefa, 'CONCLUIDA')}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-90"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
                           >
                              Concluir
                           </button>
@@ -257,60 +281,60 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
 
       {/* Paginação UI */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-12 pb-8">
+        <div className="flex items-center justify-center gap-3 mt-8 pb-4">
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               page === 1 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
-                : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-100 shadow-sm active:scale-95'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border' 
+                : 'bg-card text-foreground hover:bg-muted border border-border shadow-sm'
             }`}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
             Anterior
           </button>
           
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Página</span>
-            <span className="h-10 w-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-200">
+            <span className="text-xs text-muted-foreground">Página</span>
+            <span className="h-8 w-8 flex items-center justify-center bg-primary text-primary-foreground rounded-lg text-xs font-semibold">
               {page}
             </span>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">de {totalPages}</span>
+            <span className="text-xs text-muted-foreground">de {totalPages}</span>
           </div>
 
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               page === totalPages 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
-                : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-100 shadow-sm active:scale-95'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border' 
+                : 'bg-card text-foreground hover:bg-muted border border-border shadow-sm'
             }`}
           >
             Próxima
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
           </button>
         </div>
       )}
 
       {/* Modal Nova/Editar Tarefa */}
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up">
-            <div className="p-8 border-b dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
-              <h3 className="text-xl font-black text-indigo-950 dark:text-white tracking-tight">
+      {showModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl w-full max-w-lg shadow-lg border border-border overflow-hidden animate-slide-up">
+            <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30">
+              <h3 className="text-base font-semibold text-foreground tracking-tight">
                 {editingTask ? 'Ajustar Planejamento' : 'Novo Planejamento'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-rose-600 transition-colors shadow-sm">✕</button>
+              <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-8 space-y-5">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">O que precisa ser feito?</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1 block">O que precisa ser feito?</label>
                 <input 
                   type="text"
                   required
-                  className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                  className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   placeholder="Ex: Instalação das esquadrias da fachada"
                   value={formData.titulo}
                   onChange={(e) => setFormData({...formData, titulo: e.target.value})}
@@ -318,9 +342,9 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Instruções Técnicas (Opcional)</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1 block">Instruções Técnicas (Opcional)</label>
                 <textarea 
-                  className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
+                  className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all min-h-[80px]"
                   placeholder="Descreva aqui o que deve ser feito com detalhes..."
                   value={formData.descricao}
                   onChange={(e) => setFormData({...formData, descricao: e.target.value})}
@@ -328,11 +352,11 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Quem fará? (Selecione um ou mais)</label>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1 block">Quem fará? (Selecione um ou mais)</label>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-1 border border-border rounded-lg bg-muted/10">
                   {availableStaff.length === 0 ? (
-                    <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                      Nenhum membro vinculado à obra. Adicione equipe primeiro.
+                    <p className="text-xs text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 w-full">
+                      Nenhum membro vinculado à obra.
                     </p>
                   ) : (
                     availableStaff.map(m => {
@@ -351,14 +375,14 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
                             
                             setFormData({ ...formData, id_usuarios: newIds });
                           }}
-                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-start ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border flex flex-col items-start ${
                             isSelected 
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' 
-                              : 'bg-white dark:bg-gray-900 text-gray-400 border-gray-100 dark:border-gray-800 hover:border-indigo-200'
+                              ? 'bg-primary text-primary-foreground border-primary' 
+                              : 'bg-card text-muted-foreground border-border hover:border-primary'
                           }`}
                         >
                           <span>{m.nome}</span>
-                          <span className={`text-[8px] opacity-70 ${isSelected ? 'text-white' : 'text-indigo-500'}`}>{m.papel}</span>
+                          <span className={`text-[10px] opacity-70 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`}>{m.papel}</span>
                         </button>
                       )
                     })
@@ -367,9 +391,9 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Importância</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1 block">Importância</label>
                 <select 
-                  className="w-full bg-slate-50 dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all dark:text-white"
+                  className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   value={formData.prioridade}
                   onChange={(e) => setFormData({...formData, prioridade: e.target.value})}
                 >
@@ -379,24 +403,25 @@ export function ObraTasks({ initialTasks = [], idObra, team = [], manager = null
                   <option value="URGENTE">🚨 URGENTE</option>
                 </select>
               </div>
-              <div className="pt-6 flex gap-4">
+              <div className="pt-4 flex gap-3 justify-end border-t border-border">
                 <button 
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-slate-50 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Sair
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
+                  className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-lg transition-colors"
                 >
                   {editingTask ? 'Salvar Plano' : 'Ativar Tarefa'}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
