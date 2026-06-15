@@ -31,7 +31,15 @@ app.use(cors({
   origin: (origin, callback) => {
     // Permite requisições sem origin (como mobile apps, curl ou postman locais)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'test') {
+
+    // Em desenvolvimento, permite qualquer porta no localhost
+    const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+
+    if (
+      allowedOrigins.indexOf(origin) !== -1 ||
+      (process.env.NODE_ENV === 'development' && isLocalhost) ||
+      process.env.NODE_ENV === 'test'
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Bloqueado pelas políticas de CORS'));
@@ -117,3 +125,4 @@ process.on('unhandledRejection', (reason, promise) => {
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
 });
+ 

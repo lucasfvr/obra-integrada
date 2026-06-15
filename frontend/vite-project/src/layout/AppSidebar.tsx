@@ -2,7 +2,7 @@ import { type FC, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../hooks/useAuth.js";
-import logoObraIntegrada from "../assets/logo-obra-integrada.png";
+
 
 // ─── Ícones SVG inline (sem dependência externa) ─────────────────────────────
 const Icon = ({ path, d2, children }: { path?: string; d2?: string; children?: ReactNode }) => (
@@ -37,7 +37,7 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 const AppSidebar: FC = () => {
   const { isMobileOpen, toggleMobileSidebar } = useSidebar();
-  const { hasPermissao } = useAuth();
+  const { hasPermissao } = useAuth() as any;
   const location = useLocation();
 
   const mainNav: NavItem[] = [
@@ -107,11 +107,15 @@ const AppSidebar: FC = () => {
             onClick={() => { if (isMobileOpen) toggleMobileSidebar(); }}
             className={`flex items-center gap-2.5 rounded-md ${focusRing}`}
           >
-            <img 
-              src={logoObraIntegrada} 
-              alt="Obra Integrada" 
-              className="h-14 w-auto object-contain"
-            />
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground text-sm shrink-0">
+                OI
+              </div>
+              <div className="flex flex-col text-left leading-none">
+                <span className="text-sm font-semibold text-foreground">Obra Integrada</span>
+                <span className="text-[10px] text-muted-foreground font-medium mt-0.5">Gestão de obras</span>
+              </div>
+            </div>
           </Link>
 
           {/* Botão fechar (mobile) */}

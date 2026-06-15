@@ -81,43 +81,46 @@ export default function ObraPage() {
       <PageMeta title={`${obra.nome} | Gestão`} />
 
       {/* Breadcrumbs Simplificados */}
-      <nav className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest px-4 md:px-0">
-        <button onClick={() => navigate('/dashboard')} className="hover:text-indigo-600">Home</button>
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg>
-        <span className="text-gray-900 dark:text-gray-500">BND-{obra.id_obra}</span>
+      <nav className="flex items-center gap-2 text-xs font-semibold text-muted-foreground px-4 md:px-0">
+        <button onClick={() => navigate('/dashboard')} className="hover:text-primary">Home</button>
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+        <span className="text-foreground">BND-{obra.id_obra}</span>
       </nav>
 
       {/* Header Fixo e Profissional */}
       <div className="sticky top-16 z-30 lg:relative lg:top-0 px-4 md:px-0 transition-all">
-        <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-[2rem] p-6 md:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none animate-slide-up">
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm animate-slide-up">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center gap-3">
-                 <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{obra.nome}</h1>
-                 <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${obra.id_status === 3 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                 <h1 className="text-2xl font-semibold tracking-tight text-foreground">{obra.nome}</h1>
+                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                   obra.id_status === 3 
+                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20' 
+                     : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-inset ring-amber-500/20'
+                 }`}>
                     {obra.tb_status?.nome || 'Em Andamento'}
                  </span>
               </div>
-              <div className="flex items-center gap-6 text-xs font-bold text-gray-400">
+              <div className="flex items-center gap-6 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
                   {obra.cidade}, {obra.estado}
                 </span>
                 <span className="flex items-center gap-1.5">
-                   {/* Data Badge */}
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A1.125 1.125 0 0120.25 10.125V21" /></svg>
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A1.125 1.125 0 0120.25 10.125V21" /></svg>
                    Previsão: {new Date(obra.previsao_termino).toLocaleDateString()}
                 </span>
               </div>
             </div>
 
-            <div className="w-full md:w-64 space-y-2">
-               <div className="flex justify-between text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white">
+            <div className="w-full md:w-64 space-y-1.5">
+               <div className="flex justify-between text-xs font-semibold text-foreground">
                   <span>Progresso Geral</span>
                   <span>{progressPercent}%</span>
                </div>
-               <div className="h-3 w-full bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000 shadow-sm" style={{ width: `${progressPercent}%` }}></div>
+               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
                </div>
             </div>
           </div>
@@ -126,19 +129,19 @@ export default function ObraPage() {
 
       {/* Nav de Tabs Scrollable */}
       <div className="px-4 md:px-0">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 bg-slate-100/50 dark:bg-gray-900/40 p-1.5 rounded-2xl w-fit max-w-full border dark:border-gray-800">
+        <div className="flex gap-1 overflow-x-auto no-scrollbar py-1 bg-muted/50 p-1 rounded-lg w-fit max-w-full border border-border">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                flex items-center gap-2.5 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap
+                flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap
                 ${activeTab === tab.id 
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-xl shadow-slate-200 dark:shadow-none ring-1 ring-slate-100 dark:ring-indigo-500' 
-                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}
+                  ? 'bg-card text-foreground border border-border shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'}
               `}
             >
-              <tab.icon className={`w-4 h-4 transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : ''}`} />
+              <tab.icon className={`w-3.5 h-3.5 transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : ''}`} />
               {tab.label}
             </button>
           ))}

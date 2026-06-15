@@ -53,51 +53,51 @@ export function MeuPerfilCV() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24 animate-slide-up">
+    <div className="max-w-4xl mx-auto pb-12 animate-slide-up">
       {/* CV Header: Identidade Profissional */}
-      <div className="relative bg-white dark:bg-gray-950 rounded-[3rem] p-10 border border-slate-200 dark:border-gray-800 shadow-xl shadow-slate-200/50 dark:shadow-none mb-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="relative bg-card rounded-xl p-5 border border-border shadow-sm mb-6 overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
-        <div className="flex flex-col md:flex-row items-center gap-10">
-          <div className="w-32 h-32 rounded-[2.5rem] bg-amber-500 flex items-center justify-center text-4xl font-black text-gray-900 shadow-2xl shadow-amber-500/30">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="w-20 h-20 rounded-xl bg-primary flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-sm">
             {user?.nome?.[0] || 'U'}
           </div>
           <div className="text-center md:text-left flex-1 min-w-0">
-             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
-               <span className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 text-[10px] font-black uppercase px-3 py-1 rounded-full">Matrícula #{user?.id_usuario || '???'}</span>
-               <span className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase px-3 py-1 rounded-full">Perfil Verificado</span>
+             <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-2">
+               <span className="bg-muted border border-border text-muted-foreground text-[10px] font-semibold px-2 py-0.5 rounded-md">Matrícula #{user?.id_usuario || '???'}</span>
+               <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-transparent">Perfil Verificado</span>
              </div>
-             <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 truncate">{user?.nome || 'Usuário'}</h2>
-             <p className="text-lg font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">{user?.funcao || 'Operacional'}</p>
+             <h2 className="text-2xl font-semibold tracking-tight text-foreground">{user?.nome || 'Usuário'}</h2>
+             <p className="text-sm font-semibold text-muted-foreground mt-0.5 uppercase">{user?.funcao || 'Operacional'}</p>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-10">
+      <form onSubmit={handleSave} className="space-y-6">
         
         {/* Dados Pessoais Section */}
-        <section className="bg-white dark:bg-gray-900/40 rounded-[2.5rem] p-10 border border-slate-100 dark:border-gray-800 transition-all hover:border-slate-300 dark:hover:border-gray-600">
-           <div className="mb-8">
-             <h3 className="text-xl font-black text-slate-900 dark:text-white">Informações de Contato</h3>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Como a empresa entra em contato com você</p>
+        <section className="bg-card rounded-xl p-5 border border-border shadow-sm">
+           <div className="mb-4">
+             <h3 className="text-sm font-semibold text-foreground">Informações de Contato</h3>
+             <p className="text-xs text-muted-foreground mt-1">Como a empresa entra em contato com você</p>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase block mb-2">E-mail Profissional</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">E-mail Profissional</label>
                 <input 
                   type="email"
-                  className="w-full bg-slate-50 dark:bg-gray-950 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   value={dadosPessoais.email}
                   disabled={isImpersonating}
                   onChange={e => setDadosPessoais({...dadosPessoais, email: e.target.value})}
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase block mb-2">Celular / WhatsApp</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Celular / WhatsApp</label>
                 <input 
                   type="text"
-                  className="w-full bg-slate-50 dark:bg-gray-950 border dark:border-gray-800 rounded-2xl p-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   value={dadosPessoais.celular}
                   disabled={isImpersonating}
                   onChange={e => setDadosPessoais({...dadosPessoais, celular: e.target.value})}
@@ -107,14 +107,14 @@ export function MeuPerfilCV() {
         </section>
 
         {/* Experiência Section */}
-        <section className="bg-white dark:bg-gray-900/40 rounded-[2.5rem] p-10 border border-slate-100 dark:border-gray-800">
-           <div className="mb-8">
-             <h3 className="text-xl font-black text-slate-900 dark:text-white">Carreira e Atribuições</h3>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Resumo das suas experiências profissionais anteriores</p>
+        <section className="bg-card rounded-xl p-5 border border-border shadow-sm">
+           <div className="mb-4">
+             <h3 className="text-sm font-semibold text-foreground">Carreira e Atribuições</h3>
+             <p className="text-xs text-muted-foreground mt-1">Resumo das suas experiências profissionais anteriores</p>
            </div>
            
            <textarea 
-             className="w-full bg-slate-50 dark:bg-gray-950 border dark:border-gray-800 rounded-3xl p-6 text-sm font-medium text-slate-600 dark:text-gray-300 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all h-32 resize-none"
+             className="w-full bg-card border border-border rounded-lg p-2.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all h-32 resize-none"
              placeholder="Escreva um pouco sobre suas experiências profissionais..."
              value={experiencia}
              onChange={(e) => setExperiencia(e.target.value)}
@@ -123,75 +123,76 @@ export function MeuPerfilCV() {
         </section>
 
         {/* Certificações Section */}
-        <section className="bg-white dark:bg-gray-900/40 rounded-[2.5rem] p-10 border border-slate-100 dark:border-gray-800">
-           <div className="flex justify-between items-center mb-8">
-             <div>
-               <h3 className="text-xl font-black text-slate-900 dark:text-white">Normas e Certificações</h3>
-               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Cursos de segurança e conformidade (NR10, NR35, etc.)</p>
-             </div>
-             <button 
-                type="button" 
-                onClick={addCert}
-                className="bg-gray-100 dark:bg-gray-800 hover:bg-amber-500 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all"
-                disabled={isImpersonating}
-              >
-               + Adicionar
-             </button>
+        <section className="bg-card rounded-xl p-5 border border-border shadow-sm">
+           <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Normas e Certificações</h3>
+                <p className="text-xs text-muted-foreground mt-1">Cursos de segurança e conformidade (NR10, NR35, etc.)</p>
+              </div>
+              <button 
+                 type="button" 
+                 onClick={addCert}
+                 className="bg-muted hover:bg-muted/70 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                 disabled={isImpersonating}
+               >
+                 + Adicionar
+               </button>
            </div>
 
-           <div className="space-y-4">
-             {certs.length === 0 ? (
-               <div className="p-8 border-2 border-dashed dark:border-gray-800 rounded-3xl text-center text-slate-400 italic text-sm">
-                 Nenhuma certificação adicionada.
-               </div>
-             ) : (
-               certs.map((c, i) => {
-                 const diffDays = Math.ceil((new Date(c.validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                 const isExpiring = !isNaN(diffDays) && diffDays < 30;
+           <div className="space-y-3">
+              {certs.length === 0 ? (
+                <div className="p-6 border border-dashed border-border rounded-lg text-center text-muted-foreground text-xs">
+                  Nenhuma certificação adicionada.
+                </div>
+              ) : (
+                certs.map((c, i) => {
+                  const diffDays = Math.ceil((new Date(c.validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  const isExpiring = !isNaN(diffDays) && diffDays < 30;
 
-                 return (
-                  <div key={i} className="flex flex-col md:flex-row gap-4 bg-slate-50/50 dark:bg-gray-950 p-6 rounded-3xl border dark:border-gray-800 transition-all hover:ring-2 hover:ring-indigo-500/20">
-                    <div className="flex-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-2">Nome do Curso / NR</label>
-                      <input 
-                        className="w-full bg-transparent border-b border-slate-200 dark:border-gray-700 py-2 text-sm font-black text-slate-900 dark:text-white outline-none focus:border-amber-500"
-                        placeholder="Ex: NR35 - Trabalho em Altura"
-                        value={c.nome}
-                        onChange={(e) => updateCert(i, 'nome', e.target.value)}
-                        disabled={isImpersonating}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-2">Vencimento</label>
-                      <input 
-                        type="date"
-                        className={`w-full bg-transparent border-b py-2 text-sm font-black outline-none focus:border-amber-500 ${isExpiring ? 'text-rose-500 border-rose-500' : 'text-slate-900 dark:text-white border-slate-200 dark:border-gray-700'}`}
-                        value={c.validade}
-                        onChange={(e) => updateCert(i, 'validade', e.target.value)}
-                        disabled={isImpersonating}
-                      />
-                      {isExpiring && <span className="text-[8px] font-black text-rose-500 uppercase mt-1 animate-pulse">Expirando em breve!</span>}
-                    </div>
-                  </div>
-                 );
-               })
-             )}
+                  return (
+                   <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-xl border border-border relative">
+                     <div>
+                       <label className="block text-xs font-medium text-muted-foreground mb-1">Nome do Curso / NR</label>
+                       <input 
+                         className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                         placeholder="Ex: NR35 - Trabalho em Altura"
+                         value={c.nome}
+                         onChange={(e) => updateCert(i, 'nome', e.target.value)}
+                         disabled={isImpersonating}
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-xs font-medium text-muted-foreground mb-1">Vencimento</label>
+                       <div className="flex flex-col gap-1">
+                         <input 
+                           type="date"
+                           className={`w-full bg-card border rounded-lg p-2 text-sm focus:ring-2 outline-none transition-all ${isExpiring ? 'text-destructive border-destructive focus:ring-destructive/20' : 'text-foreground border-border focus:ring-primary/20'}`}
+                           value={c.validade}
+                           onChange={(e) => updateCert(i, 'validade', e.target.value)}
+                           disabled={isImpersonating}
+                         />
+                         {isExpiring && <span className="text-[10px] font-semibold text-destructive uppercase animate-pulse mt-0.5">Expirando em breve!</span>}
+                       </div>
+                     </div>
+                   </div>
+                  );
+                })
+              )}
            </div>
         </section>
 
         {/* Action Footer */}
-        <div className="sticky bottom-6 flex justify-center pt-10">
+        <div className="flex justify-end pt-4">
            {!isImpersonating ? (
-             <Button 
+             <button 
                 type="submit" 
-                className="shadow-2xl shadow-indigo-600/30 px-12 py-6 rounded-[2.5rem] text-sm transform transition-transform active:scale-95"
-                variant={success ? 'success' : 'primary'}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
                 disabled={loading}
               >
-                {loading ? 'SINCRONIZANDO...' : success ? 'CURRÍCULO ATUALIZADO!' : 'ATUALIZAR MEU PERFIL'}
-             </Button>
+                {loading ? 'Sincronizando...' : success ? 'Currículo Atualizado!' : 'Atualizar Perfil'}
+             </button>
            ) : (
-             <div className="bg-rose-50 dark:bg-rose-950/20 px-8 py-4 rounded-[2rem] border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 text-xs font-black uppercase tracking-widest shadow-xl">
+             <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold px-4 py-2 rounded-lg">
                 Visualização Protegida (Admin)
              </div>
            )}

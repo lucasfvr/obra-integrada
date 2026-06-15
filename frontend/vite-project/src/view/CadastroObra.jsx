@@ -1,8 +1,10 @@
 import API_BASE_URL from "../config/api.js";
 import React, { useState } from "react";
 import { FiMapPin, FiInfo, FiDollarSign, FiUsers, FiFileText } from "react-icons/fi";
+import { useToast } from "../context/ToastContext.jsx";
 
 function CadastroObra({ currentUser, onVoltar }) {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     nome: "",
     tipo_obra: "Residencial",
@@ -57,7 +59,7 @@ function CadastroObra({ currentUser, onVoltar }) {
   const buscarLatLong = async () => {
     const query = `${formData.logradouro}, ${formData.numero}, ${formData.cidade}, ${formData.estado}`;
     if (!formData.logradouro || !formData.cidade) {
-      alert("Preencha o endereço completo primeiro.");
+      toast.warning('Preencha o endereço completo primeiro.', 'Endereço incompleto');
       return;
     }
     
@@ -71,10 +73,10 @@ function CadastroObra({ currentUser, onVoltar }) {
           longitude: data[0].lon
         }));
       } else {
-        alert("Não foi possível encontrar as coordenadas para este endereço.");
+        toast.warning('Não foi possível encontrar as coordenadas para este endereço.', 'Coordenadas não encontradas');
       }
     } catch (e) {
-      alert("Erro ao buscar coordenadas.");
+      toast.error('Erro ao buscar coordenadas.', 'Erro');
     }
   };
 

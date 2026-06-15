@@ -67,9 +67,9 @@ export function requirePermissao(permissao) {
 export function requireObraAccess(nivelMinimo = 'qualquer') {
   return async (req, res, next) => {
     try {
-      let idObra    = Number(req.params.id);
+      let idObra = Number(req.params.id);
       const idUsuario = req.user?.id;
-      const role      = req.user?.role;
+      const role = req.user?.role;
 
       if ((!idObra || isNaN(idObra)) && req.params.idItem) {
         const item = await prisma.tb_estoque_obra.findUnique({
@@ -154,9 +154,9 @@ export function requireObraAccess(nivelMinimo = 'qualquer') {
 
 function _logAcessoNegado(req, motivo) {
   const userId = req.user?.id || 'anonimo';
-  const role   = req.user?.role || 'sem-role';
-  const rota   = `${req.method} ${req.originalUrl}`;
-  const ip     = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'desconhecido';
+  const role = req.user?.role || 'sem-role';
+  const rota = `${req.method} ${req.originalUrl}`;
+  const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'desconhecido';
 
   console.warn(`[ACESSO NEGADO] Usuario=${userId} Role=${role} IP=${ip} Rota="${rota}" | ${motivo}`);
 }

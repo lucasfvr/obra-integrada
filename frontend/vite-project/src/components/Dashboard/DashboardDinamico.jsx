@@ -10,6 +10,7 @@ import {
 import { DashboardSkeleton } from '../common/SkeletonLoaders.jsx';
 import Button from '../ui/button/Button.tsx';
 import NovaObraWizard from './NovaObraWizard.jsx';
+import { useToast } from '../../context/ToastContext.jsx';
 
 /** 
  * COMPONENTES UTILITÁRIOS (HOISTED)
@@ -772,6 +773,7 @@ function PainelProprietario({ obras, onGoToObra, isReadOnly, onNovaObra }) {
 
 function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, onAuditar, loadingAuditoria, onNovaObra }) {
   const navigate = useNavigate();
+  const { showConfirm } = useToast();
 
   // 1. Cálculos de Estatísticas Reais
   const obrasAtivasCount = obras.filter(o => o.tb_status?.nome === 'Em Andamento' || o.id_status === 2).length;
@@ -885,18 +887,6 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
 
   return (
     <div className="space-y-8 animate-slide-up text-left">
-      {/* Botão de Criação de Obra */}
-      <div className="flex justify-end">
-        {!isReadOnly && (
-          <button
-            onClick={onNovaObra}
-            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
-          >
-            <span className="text-base">+</span> Nova obra
-          </button>
-        )}
-      </div>
-
       {/* Grid de KPIs */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((k) => {
@@ -956,9 +946,15 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
             const Icon = cfg.icon;
             
             // Clique para aprovação rápida de diários
-            const handleItemClick = () => {
+            const handleItemClick = async () => {
               if (p.type === 'auditoria') {
-                const action = window.confirm(`Deseja AUTORIZAR o diário de ${p.raw?.tb_usuario?.nome} para ${p.raw?.tb_obra?.nome}?\n\nClique 'OK' para Autorizar ou 'Cancelar' para Reprovar.`);
+                const action = await showConfirm({
+                  title: 'Auditoria de Diário',
+                  message: `Deseja AUTORIZAR o diário de ${p.raw?.tb_usuario?.nome} para ${p.raw?.tb_obra?.nome}? Clique em "Autorizar" para aprovar ou "Reprovar" para negar.`,
+                  confirmLabel: 'Autorizar',
+                  cancelLabel: 'Reprovar',
+                  type: 'default'
+                });
                 if (action) {
                   onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'AUTORIZADO');
                 } else {
@@ -1369,26 +1365,16 @@ export function DashboardDinamico({ currentUser }) {
   return (
     <div className="mx-auto max-w-[1400px] w-full p-8 space-y-6 transition-all duration-200">
       {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 animate-slide-up">
-        <div>
-          <h1 className="text-[32px] font-bold text-[#0F172A] dark:text-white leading-tight">
-            {getGreeting()}, {nomeAtual.split(' ')[0]}
-          </h1>
-          <p className="text-base text-[#64748B] dark:text-slate-400 mt-1">
-            {isImpersonating
-              ? 'Você está operando em modo de visualização. Nenhuma alteração será salva.'
-              : 'Um resumo do que está acontecendo nas suas obras hoje.'
-            }
-          </p>
-        </div>
-        {!isImpersonating && (currentProfile === 'PROPRIETARIO' || currentProfile === 'RESPONSAVEL') && (
-          <button
-            onClick={() => setShowNovaObra(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 border-none cursor-pointer shrink-0"
-          >
-            + Nova Obra
-          </button>
-        )}
+      <div className="mb-6 animate-slide-up">
+        <h1 className="text-[32px] font-bold text-[#0F172A] dark:text-white leading-tight">
+          {getGreeting()}, {nomeAtual.split(' ')[0]}
+        </h1>
+        <p className="text-base text-[#64748B] dark:text-slate-400 mt-1">
+          {isImpersonating
+            ? 'Você está operando em modo de visualização. Nenhuma alteração será salva.'
+            : 'Um resumo do que está acontecendo nas suas obras hoje.'
+          }
+        </p>
       </div>
 
       {renderPainel()}

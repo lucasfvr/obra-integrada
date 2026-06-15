@@ -10,6 +10,7 @@ import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 import { useAuth } from "../hooks/useAuth.js";
 import { ReadOnlyGuard } from "../components/Guards/PermissaoGuard.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 
 /**
  * CALENDÁRIO OPERACIONAL (Fase 2)
@@ -27,6 +28,7 @@ interface CalendarEvent extends EventInput {
 
 const Calendar: React.FC = () => {
   const { apiFetch, user, isImpersonating } = useAuth();
+  const { toast } = useToast();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   
@@ -108,24 +110,24 @@ const Calendar: React.FC = () => {
         description="Cronograma integrado de tarefas e segurança da obra."
       />
       
-      <div className="max-w-[1400px] mx-auto animate-slide-up">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 px-2">
+      <div className="max-w-6xl mx-auto animate-slide-up space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Cronograma de Campo</h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Sincronizado com o Diário de Obra</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cronograma de Campo</h1>
+            <p className="text-sm text-muted-foreground mt-1">Sincronizado com o Diário de Obra</p>
           </div>
           
           <ReadOnlyGuard>
              <button 
-               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
-               onClick={() => alert("Interface de criação em desenvolvimento para a Fase 3.")}
+               className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+               onClick={() => toast.info('Interface de criação será disponibilizada na Fase 3.', 'Em desenvolvimento')}
              >
                + Novo Compromisso
              </button>
           </ReadOnlyGuard>
         </div>
 
-        <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] border border-slate-200 dark:border-gray-800 p-8 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden">
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm overflow-hidden">
           <div className="custom-calendar modern-fc">
             <FullCalendar
               ref={calendarRef}
@@ -156,52 +158,52 @@ const Calendar: React.FC = () => {
         <Modal
           isOpen={isOpen}
           onClose={closeModal}
-          className="max-w-lg p-0 overflow-hidden rounded-[2.5rem] border-none"
+          className="max-w-lg p-0 overflow-hidden rounded-xl border-none"
         >
-          <div className="bg-slate-50 dark:bg-gray-900 p-8 border-b dark:border-gray-800 flex justify-between items-start">
+          <div className="bg-muted/30 p-5 border-b border-border flex justify-between items-start">
              <div>
-               <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest mb-2 inline-block ${
-                 selectedEvent?.extendedProps?.calendar === 'Warning' ? 'bg-amber-100 text-amber-600' : 
-                 selectedEvent?.extendedProps?.calendar === 'Danger' ? 'bg-rose-100 text-rose-600' : 'bg-indigo-100 text-indigo-600'
+               <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold mb-2 inline-block ${
+                 selectedEvent?.extendedProps?.calendar === 'Warning' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 
+                 selectedEvent?.extendedProps?.calendar === 'Danger' ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
                }`}>
                  {selectedEvent?.extendedProps?.calendar === 'Warning' ? 'Segurança' : 'Operacional'}
                </span>
-               <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+               <h3 className="text-base font-semibold text-foreground leading-tight">
                  {selectedEvent?.title}
                </h3>
              </div>
-             <button onClick={closeModal} className="text-slate-400 hover:text-rose-500 transition-colors">✕</button>
+             <button onClick={closeModal} className="text-muted-foreground hover:text-destructive transition-colors">✕</button>
           </div>
           
-          <div className="p-8 space-y-6">
+          <div className="p-5 space-y-4">
              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Horário / Data</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-gray-300">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Horário / Data</p>
+                <p className="text-sm text-foreground">
                   {selectedEvent?.start?.toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' })}
                 </p>
              </div>
              
              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Descrição da Atividade</p>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Descrição da Atividade</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {selectedEvent?.extendedProps?.description || 'Nenhuma descrição técnica informada.'}
                 </p>
              </div>
 
              {selectedEvent?.extendedProps?.status && (
-               <div className="pt-4 border-t dark:border-gray-800">
-                  <div className="flex items-center gap-3">
-                     <div className={`w-3 h-3 rounded-full ${selectedEvent.extendedProps.status === 'CONCLUIDA' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                     <p className="text-xs font-black text-slate-900 dark:text-white uppercase">{selectedEvent.extendedProps.status}</p>
-                  </div>
-               </div>
+                <div className="pt-4 border-t border-border">
+                   <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${selectedEvent.extendedProps.status === 'CONCLUIDA' ? 'bg-success' : 'bg-warning'}`} />
+                      <p className="text-xs font-semibold text-foreground uppercase">{selectedEvent.extendedProps.status}</p>
+                   </div>
+                </div>
              )}
           </div>
 
-          <div className="p-8 bg-white dark:bg-gray-950 flex gap-4">
-             <button onClick={closeModal} className="flex-1 py-4 bg-slate-100 dark:bg-gray-800 text-[10px] font-black uppercase rounded-2xl hover:bg-slate-200 transition-all">Fechar</button>
+          <div className="p-5 bg-card border-t border-border flex gap-3 justify-end">
+             <button onClick={closeModal} className="px-3 py-1.5 bg-muted text-muted-foreground hover:text-foreground text-xs font-medium rounded-lg transition-colors">Fechar</button>
              {!isImpersonating && !selectedEvent?.id.includes('dds') && (
-               <button className="flex-1 py-4 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20">
+               <button className="px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium rounded-lg transition-colors">
                  Atualizar Progresso
                </button>
              )}
@@ -217,8 +219,8 @@ const renderEventContent = (eventInfo: any) => {
   const colorClass = `fc-event-${cal.toLowerCase()}`;
   
   return (
-    <div className={`flex items-center gap-2 p-1.5 rounded-xl border border-transparent transition-all ${colorClass} truncate overflow-hidden`}>
-      <span className="text-[10px] font-bold truncate">{eventInfo.event.title}</span>
+    <div className={`flex items-center gap-2 p-1 rounded-lg border border-transparent transition-all ${colorClass} truncate overflow-hidden`}>
+      <span className="text-[10px] font-medium truncate">{eventInfo.event.title}</span>
     </div>
   );
 };
