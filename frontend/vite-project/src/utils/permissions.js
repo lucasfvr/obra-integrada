@@ -21,11 +21,12 @@ export const ROLES = Object.freeze({
   ESTAGIARIO:   'ESTAGIARIO',
   TRABALHADOR:  'TRABALHADOR',
   CLIENTE:      'CLIENTE',
+  EMPREITEIRA:  'EMPREITEIRA',
   USER:         'USER',
 });
 
 export const ROLES_PLATAFORMA = [ROLES.ADMIN_MASTER, ROLES.ADMIN];
-export const ROLES_OBRA = [ROLES.RESPONSAVEL, ROLES.ESTAGIARIO, ROLES.TRABALHADOR];
+export const ROLES_OBRA = [ROLES.RESPONSAVEL, ROLES.ESTAGIARIO, ROLES.TRABALHADOR, ROLES.EMPREITEIRA];
 
 // --- Labels ---------------------------------------------------------------
 
@@ -37,6 +38,7 @@ export const ROLE_LABELS = Object.freeze({
   ESTAGIARIO:   'Estagiario(a) de Engenharia',
   TRABALHADOR:  'Trabalhador',
   CLIENTE:      'Cliente',
+  EMPREITEIRA:  'Representante da Empreiteira (Terceirizado)',
   USER:         'Usuario',
 });
 
@@ -142,6 +144,17 @@ export const PERMISSOES = Object.freeze({
     ver_equipe:              true,
     ver_perfil:              true,
     is_readonly:             true,
+  },
+  EMPREITEIRA: {
+    ver_obras:               true,
+    ver_diario:              true,
+    criar_diario:            true,
+    ver_tarefas:             true,
+    atualizar_status_tarefa: true,
+    ver_equipe:              true,
+    ver_rh:                  true,
+    gerenciar_usuarios:      true,
+    ver_perfil:              true,
   },
   USER: {
     ver_perfil:              true,

@@ -1645,6 +1645,137 @@ function PainelCliente({ works, canInvite = false }) {
   );
 }
 
+function PainelEmpreiteira({ obras, tarefas, nrAlerts, isReadOnly }) {
+  const navigate = useNavigate();
+
+  const alertasVencidos = nrAlerts.filter(a => a.status === 'vencido');
+  const alertasVencendo = nrAlerts.filter(a => a.status === 'vencendo');
+
+  const tarefasPendentes = tarefas.filter(t => t.status === 'PENDENTE');
+  const tarefasAndamento = tarefas.filter(t => t.status === 'EM_ANDAMENTO');
+  const tarefasConcluidas = tarefas.filter(t => t.status === 'CONCLUIDA');
+
+  return (
+    <>
+      {/* Cards de Métricas */}
+      <Secao titulo="Métricas e Indicadores da Empreiteira" grid="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Status da Equipe</p>
+          <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400">Ativa</p>
+          <button onClick={() => navigate('/rh')} className="text-[10px] text-primary font-bold hover:underline uppercase mt-2 block">Gerenciar RH ➔</button>
+        </div>
+
+        <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Alertas de Documentos</p>
+          <p className={`text-2xl font-black ${alertasVencidos.length > 0 ? 'text-rose-500' : alertasVencendo.length > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+            {nrAlerts.length} Alerta(s)
+          </p>
+          <span className="text-[10px] text-muted-foreground font-semibold">{alertasVencidos.length} vencidos • {alertasVencendo.length} a vencer</span>
+        </div>
+
+        <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Obras Ativas</p>
+          <p className="text-2xl font-black text-blue-500">{obras.length}</p>
+          <span className="text-[10px] text-muted-foreground font-semibold">Equipe alocada em canteiro</span>
+        </div>
+
+        <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Tarefas Vinculadas</p>
+          <p className="text-2xl font-black text-purple-500">{tarefas.length}</p>
+          <span className="text-[10px] text-muted-foreground font-semibold font-mono">
+            {tarefasAndamento.length} Andamento • {tarefasPendentes.length} Pendentes • {tarefasConcluidas.length} Concluídas
+          </span>
+        </div>
+      </Secao>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        {/* Painel Esquerdo: Obras */}
+        <div className="bg-card rounded-2xl border border-border p-6 lg:col-span-1 shadow-sm">
+          <h3 className="font-bold text-foreground mb-4">Obras em Andamento</h3>
+          <div className="space-y-4">
+            {obras.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Sua equipe não está vinculada a nenhuma obra no momento.</p>
+            ) : (
+              obras.map(o => (
+                <div key={o.id_obra} className="flex justify-between items-center p-3.5 bg-muted/40 rounded-xl border border-border">
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground">{o.nome}</h4>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{o.cidade} • {o.tipo_obra}</p>
+                  </div>
+                  <button onClick={() => navigate(`/obra/${o.id_obra}`)} className="text-[10px] font-bold text-primary hover:underline uppercase">Visualizar</button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Painel Central: Tarefas da Equipe */}
+        <div className="bg-card rounded-2xl border border-border p-6 lg:col-span-2 shadow-sm">
+          <h3 className="font-bold text-foreground mb-4">Acompanhamento de Tarefas</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="pb-3 font-semibold text-muted-foreground uppercase">Tarefa</th>
+                  <th className="pb-3 font-semibold text-muted-foreground uppercase">Obra</th>
+                  <th className="pb-3 font-semibold text-muted-foreground uppercase">Responsáveis</th>
+                  <th className="pb-3 font-semibold text-muted-foreground uppercase text-center">Progresso</th>
+                  <th className="pb-3 font-semibold text-muted-foreground uppercase text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {tarefas.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="py-6 text-center text-muted-foreground italic">Nenhuma tarefa em andamento.</td>
+                  </tr>
+                ) : (
+                  tarefas.slice(0, 10).map(t => (
+                    <tr key={t.id_tarefa} className="hover:bg-muted/20 transition-colors">
+                      <td className="py-3">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-foreground">{t.titulo}</span>
+                          <span className="text-[9px] text-muted-foreground mt-0.5">{t.descricao || 'Sem descrição'}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 text-muted-foreground font-semibold">{t.tb_obra?.nome}</td>
+                      <td className="py-3 text-muted-foreground">
+                        <div className="flex flex-wrap gap-1">
+                          {t.tb_tarefa_usuario?.map(tu => (
+                            <span key={tu.id_usuario} className="bg-secondary text-secondary-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full">
+                              {tu.tb_usuario?.nome}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="py-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <div className="w-12 bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div className="bg-primary h-full rounded-full" style={{ width: `${t.percentual_concluido}%` }}></div>
+                          </div>
+                          <span className="font-bold text-[10px]">{t.percentual_concluido}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                          t.status === 'CONCLUIDA' ? 'bg-emerald-500/10 text-emerald-600' :
+                          t.status === 'EM_ANDAMENTO' ? 'bg-blue-500/10 text-blue-600' :
+                          'bg-amber-500/10 text-amber-600'
+                        }`}>
+                          {t.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /** DASHBOARD DINÂMICO PRINCIPAL */
 
 export function DashboardDinamico({ currentUser }) {
@@ -1671,6 +1802,7 @@ export function DashboardDinamico({ currentUser }) {
   const currentProfile = React.useMemo(() => {
     if (roleAtual === 'ADMIN_MASTER') return 'ADMIN_MASTER';
     if (roleAtual === 'PROPRIETARIO') return 'PROPRIETARIO';
+    if (roleAtual === 'EMPREITEIRA') return 'EMPREITEIRA';
     if (roleAtual === 'CLIENTE') return 'CLIENTE';
     if (roleAtual === 'CONVIDADO_CLIENTE') return 'CONVIDADO_CLIENTE';
     if (roleAtual === 'RESPONSAVEL') return 'RESPONSAVEL';
@@ -1698,8 +1830,8 @@ export function DashboardDinamico({ currentUser }) {
     
     const endpoints = [
        apiFetch(`${API_BASE_URL}/api/obras?userId=${userId}`).then(r => r.json()).catch(() => []),
-       ['RESPONSAVEL', 'MESTRE', 'PEDREIRO', 'AJUDANTE', 'PROPRIETARIO'].includes(currentProfile) 
-         ? apiFetch(`${API_BASE_URL}/api/tarefas?userId=${userId}`).then(r => r.json()).catch(() => [])
+       ['RESPONSAVEL', 'MESTRE', 'PEDREIRO', 'AJUDANTE', 'PROPRIETARIO', 'EMPREITEIRA'].includes(currentProfile) 
+         ? apiFetch(`${API_BASE_URL}/api/tarefas${currentProfile === 'EMPREITEIRA' ? '' : `?userId=${userId}`}`).then(r => r.json()).catch(() => [])
          : Promise.resolve([]),
        (isPlatform && !isImpersonating) ? apiFetch(`${API_BASE_URL}/api/admin/users`).then(r => r.json()).catch(() => []) : Promise.resolve([]),
        isPlatform ? apiFetch(`${API_BASE_URL}/api/admin/metrics/global`).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
@@ -1787,6 +1919,8 @@ export function DashboardDinamico({ currentUser }) {
     switch (currentProfile) {
       case 'PROPRIETARIO':
         return <PainelProprietario obras={obras} onGoToObra={goToObra} isReadOnly={isImpersonating} onNovaObra={() => setShowNovaObra(true)} nrAlerts={nrAlerts} />;
+      case 'EMPREITEIRA':
+        return <PainelEmpreiteira obras={obras} tarefas={tarefas} nrAlerts={nrAlerts} isReadOnly={isImpersonating} />;
       case 'RESPONSAVEL':
         return <PainelEngenheiro {...commonProps} pendentesAuditoria={pendentes} onAuditar={handleAuditar} loadingAuditoria={loadingPendentes} onNovaObra={() => setShowNovaObra(true)} />;
       case 'ADMIN_MASTER':
