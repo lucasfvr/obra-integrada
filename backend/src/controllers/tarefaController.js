@@ -207,11 +207,24 @@ export async function listarTarefas(req, res) {
     const limitNumber = parseInt(limit, 10) || 10;
     const skip = (pageNumber - 1) * limitNumber;
 
-    const where = {};
+    const where = {
+      tb_obra: {
+        id_cliente: req.user?.id_cliente || undefined
+      }
+    };
     if (id) where.id_obra = Number(id);
     
-    // Se userId for fornecido, filtramos tarefas que tenham esse usuario vinculado
-    if (userId) {
+    // Isolamento de Empreiteira / Subempreiteira
+    if (req.user?.role === 'EMPREITEIRA') {
+      where.tb_tarefa_usuario = {
+        some: {
+          tb_usuario: {
+            cnpj_empreiteira: req.user.cnpj || 'NOT_FOUND'
+          }
+        }
+      };
+    } else if (userId) {
+      // Se userId for fornecido, filtramos tarefas que tenham esse usuario vinculado
       where.tb_tarefa_usuario = {
         some: { id_usuario: Number(userId) }
       };

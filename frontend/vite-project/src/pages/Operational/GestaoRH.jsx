@@ -6,8 +6,11 @@ import { PermissaoGuard } from '../../components/Guards/PermissaoGuard.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 
 export default function GestaoRH() {
-  const { apiFetch } = useAuth();
+  const { apiFetch, user } = useAuth();
   const { toast, showConfirm } = useToast();
+  
+  const isEmpreiteira = user?.role === 'EMPREITEIRA';
+
   const [funcionarios, setFuncionarios] = useState([]);
   const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -21,8 +24,11 @@ export default function GestaoRH() {
   // Certificações (NRs) do usuário em edição
   const [certificacoes, setCertificacoes] = useState([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
+  
+  const DEFAULT_DOC_SELECTION = "NR-35 (Trabalho em Altura)";
+  const [docSelection, setDocSelection] = useState(DEFAULT_DOC_SELECTION);
   const [newCertData, setNewCertData] = useState({
-    nome: '',
+    nome: DEFAULT_DOC_SELECTION,
     data_emissao: '',
     data_validade: ''
   });
@@ -35,17 +41,25 @@ export default function GestaoRH() {
     status: 'ATIVO',
     cargo: '',
     sortBy: 'nome',
-    sortOrder: 'asc'
+    sortOrder: 'asc',
+    is_terceirizado: '',
+    cnpj_empreiteira: ''
   });
   
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
+    cnpj: '',
     email: '',
     cargo_base: '',
     data_admissao: '',
     role: 'TRABALHADOR',
-    status: 'ATIVO'
+    status: 'ATIVO',
+    is_terceirizado: isEmpreiteira ? true : false,
+    cnpj_empreiteira: isEmpreiteira ? (user?.cnpj || '') : '',
+    razao_social_empreiteira: isEmpreiteira ? (user?.razao_social || '') : '',
+    tipo_vinculo: 'CLT',
+    lgpd_consentimento: false
   });
 
   const [errors, setErrors] = useState({});
@@ -54,7 +68,7 @@ export default function GestaoRH() {
   const fetchFuncionarios = async (page = 1) => {
     try {
       setLoading(true);
-      const query = new URLSearchParams({
+      const params = {
         page,
         limit: 10,
         busca,
@@ -62,8 +76,16 @@ export default function GestaoRH() {
         cargo: filtros.cargo,
         sortBy: filtros.sortBy,
         sortOrder: filtros.sortOrder
-      }).toString();
+      };
 
+      if (filtros.is_terceirizado) {
+        params.is_terceirizado = filtros.is_terceirizado;
+      }
+      if (filtros.cnpj_empreiteira) {
+        params.cnpj_empreiteira = filtros.cnpj_empreiteira;
+      }
+
+      const query = new URLSearchParams(params).toString();
       const res = await apiFetch(`${API_BASE_URL}/api/rh?${query}`);
       if (res.ok) {
         const result = await res.json();
@@ -132,24 +154,25 @@ export default function GestaoRH() {
         body: JSON.stringify(newCertData)
       });
       if (res.ok) {
-        toast.success('Certificação adicionada com sucesso!', 'Sucesso');
-        setNewCertData({ nome: '', data_emissao: '', data_validade: '' });
+        toast.success('Documento/Certificação adicionada com sucesso!', 'Sucesso');
+        setNewCertData({ nome: DEFAULT_DOC_SELECTION, data_emissao: '', data_validade: '' });
+        setDocSelection(DEFAULT_DOC_SELECTION);
         fetchCertificacoes(editingFunc.id_usuario);
         fetchAlertasNR(); // Atualiza os alertas do dashboard
       } else {
         const err = await res.json();
-        toast.error(err.erro || 'Erro ao adicionar certificação', 'Erro');
+        toast.error(err.erro || 'Erro ao adicionar documento', 'Erro');
       }
     } catch (err) {
       console.error(err);
-      toast.error('Erro de conexão ao adicionar NR', 'Erro');
+      toast.error('Erro de conexão ao adicionar documento', 'Erro');
     }
   };
 
   const handleDeleteCert = async (certId) => {
     const confirmed = await showConfirm({
-      title: 'Excluir Certificação',
-      message: 'Deseja realmente remover esta certificação de segurança?',
+      title: 'Excluir Documentação',
+      message: 'Deseja realmente remover este documento do cadastro do colaborador?',
       confirmLabel: 'Sim, excluir',
       cancelLabel: 'Cancelar',
       type: 'danger'
@@ -160,7 +183,7 @@ export default function GestaoRH() {
         method: 'DELETE'
       });
       if (res.ok) {
-        toast.success('Certificação removida com sucesso.', 'Sucesso');
+        toast.success('Documento removido com sucesso.', 'Sucesso');
         fetchCertificacoes(editingFunc.id_usuario);
         fetchAlertasNR();
       }
@@ -172,8 +195,30 @@ export default function GestaoRH() {
   const validate = () => {
     const newErrors = {};
     if (!formData.nome || formData.nome.length < 3) newErrors.nome = "Nome muito curto";
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "E-mail inválido";
-    if (!formData.cpf || formData.cpf.replace(/\D/g, '').length !== 11) newErrors.cpf = "CPF deve ter 11 dígitos";
+    
+    // Validação de e-mail opcional
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "E-mail inválido";
+    }
+
+    const cleanCpf = formData.cpf ? formData.cpf.replace(/\D/g, '') : '';
+    const cleanCnpj = formData.cnpj ? formData.cnpj.replace(/\D/g, '') : '';
+
+    if (!cleanCpf && !cleanCnpj) {
+      newErrors.documento = "Pelo menos um documento (CPF ou CNPJ) é obrigatório.";
+    } else {
+      if (cleanCpf && cleanCpf.length !== 11) {
+        newErrors.cpf = "CPF deve ter 11 dígitos.";
+      }
+      if (cleanCnpj && cleanCnpj.length !== 14) {
+        newErrors.cnpj = "CNPJ deve ter 14 dígitos.";
+      }
+    }
+
+    if (!editingFunc && !formData.lgpd_consentimento) {
+      newErrors.lgpd = "A ciência e consentimento LGPD são obrigatórios para novos cadastros.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -187,16 +232,39 @@ export default function GestaoRH() {
       ? `${API_BASE_URL}/api/rh/${editingFunc.id_usuario}`
       : `${API_BASE_URL}/api/rh`;
 
+    const bodyPayload = {
+      ...formData,
+      cpf: formData.cpf ? formData.cpf.replace(/\D/g, '') : null,
+      cnpj: formData.cnpj ? formData.cnpj.replace(/\D/g, '') : null,
+      is_terceirizado: isEmpreiteira ? true : (formData.is_terceirizado === true || formData.is_terceirizado === 'true'),
+      cnpj_empreiteira: isEmpreiteira ? user.cnpj : (formData.is_terceirizado ? formData.cnpj_empreiteira : null),
+      razao_social_empreiteira: isEmpreiteira ? user.razao_social : (formData.is_terceirizado ? formData.razao_social_empreiteira : null)
+    };
+
     try {
       const res = await apiFetch(url, {
         method,
-        body: JSON.stringify(formData)
+        body: JSON.stringify(bodyPayload)
       });
       if (res.ok) {
         toast.success(editingFunc ? 'Cadastro atualizado com sucesso!' : 'Funcionário cadastrado com sucesso!', editingFunc ? 'Atualizado' : 'Cadastrado');
         setShowModal(false);
         setEditingFunc(null);
-        setFormData({ nome: '', cpf: '', email: '', cargo_base: '', data_admissao: '', role: 'TRABALHADOR', status: 'ATIVO' });
+        setFormData({
+          nome: '',
+          cpf: '',
+          cnpj: '',
+          email: '',
+          cargo_base: '',
+          data_admissao: '',
+          role: 'TRABALHADOR',
+          status: 'ATIVO',
+          is_terceirizado: isEmpreiteira ? true : false,
+          cnpj_empreiteira: isEmpreiteira ? (user?.cnpj || '') : '',
+          razao_social_empreiteira: isEmpreiteira ? (user?.razao_social || '') : '',
+          tipo_vinculo: 'CLT',
+          lgpd_consentimento: false
+        });
         setErrors({});
         fetchFuncionarios(meta.page);
       } else {
@@ -236,12 +304,36 @@ export default function GestaoRH() {
     }));
   };
 
+  // LGPD: Mascara para exibição legível mas oculta na tabela geral
+  const formatMaskedDoc = (item) => {
+    if (item.cnpj && item.cpf) {
+      const cpfClean = item.cpf.replace(/\D/g, '');
+      const cnpjClean = item.cnpj.replace(/\D/g, '');
+      return `CPF: ***.${cpfClean.slice(3, 6)}.${cpfClean.slice(6, 9)}-** / CNPJ: **.***.${cnpjClean.slice(5, 8)}/${cnpjClean.slice(8, 12)}-**`;
+    }
+    if (item.cpf) {
+      const clean = item.cpf.replace(/\D/g, '');
+      return `CPF: ***.${clean.slice(3, 6)}.${clean.slice(6, 9)}-**`;
+    }
+    if (item.cnpj) {
+      const clean = item.cnpj.replace(/\D/g, '');
+      return `CNPJ: **.***.${clean.slice(5, 8)}/${clean.slice(8, 12)}-**`;
+    }
+    return 'Sem Documento';
+  };
+
   return (
     <div className="p-6 space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Gestão de RH</h1>
-          <p className="text-sm text-muted-foreground mt-1">Controle de colaboradores com validação e conformidade de NRs.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {isEmpreiteira ? `Gestão de RH — ${user?.razao_social || 'Empreiteira'}` : 'Gestão de RH'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isEmpreiteira 
+              ? 'Gerenciamento de trabalhadores terceirizados sob conformidade regulatória e proteção de dados LGPD.'
+              : 'Controle de colaboradores com validação contratual, terceirizados e conformidade de NRs/Saúde.'}
+          </p>
         </div>
         
         <PermissaoGuard permissao="gerenciar_usuarios">
@@ -249,9 +341,23 @@ export default function GestaoRH() {
             onClick={() => { 
               setEditingFunc(null); 
               setModalTab('dados');
-              setShowModal(true); 
-              setFormData({ nome: '', cpf: '', email: '', cargo_base: '', data_admissao: '', role: 'TRABALHADOR', status: 'ATIVO' }); 
+              setFormData({
+                nome: '',
+                cpf: '',
+                cnpj: '',
+                email: '',
+                cargo_base: '',
+                data_admissao: '',
+                role: 'TRABALHADOR',
+                status: 'ATIVO',
+                is_terceirizado: isEmpreiteira ? true : false,
+                cnpj_empreiteira: isEmpreiteira ? (user?.cnpj || '') : '',
+                razao_social_empreiteira: isEmpreiteira ? (user?.razao_social || '') : '',
+                tipo_vinculo: 'CLT',
+                lgpd_consentimento: false
+              }); 
               setErrors({}); 
+              setShowModal(true); 
             }}
             className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
           >
@@ -265,7 +371,7 @@ export default function GestaoRH() {
         <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 flex flex-col gap-2">
           <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
             <span>🚨</span>
-            <span>Alertas de Conformidade: {nrAlerts.length} NRs pendentes ou vencidas</span>
+            <span>Alertas de Conformidade: {nrAlerts.length} Documentos pendentes ou vencidos</span>
           </div>
           <div className="flex flex-wrap gap-2 mt-1">
             {nrAlerts.slice(0, 5).map(alert => (
@@ -275,7 +381,21 @@ export default function GestaoRH() {
                   const func = funcionarios.find(f => f.id_usuario === alert.id_usuario);
                   if (func) {
                     setEditingFunc(func);
-                    setFormData({ ...func, data_admissao: func.data_admissao?.split('T')[0] || '' });
+                    setFormData({
+                      nome: func.nome || '',
+                      cpf: func.cpf || '',
+                      cnpj: func.cnpj || '',
+                      email: func.email || '',
+                      cargo_base: func.cargo_base || '',
+                      data_admissao: func.data_admissao?.split('T')[0] || '',
+                      role: func.role || 'TRABALHADOR',
+                      status: func.status || 'ATIVO',
+                      is_terceirizado: func.is_terceirizado || false,
+                      cnpj_empreiteira: func.cnpj_empreiteira || '',
+                      razao_social_empreiteira: func.razao_social_empreiteira || '',
+                      tipo_vinculo: func.tipo_vinculo || 'CLT',
+                      lgpd_consentimento: func.lgpd_consentimento || false
+                    });
                     setErrors({});
                     setModalTab('nrs');
                     setShowModal(true);
@@ -308,7 +428,7 @@ export default function GestaoRH() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
             <input 
               type="text" 
-              placeholder="Buscar por nome, matrícula ou CPF..."
+              placeholder="Buscar por nome, matrícula, CPF ou CNPJ..."
               className="w-full bg-card border border-border rounded-lg py-2 pl-9 pr-3 text-xs text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
@@ -327,11 +447,33 @@ export default function GestaoRH() {
 
           <input 
             type="text"
-            placeholder="Filtrar Cargo..."
+            placeholder="Filtrar Profissão..."
             className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
             value={filtros.cargo}
             onChange={(e) => setFiltros({...filtros, cargo: e.target.value})}
           />
+
+          {!isEmpreiteira && (
+            <>
+              <select
+                className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
+                value={filtros.is_terceirizado}
+                onChange={(e) => setFiltros({...filtros, is_terceirizado: e.target.value})}
+              >
+                <option value="">Todos (Interno/Terc.)</option>
+                <option value="false">Internos CLT</option>
+                <option value="true">Terceirizados (Empreiteiras)</option>
+              </select>
+
+              <input 
+                type="text"
+                placeholder="Filtrar por CNPJ Empreiteira..."
+                className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
+                value={filtros.cnpj_empreiteira}
+                onChange={(e) => setFiltros({...filtros, cnpj_empreiteira: e.target.value})}
+              />
+            </>
+          )}
         </div>
 
         <div className="overflow-x-auto">
@@ -348,7 +490,9 @@ export default function GestaoRH() {
                     Colaborador {filtros.sortBy === 'nome' && (filtros.sortOrder === 'asc' ? '↑' : '↓')}
                    </div>
                 </th>
-                <th className="pb-3 text-xs font-semibold text-muted-foreground uppercase">Cargo</th>
+                <th className="pb-3 text-xs font-semibold text-muted-foreground uppercase">Documentos (LGPD)</th>
+                <th className="pb-3 text-xs font-semibold text-muted-foreground uppercase">Profissão / Cargo</th>
+                <th className="pb-3 text-xs font-semibold text-muted-foreground uppercase">Vínculo / Empreiteira</th>
                 <th className="pb-3 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('data_admissao')}>
                    <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground uppercase">
                     Admissão {filtros.sortBy === 'data_admissao' && (filtros.sortOrder === 'asc' ? '↑' : '↓')}
@@ -360,9 +504,9 @@ export default function GestaoRH() {
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <tr><td colSpan="6" className="py-12 text-center text-muted-foreground font-semibold text-xs animate-pulse">Sincronizando dados...</td></tr>
+                <tr><td colSpan="8" className="py-12 text-center text-muted-foreground font-semibold text-xs animate-pulse">Sincronizando dados...</td></tr>
               ) : funcionarios.length === 0 ? (
-                <tr><td colSpan="6" className="py-12 text-center text-muted-foreground font-semibold text-xs">Nenhum funcionário encontrado.</td></tr>
+                <tr><td colSpan="8" className="py-12 text-center text-muted-foreground font-semibold text-xs">Nenhum funcionário encontrado.</td></tr>
               ) : funcionarios.map(f => (
                 <tr key={f.id_usuario} className="group hover:bg-muted/30 transition-colors">
                   <td className="py-4 text-sm font-semibold text-primary">{f.matricula}</td>
@@ -372,7 +516,22 @@ export default function GestaoRH() {
                       <span className="text-[10px] text-muted-foreground font-medium mt-0.5">{f.email || 'Sem e-mail'}</span>
                     </div>
                   </td>
-                  <td className="py-4 text-sm text-muted-foreground">{f.cargo_base || 'Não definido'}</td>
+                  <td className="py-4 text-xs font-medium text-muted-foreground font-mono">{formatMaskedDoc(f)}</td>
+                  <td className="py-4 text-sm text-muted-foreground font-semibold">{f.cargo_base || 'Não definido'}</td>
+                  <td className="py-4">
+                    <div className="flex flex-col gap-1">
+                      <span className={`w-fit text-[10px] font-bold px-2 py-0.5 rounded-full border ${f.tipo_vinculo === 'CONTRATO' ? 'bg-indigo-500/10 text-indigo-600 border-transparent' : 'bg-teal-500/10 text-teal-600 border-transparent'}`}>
+                        {f.tipo_vinculo === 'CONTRATO' ? 'Contrato PJ/Serviço' : 'CLT Carteira'}
+                      </span>
+                      {f.is_terceirizado ? (
+                        <span className="text-[10px] text-amber-600 font-semibold" title={`CNPJ: ${f.cnpj_empreiteira || '-'}`}>
+                          🏗️ Terc: {f.razao_social_empreiteira || 'Empreiteira'}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground">🏢 Interno</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="py-4 text-sm text-muted-foreground">
                     {f.data_admissao ? new Date(f.data_admissao).toLocaleDateString() : '-'}
                   </td>
@@ -387,7 +546,21 @@ export default function GestaoRH() {
                         <button
                           onClick={() => { 
                             setEditingFunc(f); 
-                            setFormData({ ...f, data_admissao: f.data_admissao?.split('T')[0] || '' }); 
+                            setFormData({
+                              nome: f.nome || '',
+                              cpf: f.cpf || '',
+                              cnpj: f.cnpj || '',
+                              email: f.email || '',
+                              cargo_base: f.cargo_base || '',
+                              data_admissao: f.data_admissao?.split('T')[0] || '',
+                              role: f.role || 'TRABALHADOR',
+                              status: f.status || 'ATIVO',
+                              is_terceirizado: f.is_terceirizado || false,
+                              cnpj_empreiteira: f.cnpj_empreiteira || '',
+                              razao_social_empreiteira: f.razao_social_empreiteira || '',
+                              tipo_vinculo: f.tipo_vinculo || 'CLT',
+                              lgpd_consentimento: f.lgpd_consentimento || false
+                            }); 
                             setErrors({}); 
                             setModalTab('dados');
                             setShowModal(true); 
@@ -433,7 +606,7 @@ export default function GestaoRH() {
 
       {showModal && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-card rounded-xl w-full max-w-2xl shadow-lg overflow-hidden border border-border animate-slide-up flex flex-col max-h-[85vh]">
+          <div className="bg-card rounded-xl w-full max-w-2xl shadow-lg overflow-hidden border border-border animate-slide-up flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30 shrink-0">
               <div>
                 <h3 className="text-base font-semibold text-foreground tracking-tight">
@@ -457,7 +630,7 @@ export default function GestaoRH() {
                   onClick={() => setModalTab('nrs')}
                   className={`flex-1 py-3 text-xs font-semibold border-b-2 transition-all ${modalTab === 'nrs' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
-                  Certificações e NRs
+                  Documentações e Conformidades
                 </button>
               </div>
             )}
@@ -473,23 +646,42 @@ export default function GestaoRH() {
                   
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1">CPF (Apenas números)</label>
-                    <input required type="text" maxLength="11" className={`w-full bg-card border ${errors.cpf ? 'border-destructive' : 'border-border'} rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all`} value={formData.cpf} onChange={e => setFormData({...formData, cpf: e.target.value})} />
+                    <input type="text" maxLength="11" className={`w-full bg-card border ${errors.cpf ? 'border-destructive' : 'border-border'} rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all`} value={formData.cpf} onChange={e => setFormData({...formData, cpf: e.target.value})} />
                     {errors.cpf && <span className="text-[10px] text-destructive font-semibold mt-1 block">{errors.cpf}</span>}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">E-mail Corporativo</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">CNPJ do Trabalhador (PJ/MEI)</label>
+                    <input type="text" maxLength="14" className={`w-full bg-card border ${errors.cnpj ? 'border-destructive' : 'border-border'} rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all`} value={formData.cnpj} onChange={e => setFormData({...formData, cnpj: e.target.value})} />
+                    {errors.cnpj && <span className="text-[10px] text-destructive font-semibold mt-1 block">{errors.cnpj}</span>}
+                  </div>
+                  {errors.documento && <div className="md:col-span-2 text-[10px] text-destructive font-bold">{errors.documento}</div>}
+
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Tipo de Vínculo Contratual</label>
+                    <select
+                      className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      value={formData.tipo_vinculo}
+                      onChange={e => setFormData({...formData, tipo_vinculo: e.target.value})}
+                    >
+                      <option value="CLT">Carteira Assinada (CLT)</option>
+                      <option value="CONTRATO">Contrato de Prestação de Serviços (PJ)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">E-mail de Contato</label>
                     <input type="email" className={`w-full bg-card border ${errors.email ? 'border-destructive' : 'border-border'} rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all`} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                     {errors.email && <span className="text-[10px] text-destructive font-semibold mt-1 block">{errors.email}</span>}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Função / Cargo</label>
-                    <input type="text" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Ex: Engenheiro Junior" value={formData.cargo_base} onChange={e => setFormData({...formData, cargo_base: e.target.value})} />
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Profissão / Cargo</label>
+                    <input type="text" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Ex: Pedreiro, Pintor, Ajudante..." value={formData.cargo_base} onChange={e => setFormData({...formData, cargo_base: e.target.value})} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Data de Admissão</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Data de Admissão / Associação</label>
                     <input type="date" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={formData.data_admissao} onChange={e => setFormData({...formData, data_admissao: e.target.value})} />
                   </div>
 
@@ -505,6 +697,51 @@ export default function GestaoRH() {
                     </select>
                   </div>
 
+                  {!isEmpreiteira && (
+                    <div className="md:col-span-2 border-t border-border pt-4 mt-2 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="is_terceirizado"
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                          checked={formData.is_terceirizado}
+                          onChange={e => setFormData({...formData, is_terceirizado: e.target.checked})}
+                        />
+                        <label htmlFor="is_terceirizado" className="text-xs font-bold text-foreground">Trabalhador Terceirizado (Empreiteira)?</label>
+                      </div>
+
+                      {formData.is_terceirizado && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                          <div>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">CNPJ da Empreiteira</label>
+                            <input required={formData.is_terceirizado} type="text" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Apenas números" value={formData.cnpj_empreiteira} onChange={e => setFormData({...formData, cnpj_empreiteira: e.target.value})} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">Razão Social da Empreiteira</label>
+                            <input required={formData.is_terceirizado} type="text" className="w-full bg-card border border-border rounded-lg p-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Nome da empresa parceira" value={formData.razao_social_empreiteira} onChange={e => setFormData({...formData, razao_social_empreiteira: e.target.value})} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!editingFunc && (
+                    <div className="md:col-span-2 flex items-start gap-2.5 bg-muted/40 p-3.5 rounded-lg border border-border mt-2">
+                      <input
+                        type="checkbox"
+                        id="lgpd_consentimento"
+                        required
+                        className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                        checked={formData.lgpd_consentimento}
+                        onChange={e => setFormData({...formData, lgpd_consentimento: e.target.checked})}
+                      />
+                      <label htmlFor="lgpd_consentimento" className="text-[10px] text-muted-foreground leading-normal font-medium">
+                        Declaro ciência e autorizo que os dados informados (incluindo CPF/CNPJ, tipo de vínculo contratual e atestados médicos de aptidão de saúde/ASO) sejam processados e arquivados nesta plataforma para controle de acesso físico às obras da construtora, conformidade trabalhista, atribuição de tarefas operacionais e obrigações legais de SST (Saúde e Segurança do Trabalho), em estrito cumprimento com a LGPD (Lei nº 13.709/2018).
+                      </label>
+                    </div>
+                  )}
+                  {errors.lgpd && <span className="md:col-span-2 text-[10px] text-destructive font-semibold mt-1 block">{errors.lgpd}</span>}
+
                   <div className="md:col-span-2 pt-4 flex gap-3 justify-end border-t border-border">
                     <button type="button" onClick={() => setShowModal(false)} className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Cancelar</button>
                     <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-lg transition-colors">Salvar Colaborador</button>
@@ -514,27 +751,34 @@ export default function GestaoRH() {
                 <div className="space-y-6">
                   {/* Listagem de certificações */}
                   <div>
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Certificações Atuais</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Documentações e Conformidades Ativas</h4>
                     <div className="bg-card border border-border rounded-lg overflow-hidden">
                       <table className="w-full text-left text-xs">
                         <thead className="bg-muted/40 border-b border-border">
                           <tr>
-                            <th className="px-4 py-2 text-muted-foreground font-semibold">Nome da NR</th>
+                            <th className="px-4 py-2 text-muted-foreground font-semibold">Documento / Qualificação</th>
                             <th className="px-4 py-2 text-muted-foreground font-semibold">Emissão</th>
                             <th className="px-4 py-2 text-muted-foreground font-semibold">Validade</th>
                             <th className="px-4 py-2 text-muted-foreground font-semibold text-center">Status</th>
-                            <th className="px-4 py-2 text-muted-foreground font-semibold text-right">Ações</th>
+                            <th className="px-4 py-2 text-muted-foreground font-semibold text-right">Ações / Arquivo</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                           {loadingCerts ? (
                             <tr><td colSpan="5" className="py-6 text-center text-muted-foreground animate-pulse">Buscando qualificações...</td></tr>
                           ) : certificacoes.length === 0 ? (
-                            <tr><td colSpan="5" className="py-6 text-center text-muted-foreground italic">Nenhuma NR cadastrada para este colaborador.</td></tr>
+                            <tr><td colSpan="5" className="py-6 text-center text-muted-foreground italic">Nenhum documento ou NR cadastrada para este colaborador.</td></tr>
                           ) : (
                             certificacoes.map(cert => (
                               <tr key={cert.id_certificacao} className="hover:bg-muted/20 transition-colors">
-                                <td className="px-4 py-3 font-semibold text-foreground">{cert.nome}</td>
+                                <td className="px-4 py-3 font-semibold text-foreground">
+                                  <div className="flex flex-col">
+                                    <span>{cert.nome}</span>
+                                    {cert.nome.toUpperCase().includes('ASO') && (
+                                      <span className="text-[9px] text-rose-500 font-semibold font-mono">🔒 Protegido LGPD (Saúde)</span>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="px-4 py-3 text-muted-foreground">{cert.data_emissao ? new Date(cert.data_emissao).toLocaleDateString() : '-'}</td>
                                 <td className="px-4 py-3 text-muted-foreground">{cert.data_validade ? new Date(cert.data_validade).toLocaleDateString() : '-'}</td>
                                 <td className="px-4 py-3 text-center">
@@ -545,17 +789,31 @@ export default function GestaoRH() {
                                       ? 'bg-amber-500/10 text-amber-600' 
                                       : 'bg-emerald-500/10 text-emerald-600'
                                   }`}>
-                                    {cert.status === 'vencido' ? 'Vencida' : cert.status === 'vencendo' ? 'A Expirar' : 'Válida'}
+                                    {cert.status === 'vencido' ? 'Vencido' : cert.status === 'vencendo' ? 'A Expirar' : 'Válido'}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                  <button 
-                                    onClick={() => handleDeleteCert(cert.id_certificacao)}
-                                    className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                                    title="Remover NR"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                  </button>
+                                  <div className="flex justify-end items-center gap-2">
+                                    {cert.arquivo_url ? (
+                                      <a 
+                                        href={cert.arquivo_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="text-primary hover:underline text-[10px] font-bold"
+                                      >
+                                        Ver PDF
+                                      </a>
+                                    ) : (
+                                      <span className="text-[10px] text-muted-foreground italic">Sem anexo</span>
+                                    )}
+                                    <button 
+                                      onClick={() => handleDeleteCert(cert.id_certificacao)}
+                                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                                      title="Remover Documento"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))
@@ -567,19 +825,47 @@ export default function GestaoRH() {
 
                   {/* Formulário de Nova Certificação */}
                   <form onSubmit={handleAddCert} className="pt-5 border-t border-border space-y-4">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nova Certificação (NR)</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Adicionar Novo Documento</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="md:col-span-3">
-                        <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Nome do Curso / NR</label>
-                        <input 
-                          type="text" 
-                          required 
-                          placeholder="Ex: NR-35 (Trabalho em Altura)"
+                        <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Tipo de Documento</label>
+                        <select
                           className="w-full bg-card border border-border rounded-lg p-2 text-xs text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                          value={newCertData.nome}
-                          onChange={e => setNewCertData({ ...newCertData, nome: e.target.value })}
-                        />
+                          value={docSelection}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setDocSelection(val);
+                            if (val !== 'Outro') {
+                              setNewCertData({ ...newCertData, nome: val });
+                            } else {
+                              setNewCertData({ ...newCertData, nome: '' });
+                            }
+                          }}
+                        >
+                          <option value="NR-35 (Trabalho em Altura)">Curso NR-35 (Trabalho em Altura)</option>
+                          <option value="NR-10 (Segurança em Eletricidade)">Curso NR-10 (Segurança em Eletricidade)</option>
+                          <option value="NR-18 (Segurança na Construção)">Curso NR-18 (Segurança na Construção)</option>
+                          <option value="ASO (Atestado de Saúde Ocupacional)">ASO (Saúde Ocupacional) 🔒 Dado Sensível</option>
+                          <option value="Ficha de EPI">Ficha de EPI Entregue</option>
+                          <option value="Contrato de Trabalho / Prestação de Serviço">Contrato de Trabalho / Contrato PJ</option>
+                          <option value="Outro">Outro (Digitar Nome Abaixo)</option>
+                        </select>
                       </div>
+
+                      {docSelection === 'Outro' && (
+                        <div className="md:col-span-3">
+                          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Nome do Documento / NR Especialidade</label>
+                          <input 
+                            type="text" 
+                            required 
+                            placeholder="Ex: NR-12 (Operação de Máquinas)"
+                            className="w-full bg-card border border-border rounded-lg p-2 text-xs text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                            value={newCertData.nome}
+                            onChange={e => setNewCertData({ ...newCertData, nome: e.target.value })}
+                          />
+                        </div>
+                      )}
+
                       <div>
                         <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Data de Emissão</label>
                         <input 
@@ -590,7 +876,7 @@ export default function GestaoRH() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Data de Validade</label>
+                        <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Data de Validade (Obrigatório se NR/ASO)</label>
                         <input 
                           type="date"
                           className="w-full bg-card border border-border rounded-lg p-2 text-xs text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -603,7 +889,7 @@ export default function GestaoRH() {
                           type="submit" 
                           className="w-full py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold rounded-lg transition-colors"
                         >
-                          Adicionar NR
+                          Adicionar Documento
                         </button>
                       </div>
                     </div>

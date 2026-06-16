@@ -193,6 +193,11 @@ model tb_usuario {
   data_admissao                DateTime?                 @db.Date
   matricula                    String?                   @unique
   status                       String                    @default("ATIVO")
+  is_terceirizado              Boolean                   @default(false)
+  cnpj_empreiteira             String?
+  razao_social_empreiteira     String?
+  tipo_vinculo                 String?
+  lgpd_consentimento           Boolean                   @default(false)
   tb_diario_obra               tb_diario_obra[]
   tb_financeiro_obra           tb_financeiro_obra[]
   tb_movimentacao_estoque      tb_movimentacao_estoque[]

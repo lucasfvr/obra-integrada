@@ -223,7 +223,9 @@ export async function loginUser(req, res) {
         role: user.role || 'USER',
         nome: user.nome,
         funcao: user.funcao,
-        id_cliente: user.id_cliente || null
+        id_cliente: user.id_cliente || null,
+        cnpj: user.cnpj || null,
+        razao_social: user.razao_social || null
       },
       (() => { const secret = process.env.JWT_SECRET; if (!secret) throw new Error('JWT_SECRET not set'); return secret; })(),
       { expiresIn: '8h' }
@@ -237,7 +239,9 @@ export async function loginUser(req, res) {
         role: user.role || 'USER',
         nome: user.nome,
         email: user.email,
-        id_cliente: user.id_cliente || null
+        id_cliente: user.id_cliente || null,
+        cnpj: user.cnpj || null,
+        razao_social: user.razao_social || null
       },
       token,
     });
