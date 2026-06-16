@@ -601,3 +601,117 @@ export async function getUsuariosDisponiveis(req, res) {
     res.status(500).json({ erro: 'Erro ao buscar usuários disponíveis' });
   }
 }
+
+/**
+ * Retorna todos os usuários do tenant (equipe global) com paginação, busca e filtros
+ */
+export async function getEquipeGlobal(req, res) {
+  try {
+    const { id_cliente } = req.user;
+    
+    // Filtros e paginação
+    const { id_obra, status, funcao, busca, page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    let whereClause = {};
+    if (id_cliente) {
+      whereClause.id_cliente = id_cliente;
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    if (funcao) {
+      whereClause.OR = [
+        { funcao: { contains: funcao, mode: 'insensitive' } },
+        { cargo_base: { contains: funcao, mode: 'insensitive' } }
+      ];
+    }
+
+    if (busca) {
+      const searchTerms = { contains: busca, mode: 'insensitive' };
+      whereClause.AND = [
+        ...(whereClause.AND || []),
+        {
+          OR: [
+            { nome: searchTerms },
+            { email: searchTerms },
+            { matricula: searchTerms }
+          ]
+        }
+      ];
+    }
+
+    if (id_obra) {
+      whereClause.tb_usuario_obra = {
+        some: {
+          id_obra: Number(id_obra)
+        }
+      };
+    }
+
+    const [equipe, total] = await Promise.all([
+      prisma.tb_usuario.findMany({
+        where: whereClause,
+        skip,
+        take: limitNumber,
+        orderBy: { nome: 'asc' },
+        include: {
+          tb_usuario_obra: {
+            include: {
+              tb_obra: {
+                select: {
+                  id_obra: true,
+                  nome: true
+                }
+              },
+              tb_papel: {
+                select: {
+                  id_papel: true,
+                  nome: true
+                }
+              }
+            }
+          }
+        }
+      }),
+      prisma.tb_usuario.count({ where: whereClause })
+    ]);
+
+    const data = equipe.map(user => {
+      return {
+        id_usuario: user.id_usuario,
+        nome: user.nome,
+        matricula: user.matricula,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        funcao: user.funcao || user.cargo_base || 'Sem Função',
+        obras: user.tb_usuario_obra.map(uo => ({
+          id_obra: uo.tb_obra.id_obra,
+          nome: uo.tb_obra.nome,
+          id_papel: uo.id_papel,
+          papel: uo.tb_papel?.nome || 'Membro',
+          valor_dia: Number(uo.valor_dia || 0)
+        }))
+      };
+    });
+
+    res.json({
+      data,
+      meta: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber)
+      }
+    });
+  } catch (error) {
+    console.error('[USER] Erro ao buscar equipe global:', error);
+    res.status(500).json({ erro: 'Erro ao buscar equipe global' });
+  }
+}
+

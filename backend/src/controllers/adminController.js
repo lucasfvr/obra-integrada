@@ -1,4 +1,5 @@
 import prisma from '../config/prisma.js';
+import jwt from 'jsonwebtoken';
 
 /**
  * Controller para funcionalidades de alto nível da Plataforma (Dashboard Admin)
@@ -201,3 +202,58 @@ export async function getPendingDiaries(req, res) {
     return res.status(500).json({ erro: 'Erro ao buscar diários pendentes', detalhe: error.message });
   }
 }
+
+/**
+ * Impersona outro usuário (Apenas ADMIN_MASTER)
+ */
+export async function impersonarUsuario(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!req.user || req.user.role !== 'ADMIN_MASTER') {
+      return res.status(403).json({ erro: 'Acesso negado. Apenas Admin Master pode impersonar.' });
+    }
+
+    const targetUser = await prisma.tb_usuario.findUnique({
+      where: { id_usuario: Number(id) }
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({ erro: 'Usuário não encontrado.' });
+    }
+
+    const token = jwt.sign(
+      {
+        id: targetUser.id_usuario,
+        username: targetUser.username,
+        role: targetUser.role || 'USER',
+        nome: targetUser.nome,
+        funcao: targetUser.funcao,
+        id_cliente: targetUser.id_cliente || null,
+        isImpersonated: true,
+        impersonatorId: req.user.id
+      },
+      (() => { const secret = process.env.JWT_SECRET; if (!secret) throw new Error('JWT_SECRET not set'); return secret; })(),
+      { expiresIn: '2h' }
+    );
+
+    return res.status(200).json({
+      mensagem: `Impersonando ${targetUser.nome} com sucesso!`,
+      user: {
+        id: targetUser.id_usuario,
+        username: targetUser.username,
+        role: targetUser.role || 'USER',
+        nome: targetUser.nome,
+        email: targetUser.email,
+        id_cliente: targetUser.id_cliente || null,
+        isImpersonated: true,
+        impersonatorId: req.user.id
+      },
+      token
+    });
+  } catch (error) {
+    console.error('[ADMIN] Erro ao impersonar usuário:', error);
+    return res.status(500).json({ erro: 'Erro interno ao impersonar usuário', detalhe: error.message });
+  }
+}
+

@@ -6,7 +6,8 @@ import {
   getMacroProfitability, 
   getSystemHealth,
   getAllUsers,
-  getPendingDiaries
+  getPendingDiaries,
+  impersonarUsuario
 } from '../controllers/adminController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireRole, requirePermissao } from '../middlewares/authorizationMiddleware.js';
@@ -30,6 +31,7 @@ router.get('/admin/metrics/profitability', requirePermissao('ver_metricas_plataf
 
 // Gestão de usuários (lista global — usado para impersonação)
 router.get('/admin/users', requirePermissao('gerenciar_usuarios'), getAllUsers);
+router.post('/admin/impersonar/:id', requireRole('ADMIN_MASTER'), impersonarUsuario);
 
 // Inbox de diários pendentes de auditoria
 router.get('/admin/metrics/pendentes', requireRole('ADMIN_MASTER', 'ADMIN', 'PROPRIETARIO', 'RESPONSAVEL'), getPendingDiaries);

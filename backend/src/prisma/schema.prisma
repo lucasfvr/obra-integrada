@@ -202,6 +202,7 @@ model tb_usuario {
   tb_cliente                   tb_cliente?               @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_cliente")
   tb_usuario_obra              tb_usuario_obra[]
   tb_log_auditoria             tb_log_auditoria[]
+  tb_certificacao              tb_certificacao[]
 }
 
 model tb_usuario_obra {
@@ -341,4 +342,18 @@ model tb_log_auditoria {
   tb_usuario  tb_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull, onUpdate: NoAction, map: "fk_log_usuario")
 
   @@index([id_usuario], map: "idx_log_usuario")
+}
+
+model tb_certificacao {
+  id_certificacao Int        @id @default(autoincrement())
+  id_usuario      Int
+  nome            String     // ex: "NR-10", "NR-35"
+  data_emissao    DateTime?  @db.Date
+  data_validade   DateTime?  @db.Date
+  arquivo_url     String?
+  criado_em       DateTime   @default(now()) @db.Timestamp(6)
+  tb_usuario      tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([id_usuario], map: "idx_certificacao_usuario")
+  @@index([data_validade], map: "idx_certificacao_validade")
 }

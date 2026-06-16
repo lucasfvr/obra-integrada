@@ -553,7 +553,8 @@ function KpiStripProprietario({ obras }) {
 }
 
 /** PAINEL PROPRIETÁRIO — LAYOUT SAAS PREMIUM */
-function PainelProprietario({ obras, onGoToObra, isReadOnly, onNovaObra }) {
+function PainelProprietario({ obras, onGoToObra, isReadOnly, onNovaObra, nrAlerts = [] }) {
+  const navigate = useNavigate();
   const hoje = new Date();
 
   // Cálculos reais
@@ -579,6 +580,17 @@ function PainelProprietario({ obras, onGoToObra, isReadOnly, onNovaObra }) {
 
   // Alertas dinâmicos
   const alertas = [];
+
+  // Alertas de NRs
+  nrAlerts.forEach(a => {
+    alertas.push({
+      titulo: `Conformidade NR pendente: ${a.nome_certificacao}`,
+      subtitulo: `${a.nome_usuario} (${a.matricula}) — ${a.status === 'vencido' ? 'Vencida' : 'Próxima do vencimento (' + new Date(a.data_validade).toLocaleDateString() + ')'}`,
+      tone: a.status === 'vencido' ? 'late' : 'warn',
+      onClick: () => navigate('/rh')
+    });
+  });
+
   obras.forEach(o => {
     const t = o.previsao_termino ? new Date(o.previsao_termino) : null;
     if (t && t < hoje && o.tb_status?.nome !== 'Concluída') {
@@ -1216,6 +1228,7 @@ export function DashboardDinamico({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [loadingPendentes, setLoadingPendentes] = useState(false);
   const [showNovaObra, setShowNovaObra] = useState(false);
+  const [nrAlerts, setNrAlerts] = useState([]);
 
   const roleAtual = currentUser?.role || role;
   const funcaoAtual = currentUser?.funcao || funcao;
@@ -1261,11 +1274,14 @@ export function DashboardDinamico({ currentUser }) {
        hasAuditPower
          ? (setLoadingPendentes(true), apiFetch(`${API_BASE_URL}/api/admin/metrics/pendentes`).then(r => r.json()).finally(() => setLoadingPendentes(false)).catch(() => [])) 
          : Promise.resolve([]),
-       !isPlatform ? apiFetch(`${API_BASE_URL}/api/operational/stats?userId=${userId}`).then(r => r.json()).catch(() => ({})) : Promise.resolve({})
+       !isPlatform ? apiFetch(`${API_BASE_URL}/api/operational/stats?userId=${userId}`).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
+       (roleAtual === 'PROPRIETARIO' || checkPerm(roleAtual, 'ver_rh'))
+         ? apiFetch(`${API_BASE_URL}/api/rh/alertas-nr`).then(r => r.json()).catch(() => [])
+         : Promise.resolve([])
     ];
 
     Promise.all(endpoints)
-      .then(([obrasData, tarefasData, usersData, metrics, clients, pendentesData, stats]) => {
+      .then(([obrasData, tarefasData, usersData, metrics, clients, pendentesData, stats, nrAlertsData]) => {
         // REQUISITO B: Suporte a dados paginados { data, meta } ou array simples
         setObras(Array.isArray(obrasData) ? obrasData : (obrasData.data || []));
         setTarefas(tarefasData);
@@ -1273,6 +1289,7 @@ export function DashboardDinamico({ currentUser }) {
         setAdminData({ metrics, clients });
         setPendentes(pendentesData);
         setOpStats(stats);
+        setNrAlerts(nrAlertsData || []);
         
         // Weather opcional
         if (obrasData[0]?.cidade) {
@@ -1335,7 +1352,7 @@ export function DashboardDinamico({ currentUser }) {
 
     switch (currentProfile) {
       case 'PROPRIETARIO':
-        return <PainelProprietario obras={obras} onGoToObra={goToObra} isReadOnly={isImpersonating} onNovaObra={() => setShowNovaObra(true)} />;
+        return <PainelProprietario obras={obras} onGoToObra={goToObra} isReadOnly={isImpersonating} onNovaObra={() => setShowNovaObra(true)} nrAlerts={nrAlerts} />;
       case 'RESPONSAVEL':
         return <PainelEngenheiro {...commonProps} pendentesAuditoria={pendentes} onAuditar={handleAuditar} loadingAuditoria={loadingPendentes} onNovaObra={() => setShowNovaObra(true)} />;
       case 'ADMIN_MASTER':

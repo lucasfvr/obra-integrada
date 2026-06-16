@@ -3,7 +3,7 @@ import {
   listarObras, criarObra, atualizarObra, deletarObra, getObraById,
   adicionarMembroEquipe, removerMembroEquipe, atualizarMembroEquipe,
   adicionarItemEstoque, removerItemEstoque, atualizarItemEstoque,
-  listarHistoricoEstoque, getOrgChart
+  listarHistoricoEstoque, getOrgChart, listarPapeis
 } from '../controllers/obraController.js';
 import { uploadDocumento, deletarDocumento } from '../controllers/documentoController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
@@ -60,5 +60,7 @@ router.delete(
   requireObraAccess('total'),
   deletarDocumento
 );
+
+router.get('/papeis', authMiddleware, listarPapeis);
 
 export default router;

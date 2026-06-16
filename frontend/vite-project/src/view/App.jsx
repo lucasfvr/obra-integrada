@@ -32,6 +32,7 @@ import { UnderConstruction } from "../components/common/UnderConstruction.jsx";
 import { PermissaoGuard } from "../components/Guards/PermissaoGuard.jsx";
 import MinhasObrasPage from "../pages/Obras/MinhasObrasPage.jsx";
 import GestaoRH from "../pages/Operational/GestaoRH.jsx";
+import { GestaoEquipe } from "../pages/Operational/GestaoEquipe.jsx";
 
 // Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
 // e fornecer callbacks que o Header e o form precisam pra navegar.
@@ -211,7 +212,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <PermissaoGuard permissao="ver_equipe" redirectToRestricted>
-                    <UnderConstruction titulo="Equipe e Organograma" />
+                    <GestaoEquipe />
                   </PermissaoGuard>
                 </ProtectedRoute>
               }

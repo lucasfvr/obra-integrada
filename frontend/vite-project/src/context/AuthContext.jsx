@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import API_BASE_URL from '../config/api.js';
 import {
   hasPermissao as _hasPermissao,
   hasRole as _hasRole,
@@ -128,20 +129,52 @@ export function AuthProvider({ children }) {
     window.location.href = '/';
   };
 
-  const impersonate = (targetUser) => {
-    if (!podeImpersonar(user?.role)) return;
-    if (!originalAdminUser) {
-      localStorage.setItem('originalAdminUser', JSON.stringify(user));
-      setOriginalAdminUser(user);
+  const impersonate = async (targetUser) => {
+    try {
+      if (!podeImpersonar(user?.role)) return false;
+      const res = await apiFetch(`${API_BASE_URL}/api/admin/impersonar/${targetUser.id_usuario}`, {
+        method: 'POST'
+      });
+      if (!res.ok) {
+        throw new Error('Erro ao impersonar no backend');
+      }
+      const data = await res.json();
+      
+      const adminToken = localStorage.getItem('obraToken') || sessionStorage.getItem('obraToken');
+      const remember = !!localStorage.getItem('obraToken');
+
+      if (!originalAdminUser) {
+        localStorage.setItem('originalAdminUser', JSON.stringify(user));
+        localStorage.setItem('originalAdminToken', adminToken);
+        setOriginalAdminUser(user);
+      }
+
+      if (remember) {
+        localStorage.setItem('obraToken', data.token);
+        localStorage.setItem('obraUser', JSON.stringify(data.user));
+      } else {
+        sessionStorage.setItem('obraToken', data.token);
+        sessionStorage.setItem('obraUser', JSON.stringify(data.user));
+      }
+
+      setUser(data.user);
+      return true;
+    } catch (e) {
+      console.error(e);
+      window.dispatchEvent(new CustomEvent('obra:toast', { detail: { type: 'error', title: 'Impersonação', message: 'Não foi possível iniciar a impersonação de forma segura.' } }));
+      return false;
     }
-    localStorage.setItem('obraUser', JSON.stringify(targetUser));
-    setUser(targetUser);
   };
 
   const revertImpersonation = () => {
-    if (!originalAdminUser) return;
+    const originalToken = localStorage.getItem('originalAdminToken');
+    if (!originalAdminUser || !originalToken) return;
+
+    localStorage.setItem('obraToken', originalToken);
     localStorage.setItem('obraUser', JSON.stringify(originalAdminUser));
+
     localStorage.removeItem('originalAdminUser');
+    localStorage.removeItem('originalAdminToken');
     setUser(originalAdminUser);
     setOriginalAdminUser(null);
   };

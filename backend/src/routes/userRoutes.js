@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser, forgotPassword, formularioCompleto, getAllUsers, updateUserRole, getUsuariosDisponiveis } from '../controllers/userController.js';
+import { registerUser, loginUser, forgotPassword, formularioCompleto, getAllUsers, updateUserRole, getUsuariosDisponiveis, getEquipeGlobal } from '../controllers/userController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireRole, requirePermissao } from '../middlewares/authorizationMiddleware.js';
 
@@ -15,6 +15,7 @@ router.get('/users/profile', authMiddleware, (req, res) => {
 });
 
 router.get('/usuarios-disponiveis', authMiddleware, getUsuariosDisponiveis);
+router.get('/equipe', authMiddleware, requirePermissao('ver_equipe'), getEquipeGlobal);
 
 // Operational / Super App routes
 import { getWorkerStats, getWeatherMock } from '../controllers/operationalController.js';
