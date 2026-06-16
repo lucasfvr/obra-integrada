@@ -1,15 +1,18 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireObraAccess, requirePermissao } from '../middlewares/authorizationMiddleware.js';
+import { criarUploadMiddleware, handleUploadError } from '../middlewares/uploadMiddleware.js';
 import {
   listarTarefas,
   criarTarefa,
   atualizarTarefa,
   atualizarStatusTarefa,
-  deletarTarefa
+  deletarTarefa,
+  adicionarComprovanteTarefa
 } from '../controllers/tarefaController.js';
 
 const router = express.Router();
+const uploadTarefa = criarUploadMiddleware('tarefa');
 
 // ─── ROTAS GLOBAIS (Não exigem :id da obra na URL) ───────────────────────────
 router.get(
@@ -24,6 +27,15 @@ router.patch(
   authMiddleware,
   requirePermissao('atualizar_status_tarefa'),
   atualizarStatusTarefa
+);
+
+router.post(
+  '/tarefas/:tarefaId/comprovante',
+  authMiddleware,
+  requirePermissao('atualizar_status_tarefa'),
+  uploadTarefa.single('foto'),
+  handleUploadError,
+  adicionarComprovanteTarefa
 );
 
 // Manter rotas específicas por obra para compatibilidade e organização
