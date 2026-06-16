@@ -285,6 +285,8 @@ model tb_tarefa {
   criado_em            DateTime            @default(now()) @db.Timestamp(6)
   /// 0 a 100
   percentual_concluido Int                 @default(0)
+  motivo_pausa         String?
+  foto_comprovante     String?
   tb_obra              tb_obra             @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
   tb_tarefa_usuario    tb_tarefa_usuario[]
 

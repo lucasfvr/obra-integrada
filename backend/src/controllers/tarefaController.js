@@ -5,6 +5,7 @@
  */
 
 import prisma from '../config/prisma.js';
+import { getPublicUrl } from '../config/storageService.js';
 
 /**
  * Cria uma nova tarefa vinculada a obra
@@ -68,7 +69,7 @@ export async function criarTarefa(req, res) {
 export async function atualizarStatusTarefa(req, res) {
   try {
     const { tarefaId } = req.params;
-    const { status, percentual_concluido } = req.body;
+    const { status, percentual_concluido, motivo_pausa, foto_comprovante } = req.body;
 
     const data = {};
     if (status) {
@@ -77,10 +78,27 @@ export async function atualizarStatusTarefa(req, res) {
         return res.status(400).json({ erro: 'Status invalido' });
       }
       data.status = status;
+
+      // Se iniciar, limpa motivo_pausa
+      if (status === 'EM_ANDAMENTO') {
+        data.motivo_pausa = null;
+      }
+      // Se concluir, força o progresso em 100%
+      if (status === 'CONCLUIDA') {
+        data.percentual_concluido = 100;
+      }
     }
 
     if (percentual_concluido !== undefined) {
       data.percentual_concluido = Number(percentual_concluido);
+    }
+
+    if (motivo_pausa !== undefined) {
+      data.motivo_pausa = motivo_pausa;
+    }
+
+    if (foto_comprovante !== undefined) {
+      data.foto_comprovante = foto_comprovante;
     }
 
     const tarefa = await prisma.tb_tarefa.update({
@@ -229,5 +247,37 @@ export async function listarTarefas(req, res) {
   } catch (error) {
     console.error('[TAREFA] Erro ao listar:', error);
     return res.status(500).json({ erro: 'Erro ao buscar tarefas' });
+  }
+}
+
+/**
+ * Anexa foto de comprovante de conclusão à tarefa
+ */
+export async function adicionarComprovanteTarefa(req, res) {
+  try {
+    const { tarefaId } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ erro: 'Nenhuma foto enviada' });
+    }
+
+    const fotoUrl = getPublicUrl(`tarefa/${req.file.filename}`);
+
+    const tarefa = await prisma.tb_tarefa.update({
+      where: { id_tarefa: Number(tarefaId) },
+      data: {
+        foto_comprovante: fotoUrl,
+        status: 'CONCLUIDA',
+        percentual_concluido: 100
+      }
+    });
+
+    return res.status(200).json({
+      mensagem: 'Comprovante técnico anexado com sucesso!',
+      tarefa
+    });
+  } catch (error) {
+    console.error('[TAREFA] Erro ao anexar comprovante:', error);
+    return res.status(500).json({ erro: 'Erro ao anexar comprovante técnico' });
   }
 }

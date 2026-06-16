@@ -209,12 +209,69 @@ function FinanceProgress({ obra }) {
 }
 
 /** UI: CARD DE TAREFA MOBILE (AJUDANTE/PEDREIRO) */
-function TaskMobileCard({ tarefa, onUpdate, isReadOnly }) {
+function TaskMobileCard({ tarefa, onUpdate, isReadOnly, apiFetch }) {
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [pauseReason, setPauseReason] = useState('Falta de Insumo / Material');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePlay = () => {
+    onUpdate(tarefa.id_tarefa, { status: 'EM_ANDAMENTO', percentual_concluido: 10 });
+  };
+
+  const handlePauseConfirm = () => {
+    onUpdate(tarefa.id_tarefa, { status: 'PENDENTE', motivo_pausa: pauseReason });
+    setShowPauseModal(false);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleCompleteConfirm = async () => {
+    if (!selectedFile) {
+      alert('Por favor, tire ou anexe uma foto comprobatória.');
+      return;
+    }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('foto', selectedFile);
+
+      const res = await apiFetch(`${API_BASE_URL}/api/tarefas/${tarefa.id_tarefa}/comprovante`, {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      });
+
+      if (!res.ok) {
+        throw new Error('Falha no upload do comprovante');
+      }
+
+      const data = await res.json();
+      onUpdate(tarefa.id_tarefa, {
+        status: 'CONCLUIDA',
+        percentual_concluido: 100,
+        foto_comprovante: data.tarefa.foto_comprovante
+      });
+      setShowCompleteModal(false);
+      setSelectedFile(null);
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao enviar comprovante.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 rounded-[2rem] p-6 shadow-sm flex flex-col gap-4">
+    <div className="bg-white dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 rounded-[2rem] p-6 shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all duration-300">
       <div className="flex justify-between items-start">
         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
-          tarefa.prioridade === 'ALTA' || tarefa.prioridade === 'URGENTE' ? 'bg-rose-100 text-rose-600' : 'bg-blue-100 text-blue-600'
+          tarefa.prioridade === 'ALTA' || tarefa.prioridade === 'URGENTE' ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
         }`}>
           {tarefa.prioridade}
         </span>
@@ -224,9 +281,28 @@ function TaskMobileCard({ tarefa, onUpdate, isReadOnly }) {
         <h4 className="text-lg font-black text-slate-900 dark:text-white leading-tight mb-1">{tarefa.titulo}</h4>
         <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{tarefa.descricao || 'Sem descrição'}</p>
       </div>
-      
-      {/* Progress for Pedreiro */}
-      {tarefa.onSlider && (
+
+      {tarefa.status === 'PENDENTE' && tarefa.motivo_pausa && (
+        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
+          <span>⚠️</span>
+          <div>
+            <p className="font-bold">Tarefa Pausada</p>
+            <p className="opacity-90">{tarefa.motivo_pausa}</p>
+          </div>
+        </div>
+      )}
+
+      {tarefa.status === 'CONCLUIDA' && tarefa.foto_comprovante && (
+        <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-gray-800">
+          <img 
+            src={tarefa.foto_comprovante.startsWith('http') ? tarefa.foto_comprovante : `${API_BASE_URL}${tarefa.foto_comprovante}`} 
+            alt="Comprovante de conclusão" 
+            className="w-full h-32 object-cover"
+          />
+        </div>
+      )}
+
+      {tarefa.onSlider && tarefa.status === 'EM_ANDAMENTO' && (
         <div className="mt-2">
           <div className="flex justify-between text-[10px] font-black text-indigo-600 mb-2 uppercase">
             <span>Progresso</span>
@@ -243,17 +319,171 @@ function TaskMobileCard({ tarefa, onUpdate, isReadOnly }) {
         </div>
       )}
 
-      {/* Done Button for Ajudante */}
-      {tarefa.simpleDone && (
-        <Button 
-          variant={tarefa.status === 'CONCLUIDA' ? 'outline' : 'primary'}
-          className="w-full py-6 rounded-2xl"
-          onClick={() => onUpdate(tarefa.id_tarefa, { status: 'CONCLUIDA', percentual_concluido: 100 })}
-          disabled={isReadOnly || tarefa.status === 'CONCLUIDA'}
-          startIcon={tarefa.status === 'CONCLUIDA' ? <IcoDone /> : null}
-        >
-          {tarefa.status === 'CONCLUIDA' ? 'TAREFA CONCLUÍDA' : 'FINALIZAR AGORA'}
-        </Button>
+      <div className="mt-4 flex gap-2">
+        {tarefa.status === 'PENDENTE' && (
+          <Button
+            variant="primary"
+            className="w-full py-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 border-none text-white flex items-center justify-center gap-1.5"
+            onClick={handlePlay}
+            disabled={isReadOnly}
+          >
+            <span>▶️</span> INICIAR SERVIÇO
+          </Button>
+        )}
+
+        {tarefa.status === 'EM_ANDAMENTO' && (
+          <>
+            <button
+              className="flex-1 py-3 px-4 rounded-xl text-xs font-bold border border-slate-200 dark:border-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all flex items-center justify-center gap-1.5"
+              onClick={() => setShowPauseModal(true)}
+              disabled={isReadOnly}
+            >
+              <span>⏸️</span> PAUSAR
+            </button>
+            <Button
+              variant="primary"
+              className="flex-1 py-3 px-4 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white border-none flex items-center justify-center gap-1.5"
+              onClick={() => setShowCompleteModal(true)}
+              disabled={isReadOnly}
+            >
+              <span>✔️</span> FINALIZAR
+            </Button>
+          </>
+        )}
+
+        {tarefa.status === 'CONCLUIDA' && (
+          <div className="w-full py-3.5 rounded-xl text-xs font-bold bg-emerald-100 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 flex items-center justify-center gap-1.5">
+            <span>✔️</span> TAREFA CONCLUÍDA
+          </div>
+        )}
+      </div>
+
+      {showPauseModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-scale-up text-left">
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Relatar Impedimento</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Selecione o motivo da pausa da tarefa.</p>
+            
+            <div className="space-y-3">
+              {[
+                'Falta de Insumo / Material',
+                'Quebra de Equipamento / Ferramenta',
+                'Clima Adverso (Chuva/Vento)',
+                'Equipe Incompleta / Falta de Mão de Obra',
+                'Outro motivo operacional'
+              ].map((reason) => (
+                <label 
+                  key={reason} 
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    pauseReason === reason 
+                      ? 'border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/20 dark:border-indigo-500' 
+                      : 'border-slate-200 dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-gray-900/40'
+                  }`}
+                >
+                  <input 
+                    type="radio" 
+                    name="pause_reason" 
+                    value={reason} 
+                    checked={pauseReason === reason}
+                    onChange={(e) => setPauseReason(e.target.value)}
+                    className="accent-indigo-600"
+                  />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{reason}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button 
+                type="button"
+                className="flex-1 py-3 border border-slate-200 dark:border-gray-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-all"
+                onClick={() => setShowPauseModal(false)}
+              >
+                CANCELAR
+              </button>
+              <button 
+                type="button"
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all"
+                onClick={handlePauseConfirm}
+              >
+                CONFIRMAR PAUSA
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCompleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-scale-up text-left">
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Comprovante de Conclusão</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">É obrigatório anexar uma foto do serviço concluído para comprovação técnica.</p>
+
+            <div className="border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 bg-slate-50/30 dark:bg-gray-900/10 hover:bg-slate-50/80 transition-all relative">
+              {selectedFile ? (
+                <div className="w-full flex flex-col items-center gap-2">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden border border-slate-200">
+                    <img 
+                      src={URL.createObjectURL(selectedFile)} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{selectedFile.name}</span>
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedFile(null)} 
+                    className="text-[10px] font-black text-rose-500 hover:underline uppercase"
+                  >
+                    Remover Foto
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span className="text-3xl">📷</span>
+                  <div className="text-center">
+                    <span className="text-xs font-bold text-indigo-600 hover:underline cursor-pointer block">Tirar ou selecionar foto</span>
+                    <span className="text-[10px] text-slate-400 mt-1 block">Suporta JPEG, PNG de até 5MB</span>
+                  </div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button 
+                type="button"
+                className="flex-1 py-3 border border-slate-200 dark:border-gray-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-all"
+                onClick={() => setShowCompleteModal(false)}
+                disabled={uploading}
+              >
+                CANCELAR
+              </button>
+              <button 
+                type="button"
+                className={`flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                  !selectedFile || uploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={handleCompleteConfirm}
+                disabled={!selectedFile || uploading}
+              >
+                {uploading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span>ENVIANDO...</span>
+                  </>
+                ) : (
+                  <span>CONFIRMAR & ENVIAR</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1145,32 +1375,231 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
   );
 }
 
-function PainelMestre({ isReadOnly, tarefas, onUpdateTarefa, stats, weather }) {
+function PainelMestre({ isReadOnly, tarefas, onUpdateTarefa, stats, weather, apiFetch, obras }) {
+  const [showDiarioModal, setShowDiarioModal] = useState(false);
+  const [selectedObra, setSelectedObra] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [foto, setFoto] = useState(null);
+  const [coords, setCoords] = useState(null);
+  const [loadingCoords, setLoadingCoords] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (obras && obras.length > 0) {
+      setSelectedObra(obras[0].id_obra);
+    }
+  }, [obras]);
+
+  const obterLocalizacao = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocalização não suportada pelo seu navegador.');
+      return;
+    }
+    setLoadingCoords(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+        setLoadingCoords(false);
+      },
+      (err) => {
+        console.error(err);
+        alert('Não foi possível obter a geolocalização automaticamente.');
+        setLoadingCoords(false);
+      }
+    );
+  };
+
+  const handleFotoChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFoto(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedObra) {
+      alert('Selecione uma obra.');
+      return;
+    }
+    if (!descricao || descricao.trim().length < 3) {
+      alert('Escreva uma descrição do progresso (mínimo 3 caracteres).');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('descricao', descricao.trim());
+      if (foto) {
+        formData.append('foto', foto);
+      }
+      if (coords) {
+        formData.append('latitude', coords.latitude);
+        formData.append('longitude', coords.longitude);
+      }
+      formData.append('status_auditoria', coords ? 'AUTOMATICO' : 'PENDENTE');
+
+      const res = await apiFetch(`${API_BASE_URL}/api/obras/${selectedObra}/diario`, {
+        method: 'POST',
+        body: formData,
+        headers: {}
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.erro || 'Erro ao registrar diário');
+      }
+
+      alert('Diário de Obra registrado com sucesso!');
+      setShowDiarioModal(false);
+      setDescricao('');
+      setFoto(null);
+      setCoords(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Erro ao registrar diário.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <>
       <PainelOperacionalHome stats={stats} weather={weather} isReadOnly={isReadOnly} />
       <Secao titulo="Gestão de Campo" grid="grid-cols-1 md:grid-cols-3">
-        <CardAcao icone={<IcoUsuarios />} titulo="Minha Equipe" descricao="Gestão de escala" cor="blue" />
-        <CardAcao icone={<IcoDiario />} titulo="Diário Digital" descricao="Registrar progresso" cor="amber" />
-        <CardAcao icone={<IcoAlerta />} titulo="Segurança (DDS)" descricao="Zero acidentes" cor="red" />
+        <CardAcao icone={<IcoUsuarios />} titulo="Minha Equipe" descricao="Gestão de escala" cor="blue" onClick={() => alert('Em breve: Escala de funcionários')} />
+        <CardAcao icone={<IcoDiario />} titulo="Diário Digital" descricao="Registrar progresso" cor="amber" onClick={() => setShowDiarioModal(true)} />
+        <CardAcao icone={<IcoAlerta />} titulo="Segurança (DDS)" descricao="Zero acidentes" cor="red" onClick={() => alert('Em breve: DDS digital e bloqueios')} />
       </Secao>
       <Secao titulo="Atividades de Hoje" grid="grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {tarefas.map(t => (
-          <TaskMobileCard key={t.id_tarefa} tarefa={{ ...t, onSlider: true }} onUpdate={onUpdateTarefa} isReadOnly={isReadOnly} />
-        ))}
+        {tarefas.length > 0 ? (
+          tarefas.map(t => (
+            <TaskMobileCard key={t.id_tarefa} tarefa={{ ...t, onSlider: true }} onUpdate={onUpdateTarefa} isReadOnly={isReadOnly} apiFetch={apiFetch} />
+          ))
+        ) : (
+          <p className="col-span-full text-slate-500 italic px-4">Sem tarefas de equipe para hoje.</p>
+        )}
       </Secao>
+
+      {showDiarioModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <form 
+            onSubmit={handleSubmit}
+            className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl animate-scale-up text-left space-y-4"
+          >
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Registrar Diário de Obra</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Preencha o RDO digital do dia.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 uppercase">Selecionar Obra</label>
+              <select
+                className="w-full bg-card border border-border rounded-xl p-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
+                value={selectedObra}
+                onChange={(e) => setSelectedObra(e.target.value)}
+                required
+              >
+                <option value="">Selecione...</option>
+                {obras.map(o => (
+                  <option key={o.id_obra} value={o.id_obra}>{o.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 uppercase">Relatório de Progresso</label>
+              <textarea
+                className="w-full bg-card border border-border rounded-xl p-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none h-28 resize-none"
+                placeholder="Descreva o que foi feito na obra hoje (materiais recebidos, serviços realizados, etc.)."
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 uppercase">Foto da Obra</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFotoChange}
+                  className="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-600 dark:file:bg-indigo-950/20 dark:file:text-indigo-400 hover:file:bg-indigo-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 uppercase">Auditoria Geográfica</label>
+                {coords ? (
+                  <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-xl p-2.5 text-xs text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+                    <span>📍 Coordenadas obtidas!</span>
+                    <button type="button" onClick={() => setCoords(null)} className="text-[10px] font-bold text-rose-500 hover:underline uppercase">Limpar</button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={obterLocalizacao}
+                    disabled={loadingCoords}
+                    className="w-full py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-gray-800 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/50 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    {loadingCoords ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <span>Obtendo GPS...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>📍</span> Obter GPS do Celular
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                className="flex-1 py-3 border border-slate-200 dark:border-gray-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-900/40 transition-all"
+                onClick={() => setShowDiarioModal(false)}
+                disabled={submitting}
+              >
+                CANCELAR
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span>REGISTRANDO...</span>
+                  </>
+                ) : (
+                  <span>SALVAR RDO</span>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   );
 }
 
-function PainelPedreiro({ tarefas, onUpdateTarefa, isReadOnly, stats, weather }) {
+function PainelPedreiro({ tarefas, onUpdateTarefa, isReadOnly, stats, weather, apiFetch }) {
   return (
     <>
       <PainelOperacionalHome stats={stats} weather={weather} isReadOnly={isReadOnly} />
       <Secao titulo="Atribuições Técnicas" grid="grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {tarefas.length > 0 ? (
           tarefas.map(t => (
-            <TaskMobileCard key={t.id_tarefa} tarefa={{ ...t, onSlider: true }} onUpdate={onUpdateTarefa} isReadOnly={isReadOnly} />
+            <TaskMobileCard key={t.id_tarefa} tarefa={{ ...t, onSlider: true }} onUpdate={onUpdateTarefa} isReadOnly={isReadOnly} apiFetch={apiFetch} />
           ))
         ) : (
           <p className="col-span-full text-slate-500 italic px-4">Aguardando atribuição do Mestre.</p>
@@ -1180,15 +1609,19 @@ function PainelPedreiro({ tarefas, onUpdateTarefa, isReadOnly, stats, weather })
   );
 }
 
-function PainelAjudante({ tarefas, onUpdateTarefa, isReadOnly, stats, weather }) {
+function PainelAjudante({ tarefas, onUpdateTarefa, isReadOnly, stats, weather, apiFetch }) {
   return (
     <>
       <PainelOperacionalHome stats={stats} weather={weather} isReadOnly={isReadOnly} />
       <Secao titulo="Tarefas do Dia" grid="grid-cols-1">
         <div className="max-w-md mx-auto w-full space-y-6">
-          {tarefas.map(t => (
-            <TaskMobileCard key={t.id_tarefa} tarefa={{ ...t, simpleDone: true }} onUpdate={onUpdateTarefa} isReadOnly={isReadOnly} />
-          ))}
+          {tarefas.length > 0 ? (
+            tarefas.map(t => (
+              <TaskMobileCard key={t.id_tarefa} tarefa={t} onUpdate={onUpdateTarefa} isReadOnly={isReadOnly} apiFetch={apiFetch} />
+            ))
+          ) : (
+            <p className="text-slate-500 italic px-4 text-center">Aguardando atribuição do Mestre.</p>
+          )}
         </div>
       </Secao>
     </>
@@ -1347,7 +1780,8 @@ export function DashboardDinamico({ currentUser }) {
       onGoToObra: goToObra,
       onUpdateTarefa: updateTarefa,
       stats: opStats,
-      weather 
+      weather,
+      apiFetch
     };
 
     switch (currentProfile) {
