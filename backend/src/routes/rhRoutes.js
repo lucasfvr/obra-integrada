@@ -5,7 +5,12 @@ import {
   listarFuncionarios,
   criarFuncionario,
   atualizarFuncionario,
-  inativarFuncionario
+  inativarFuncionario,
+  adicionarCertificacao,
+  listarCertificacoes,
+  atualizarCertificacao,
+  deletarCertificacao,
+  obterAlertasNR
 } from '../controllers/rhController.js';
 
 const router = express.Router();
@@ -37,6 +42,36 @@ router.patch('/:id/inativar',
   authMiddleware, 
   requirePermissao('gerenciar_usuarios'), 
   inativarFuncionario
+);
+
+// Rotas de Certificações (NRs)
+router.post('/usuarios/:id/certificacoes',
+  authMiddleware,
+  requirePermissao('gerenciar_usuarios'),
+  adicionarCertificacao
+);
+
+router.get('/usuarios/:id/certificacoes',
+  authMiddleware,
+  listarCertificacoes
+);
+
+router.patch('/usuarios/:id/certificacoes/:idCertificacao',
+  authMiddleware,
+  requirePermissao('gerenciar_usuarios'),
+  atualizarCertificacao
+);
+
+router.delete('/usuarios/:id/certificacoes/:idCertificacao',
+  authMiddleware,
+  requirePermissao('gerenciar_usuarios'),
+  deletarCertificacao
+);
+
+router.get('/alertas-nr',
+  authMiddleware,
+  requirePermissao('ver_rh'),
+  obterAlertasNR
 );
 
 export default router;

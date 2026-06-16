@@ -35,15 +35,30 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
     valor_dia: 0
   });
 
-  const papéis = [
-    { id: 1, nome: 'Membro' },
-    { id: 2, nome: 'Mestre' },
-    { id: 3, nome: 'Engenheiro' },
-    { id: 4, nome: 'Pedreiro' },
-    { id: 5, nome: 'Ajudante' },
-    { id: 6, nome: 'Eletricista' },
-    { id: 7, nome: 'Encanador' },
-  ];
+  const [papéis, setPapéis] = useState([
+    { id_papel: 1, nome: 'Membro' },
+    { id_papel: 2, nome: 'Mestre' },
+    { id_papel: 3, nome: 'Engenheiro' },
+    { id_papel: 4, nome: 'Pedreiro' },
+    { id_papel: 5, nome: 'Ajudante' },
+    { id_papel: 6, nome: 'Eletricista' },
+    { id_papel: 7, nome: 'Encanador' },
+  ]);
+
+  useEffect(() => {
+    apiFetch(`${API_BASE_URL}/api/papeis`)
+      .then(res => {
+        if (res.ok) return res.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          // Map id_papel to id for select compatibility
+          const formatted = data.map(p => ({ id: p.id_papel, nome: p.nome }));
+          setPapéis(formatted);
+        }
+      })
+      .catch(err => console.error('[OBRA] Erro ao buscar papeis:', err));
+  }, [apiFetch]);
 
   const fetchUsers = async () => {
     try {
@@ -71,7 +86,7 @@ export function ObraTeam({ team = [], manager, idObra, onRefresh }) {
     setEditingMember(member);
     setFormData({
       id_usuario: member.id_usuario,
-      id_papel: member.id_papel,
+      id_papel: member.id_papel || 1,
       valor_dia: Number(member.valor_dia || 0)
     });
     setShowModal(true);

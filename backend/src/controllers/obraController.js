@@ -590,3 +590,19 @@ export async function listarHistoricoEstoque(req, res) {
     return res.status(500).json({ erro: 'Erro ao buscar historico de estoque' });
   }
 }
+
+/**
+ * Lista todos os papéis profissionais disponíveis (tb_papel)
+ */
+export async function listarPapeis(req, res) {
+  try {
+    const papeis = await prisma.tb_papel.findMany({
+      orderBy: { nome: 'asc' }
+    });
+    return res.status(200).json(papeis);
+  } catch (error) {
+    console.error('[OBRA] Erro ao listar papeis:', error);
+    return res.status(500).json({ erro: 'Erro ao buscar papéis profissionais' });
+  }
+}
+

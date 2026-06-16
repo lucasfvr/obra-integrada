@@ -8,6 +8,23 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e es
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-06-16
+
+### Added
+- Contexto global de Toasts (`ToastContext.jsx`) e hook `useScrollLock.js` no frontend para gerenciar notificações e controle de rolagem de modais.
+- Nova rota `/clientes` mapeada no `App.jsx` renderizando um componente em desenvolvimento (`UnderConstruction`), resolvendo a quebra do menu lateral no redirecionamento.
+- Tabela `tb_log_auditoria` adicionada ao schema Prisma para persistência de logs de auditoria e operações críticas.
+
+### Changed
+- Padronização completa do design visual e de layout das páginas pós-login (`/dashboard`, `/obras`, `/obra/:id` e todas as suas abas operacionais, `/calendar`, `/documentos`, `/rh`, `/profile`) conforme a nova norma visual.
+- Substituição de estilizações customizadas legadas (como bordas de `rounded-2xl`, fundos `bg-slate-50` ou `bg-white`) por tokens universais e consistentes (`bg-card`, `border-border`, `rounded-xl`, `text-foreground`, `bg-muted/30`).
+- Header e sidebar simplificados (logo em imagem PNG removido e substituído por badge textual moderno "OI" / "Obra Integrada" para evitar inconsistência de assets).
+- Botão "+ Nova obra" unificado no cabeçalho geral da aplicação e protegido pela verificação de permissões do usuário (`criar_obra`).
+- Migração dos diálogos de confirmação nativos do navegador (`window.confirm`) para modais estilizados e amigáveis do `ToastContext`.
+- Permissões de rotas e tipagens declarativas ajustadas em `AppHeader` e `AppSidebar`.
+- Configuração de CORS aprimorada no backend (`server.js`) para suportar desenvolvimento local em qualquer porta do localhost.
+- Limpeza do arquivo `frontend/vite-project/.env.example` (remoção de variáveis de backend) e criação de `backend/.env.example` centralizando todas as variáveis necessárias.
+
 ## [1.0.0] — 2026-06-13
 
 ### Added
@@ -113,7 +130,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e es
 
 ---
 
-[Unreleased]: https://github.com/lucasfvr/obra-integrada/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/lucasfvr/obra-integrada/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/lucasfvr/obra-integrada/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/lucasfvr/obra-integrada/compare/v0.9.0...v1.0.0
 [0.9.0]: https://github.com/lucasfvr/obra-integrada/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/lucasfvr/obra-integrada/compare/v0.1.0...v0.8.0
 [0.1.0]: https://github.com/lucasfvr/obra-integrada/releases/tag/v0.1.0
