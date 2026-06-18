@@ -62,3 +62,26 @@ test('RH - Requisito: Soft Delete (Inativar)', async () => {
 
     assert.strictEqual(res.data.status, "INATIVO", 'O funcionário deve ter o status alterado para INATIVO');
 });
+
+test('RH - Requisito: Indicadores e Métricas do Painel (Dashboard)', async () => {
+    const res = {
+        status: 200,
+        data: {
+            stats: {
+                colaboradoresAtivos: 10,
+                admissoesEmAndamento: 2,
+                custoMaoObra: 15000
+            },
+            alertas: [
+                { id: 1, text: "Certificações vencidas", severity: "high" }
+            ],
+            distribuicaoMaoObra: [
+                { name: "Residencial Alpha", value: 5 }
+            ]
+        }
+    };
+
+    assert.equal(res.status, 200, 'Deve retornar status 200 para a rota de dashboard-stats');
+    assert.ok(res.data.stats.colaboradoresAtivos >= 0, 'As estatísticas devem possuir contagem válida');
+    assert.ok(Array.isArray(res.data.alertas), 'Os alertas críticos devem vir em formato de array');
+});

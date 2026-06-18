@@ -5,7 +5,8 @@
   "scripts": {
     "test": "poku",
     "test:coverage": "c8 poku",
-    "start": "nodemon --env-file .env ./src/server.js",
+    "start": "node ./src/server.js",
+    "dev": "nodemon --env-file .env ./src/server.js",
     "seed": "node --env-file .env ./src/prisma/seed.js",
     "postinstall": "prisma generate --schema=src/prisma/schema.prisma"
   },
@@ -20,7 +21,6 @@
   "description": "",
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",
-    "backend": "file:..",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "express": "^5.1.0",

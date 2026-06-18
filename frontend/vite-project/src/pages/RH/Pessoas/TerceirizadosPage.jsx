@@ -106,7 +106,7 @@ export default function TerceirizadosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
+    <div className="min-h-screen bg-muted/20 p-4 sm:p-6">
       <PageHeader
         icon={Building2}
         title="Terceirizados"
@@ -124,67 +124,81 @@ export default function TerceirizadosPage() {
           placeholder="Buscar por razão social ou CNPJ..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="flex-1 min-w-[200px] px-4 py-2 bg-card border border-border rounded-lg text-sm"
+          className="flex-1 min-w-[200px] px-4 py-2 bg-card border border-border rounded-lg text-sm placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
-        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent">
+        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent text-foreground transition-colors">
           <Filter size={16} /> Filtros
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent">
+        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent text-foreground transition-colors">
           <Download size={16} /> Exportar
         </button>
       </div>
 
       <div className="grid gap-4">
         {empresasFiltradas.map((empresa) => (
-          <div key={empresa.id} className="bg-card border border-border rounded-xl p-5 hover:shadow-md transition">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+          <div key={empresa.id} className="bg-card border border-border/80 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-2 border-b border-border/30">
               <div>
-                <h3 className="text-lg font-bold text-foreground">{empresa.razaoSocial}</h3>
-                <p className="text-sm text-muted-foreground font-mono">{empresa.cnpj}</p>
+                <h3 className="text-lg font-bold text-foreground tracking-tight">{empresa.razaoSocial}</h3>
+                <p className="text-xs text-muted-foreground/80 font-mono mt-0.5">CNPJ: {empresa.cnpj}</p>
               </div>
-              <StatusBadge status={empresa.status} />
+              <div className="flex items-center">
+                <StatusBadge status={empresa.status} />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <Users size={16} className="text-primary" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <Users size={18} />
+                </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Colaboradores</p>
-                  <p className="font-bold">{empresa.colaboradores.length}</p>
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Colaboradores</p>
+                  <p className="text-base font-bold text-foreground mt-0.5">{empresa.colaboradores.length}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone size={16} className="text-primary" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <Phone size={18} />
+                </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Responsável</p>
-                  <p className="text-sm font-medium">{empresa.responsavel}</p>
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Responsável</p>
+                  <p className="text-sm font-semibold text-foreground/90 mt-0.5">{empresa.responsavel}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar size={16} className="text-primary" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <Calendar size={18} />
+                </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Vigência</p>
-                  <p className="text-sm font-medium">{empresa.vigencia.split(' — ')[1]}</p>
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vigência</p>
+                  <p className="text-sm font-semibold text-foreground/90 mt-0.5">{empresa.vigencia.split(' — ')[1]}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <FileText size={16} className="text-primary" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <FileText size={18} />
+                </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Documentação</p>
-                  <p className="text-sm font-medium">
-                    {empresa.documentos.every((d) => d.status === 'Válido') ? 'Completa' : 'Parcial'}
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Documentação</p>
+                  <p className="text-sm font-semibold text-foreground/90 mt-0.5">
+                    {empresa.documentos.every((d) => d.status === 'Válido') ? (
+                      <span className="text-emerald-600 font-bold">✓ Completa</span>
+                    ) : (
+                      <span className="text-amber-600 font-bold">⚠ Parcial</span>
+                    )}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-border">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Mail size={12} /> {empresa.email}
+            <div className="flex items-center justify-between pt-4 border-t border-border">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                <Mail size={14} className="text-muted-foreground/70" /> {empresa.email}
               </div>
               <button
                 onClick={() => setEmpresaSelecionada(empresa)}
-                className="text-sm font-semibold text-primary hover:opacity-80"
+                className="text-sm font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
               >
                 Ver Detalhes →
               </button>

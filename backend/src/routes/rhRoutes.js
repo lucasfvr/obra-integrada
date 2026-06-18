@@ -10,7 +10,8 @@ import {
   listarCertificacoes,
   atualizarCertificacao,
   deletarCertificacao,
-  obterAlertasNR
+  obterAlertasNR,
+  obterDashboardStats
 } from '../controllers/rhController.js';
 
 const router = express.Router();
@@ -109,6 +110,12 @@ router.get('/alertas-nr',
   authMiddleware,
   requirePermissao('ver_rh'),
   obterAlertasNR
+);
+
+router.get('/dashboard-stats',
+  authMiddleware,
+  requirePermissao('ver_rh'),
+  obterDashboardStats
 );
 
 export default router;

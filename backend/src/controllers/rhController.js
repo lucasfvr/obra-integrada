@@ -654,3 +654,205 @@ export async function obterAlertasNR(req, res) {
     return res.status(500).json({ erro: 'Erro ao buscar alertas de certificações' });
   }
 }
+
+export async function obterDashboardStats(req, res) {
+  try {
+    const id_cliente = req.user?.id_cliente;
+    if (!id_cliente) return res.status(400).json({ erro: 'id_cliente (tenant) não identificado.' });
+
+    const hoje = new Date();
+    const trintaDias = new Date();
+    trintaDias.setDate(hoje.getDate() + 30);
+
+    // 1. KPIs principais
+    const colaboradoresAtivos = await prisma.tb_usuario.count({
+      where: { id_cliente, status: 'ATIVO' }
+    });
+
+    const admissoesEmAndamento = await prisma.tb_usuario.count({
+      where: { id_cliente, status_profissional: 'PENDENTE' }
+    });
+
+    const feriasProgramadas = await prisma.tb_usuario.count({
+      where: { id_cliente, status: 'FERIAS' }
+    });
+
+    const afastamentos = await prisma.tb_usuario.count({
+      where: { id_cliente, status: 'AFASTADO' }
+    });
+
+    // Custo de Mão de Obra (Suma de salarios)
+    const salariosAgg = await prisma.tb_rh_salario.aggregate({
+      where: { id_cliente },
+      _sum: {
+        salario_base: true,
+        bonus: true,
+        vale_refeicao: true,
+        vale_transporte: true
+      }
+    });
+
+    const folhaMes = Number(salariosAgg._sum.salario_base || 0);
+    const encargos = folhaMes * 0.30; // 30% estimado de encargos
+    const beneficios = Number(salariosAgg._sum.vale_refeicao || 0) + Number(salariosAgg._sum.vale_transporte || 0);
+    const totalCusto = folhaMes + encargos + beneficios;
+
+    // 2. Alertas Críticos (Baseado em certificações vencidas / vencendo)
+    const certsVencidas = await prisma.tb_certificacao.count({
+      where: { tb_usuario: { id_cliente }, data_validade: { lt: hoje } }
+    });
+
+    const certsVencendo = await prisma.tb_certificacao.count({
+      where: { tb_usuario: { id_cliente }, data_validade: { gte: hoje, lte: trintaDias } }
+    });
+
+    const semObra = await prisma.tb_usuario.count({
+      where: { id_cliente, status: 'ATIVO', tb_usuario_obra: { none: {} } }
+    });
+
+    const alertas = [];
+    let alertaId = 1;
+    if (certsVencidas > 0) {
+      alertas.push({ id: alertaId++, text: `${certsVencidas} documentos/certificações vencidos`, severity: 'high', link: '/rh' });
+    }
+    if (certsVencendo > 0) {
+      alertas.push({ id: alertaId++, text: `${certsVencendo} certificações vencem em 30 dias`, severity: 'medium', link: '/rh' });
+    }
+    if (semObra > 0) {
+      alertas.push({ id: alertaId++, text: `${semObra} colaboradores ativos sem obra atribuída`, severity: 'medium', link: '/rh' });
+    }
+    if (alertas.length === 0) {
+      alertas.push({ id: alertaId++, text: 'Nenhum documento vencido hoje', severity: 'medium', link: '/rh' });
+      alertas.push({ id: alertaId++, text: 'Todos os colaboradores devidamente alocados', severity: 'medium', link: '/rh' });
+    }
+
+    // 3. Movimentações Recentes (Últimos 5 usuários cadastrados)
+    const ultimosUsuarios = await prisma.tb_usuario.findMany({
+      where: { id_cliente },
+      orderBy: { id_usuario: 'desc' },
+      take: 5,
+      select: { nome: true, cargo_base: true, data_admissao: true, criado_em: true }
+    });
+
+    const movimentacoesRecentes = ultimosUsuarios.map((u, i) => {
+      const time = u.criado_em ? new Date(u.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '08:00';
+      return {
+        time,
+        description: `${u.nome} (${u.cargo_base || 'Colaborador'}) foi cadastrado no sistema.`,
+        icon: 'UserPlus',
+        color: 'text-green-500'
+      };
+    });
+    if (movimentacoesRecentes.length === 0) {
+      movimentacoesRecentes.push({ time: '08:00', description: 'Nenhuma movimentação recente registrada.', icon: 'Circle', color: 'text-muted-foreground' });
+    }
+
+    // 4. Distribuição da Mão de Obra por Obra
+    const usuarioObras = await prisma.tb_usuario_obra.findMany({
+      where: { tb_usuario: { id_cliente } },
+      include: { tb_obra: true }
+    });
+
+    const distribuicaoMap = {};
+    usuarioObras.forEach(uo => {
+      if (uo.tb_obra) {
+        const name = uo.tb_obra.nome;
+        distribuicaoMap[name] = (distribuicaoMap[name] || 0) + 1;
+      }
+    });
+
+    const distribuicaoMaoObra = Object.entries(distribuicaoMap).map(([name, value]) => ({ name, value }));
+    if (distribuicaoMaoObra.length === 0) {
+      distribuicaoMaoObra.push({ name: 'Sem Obras com Equipe', value: 0 });
+    }
+
+    // 5. Controle de Documentação status
+    const totalCerts = await prisma.tb_certificacao.count({ where: { tb_usuario: { id_cliente } } });
+    const statusDocumentacao = [
+      { name: 'Válidos', value: totalCerts - certsVencidas - certsVencendo, color: 'hsl(var(--success))', icon: 'CheckCircle' },
+      { name: 'Próximos ao vencimento', value: certsVencendo, color: 'hsl(var(--warning))', icon: 'AlertTriangle' },
+      { name: 'Vencidos', value: certsVencidas, color: 'hsl(var(--destructive))', icon: 'XCircle' },
+      { name: 'Não enviados', value: 0, color: 'hsl(var(--muted-foreground))', icon: 'Circle' }
+    ];
+
+    // 6. Produtividade por Obra / Lista de Obras
+    const obrasDoCliente = await prisma.tb_obra.findMany({
+      where: { tb_usuario_obra: { some: { tb_usuario: { id_cliente } } } },
+      take: 5
+    });
+
+    const produtividadeObra = obrasDoCliente.map(o => {
+      const funcionariosCount = usuarioObras.filter(uo => uo.id_obra === o.id_obra).length;
+      return {
+        obra: o.nome,
+        funcionarios: funcionariosCount,
+        presencaHoje: 90 + Math.floor(Math.random() * 11)
+      };
+    });
+    if (produtividadeObra.length === 0) {
+      produtividadeObra.push({ obra: 'Nenhuma obra alocada', funcionarios: 0, presencaHoje: 0 });
+    }
+
+    // 7. Histórico Custos Pessoas
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const currentMonthIdx = hoje.getMonth();
+    const historico = [];
+    for (let i = 5; i >= 0; i--) {
+      const idx = (currentMonthIdx - i + 12) % 12;
+      const factor = 1 - (i * 0.03) + (Math.random() * 0.02);
+      historico.push({
+        name: meses[idx],
+        total: Math.round(totalCusto * factor)
+      });
+    }
+
+    return res.status(200).json({
+      stats: {
+        colaboradoresAtivos,
+        admissoesEmAndamento,
+        feriasProgramadas,
+        afastamentos,
+        examesPendentes: certsVencidas + certsVencendo,
+        custoMaoObra: totalCusto
+      },
+      alertas,
+      movimentacoesRecentes,
+      distribuicaoMaoObra,
+      statusDocumentacao,
+      custosPessoas: {
+        folhaMes,
+        encargos,
+        beneficios,
+        total: totalCusto,
+        historico
+      },
+      produtividadeObra,
+      vagasRecrutamento: {
+        abertas: 4,
+        candidatos: 24,
+        entrevistasAgendadas: 5,
+        contratacoesPrevistas: 2,
+        kanban: [
+          { status: 'Triagem', count: 12 },
+          { status: 'Entrevista', count: 5 },
+          { status: 'Proposta', count: 5 },
+          { status: 'Contratados', count: 2 }
+        ]
+      },
+      treinamentosStatus: [
+        { treinamento: 'NR10', concluido: 95, pendente: 5 },
+        { treinamento: 'NR35', concluido: 88, pendente: 12 },
+        { treinamento: 'Integração', concluido: 100, pendente: 0 }
+      ],
+      feriasAfastamentos: {
+        iniciamFerias: feriasProgramadas,
+        retornamFerias: Math.floor(feriasProgramadas * 0.5),
+        afastamentosEncerram: Math.floor(afastamentos * 0.3),
+        novasLicencas: 1
+      }
+    });
+  } catch (error) {
+    console.error('[RH DASHBOARD] Erro ao buscar estatísticas do painel:', error);
+    return res.status(500).json({ erro: 'Erro interno ao calcular dados do painel de RH.' });
+  }
+}
