@@ -1,5 +1,10 @@
 import React from 'react';
 
+/**
+ * Badge de status com cores e estilos padronizados
+ * @param {Object} props - Props do componente
+ * @param {string} props.status - Status a ser exibido
+ */
 export function StatusBadge({ status }) {
   const map = {
     ATIVO: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
@@ -16,10 +21,6 @@ export function StatusBadge({ status }) {
     Pendente: 'bg-amber-500/15 text-amber-700',
     Ativa: 'bg-emerald-500/15 text-emerald-700',
     PENDENTE: 'bg-amber-500/15 text-amber-700',
-<<<<<<< HEAD
-    APROVADO: 'bg-emerald-500/15 text-emerald-700',
-    Pago: 'bg-emerald-500/15 text-emerald-700',
-=======
     APROVADO: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
     Pago: 'bg-emerald-500/15 text-emerald-700',
     ABERTA: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
@@ -34,7 +35,6 @@ export function StatusBadge({ status }) {
     REALIZADA: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
     CANCELADA: 'bg-red-500/15 text-red-700 dark:text-red-400',
     NO_SHOW: 'bg-orange-500/15 text-orange-700 dark:text-orange-400',
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
   };
   const cls = map[status] || 'bg-muted text-muted-foreground';
   return (
@@ -44,7 +44,30 @@ export function StatusBadge({ status }) {
   );
 }
 
-export function Field({ label, value, className = '' }) {
+/**
+ * Campo de formulário com label e valor
+ * @param {Object} props - Props do componente
+ * @param {string} props.label - Label do campo
+ * @param {*} props.value - Valor do campo
+ * @param {string} [props.className] - Classes adicionais
+ * @param {string} [props.type] - Tipo de campo (text, number, date, etc.)
+ */
+export function Field({ label, value, className = '', type = 'text' }) {
+  // Para tipos de input específicos, podemos retornar um input em vez de apenas exibir o valor
+  if (type !== 'text') {
+    return (
+      <div className={className}>
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">{label}</p>
+        <input
+          type={type}
+          value={value ?? ''}
+          readOnly
+          className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">{label}</p>
@@ -53,6 +76,13 @@ export function Field({ label, value, className = '' }) {
   );
 }
 
+/**
+ * Card de seção com título e conteúdo
+ * @param {Object} props - Props do componente
+ * @param {string} props.title - Título da seção
+ * @param {React.ReactNode} props.children - Conteúdo do card
+ * @param {string} [props.className] - Classes adicionais
+ */
 export function SectionCard({ title, children, className = '' }) {
   return (
     <div className={`bg-card border border-border rounded-xl p-5 shadow-sm ${className}`}>
@@ -64,17 +94,36 @@ export function SectionCard({ title, children, className = '' }) {
   );
 }
 
+/**
+ * Grade de informações com campos organizados
+ * @param {Object} props - Props do componente
+ * @param {Array<Object>} props.fields - Lista de campos para exibir
+ * @param {number} [props.cols=2] - Número de colunas (1, 2 ou 3)
+ */
 export function InfoGrid({ fields, cols = 2 }) {
   const gridClass = cols === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2';
   return (
     <div className={`grid ${gridClass} gap-4`}>
       {fields.map((f) => (
-        <Field key={f.label} label={f.label} value={f.value} className={f.span ? 'sm:col-span-2' : ''} />
+        <Field
+          key={f.label}
+          label={f.label}
+          value={f.value}
+          className={f.span ? 'sm:col-span-2' : ''}
+          type={f.type}
+        />
       ))}
     </div>
   );
 }
 
+/**
+ * Tabela de dados com cabeçalho e linhas
+ * @param {Object} props - Props do componente
+ * @param {Array<Object>} props.columns - Definição das colunas
+ * @param {Array<Object>} props.rows - Linhas de dados
+ * @param {string} [props.emptyMessage='Nenhum registro encontrado'] - Mensagem quando não há dados
+ */
 export function DataTable({ columns, rows, emptyMessage = 'Nenhum registro encontrado' }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
@@ -112,6 +161,14 @@ export function DataTable({ columns, rows, emptyMessage = 'Nenhum registro encon
   );
 }
 
+/**
+ * Cartão indicador com ícone, label e valor
+ * @param {Object} props - Props do componente
+ * @param {React.ComponentType} props.icon - Ícone a ser exibido
+ * @param {string} props.label - Label do indicador
+ * @param {string|number} props.value - Valor do indicador
+ * @param {'default'|'success'|'warning'|'danger'} [props.variant='default'] - Variante visual
+ */
 export function SideIndicatorCard({ icon: Icon, label, value, variant = 'default' }) {
   const variants = {
     default: 'border-border',
@@ -130,6 +187,13 @@ export function SideIndicatorCard({ icon: Icon, label, value, variant = 'default
   );
 }
 
+/**
+ * Item de linha do tempo com data, título e descrição
+ * @param {Object} props - Props do componente
+ * @param {string} props.date - Data do evento
+ * @param {string} props.title - Título do evento
+ * @param {string} [props.description] - Descrição do evento
+ */
 export function TimelineItem({ date, title, description }) {
   return (
     <div className="flex gap-4 pb-6 last:pb-0">
@@ -146,6 +210,14 @@ export function TimelineItem({ date, title, description }) {
   );
 }
 
+/**
+ * Cabeçalho de página com ícone, título, subtitle e ações
+ * @param {Object} props - Props do componente
+ * @param {React.ComponentType} props.icon - Ícone da página
+ * @param {string} props.title - Título da página
+ * @param {string} [props.subtitle] - Subtítulo da página
+ * @param {React.ReactNode} [props.actions] - Ações da página
+ */
 export function PageHeader({ icon: Icon, title, subtitle, actions }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

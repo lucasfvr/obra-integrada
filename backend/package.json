@@ -8,7 +8,9 @@
     "start": "node ./src/server.js",
     "dev": "nodemon --env-file .env ./src/server.js",
     "seed": "node --env-file .env ./src/prisma/seed.js",
-    "postinstall": "prisma generate --schema=src/prisma/schema.prisma"
+    "postinstall": "prisma generate --schema=src/prisma/schema.prisma",
+    "deploy-db": "node ./scripts/deploy-db.js",
+    "verify-db": "node ./scripts/deploy-db.js verify"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma",

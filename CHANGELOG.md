@@ -8,8 +8,6 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e es
 
 ## [Unreleased]
 
-<<<<<<< HEAD
-=======
 ### Added
 - Módulo de Recrutamento (Candidatos, Banco de Talentos e Entrevistas):
   - Backend: Modelagem e execução da migração Prisma schema criando as tabelas `tb_candidato`, `tb_talento` e `tb_entrevista` no banco de dados PostgreSQL (NeonDB).
@@ -24,8 +22,6 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e es
   - Frontend: Criação da página `VagasPage.jsx` para visualização premium de vagas em Grid de Cards, contendo estatísticas (Vagas Abertas, Pausadas, Fechadas), busca textual, filtros avançados (Status, Contrato e Obra), e modal interativo para criação e edição de vagas.
   - Frontend: Criação do menu de sub-navegação de recrutamento `RHRecrutamentoNav.jsx`.
   - Frontend: Integração com o `StatusBadge` de vagas (`ABERTA`, `PAUSADA`, `FECHADA`).
-
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 ## [1.1.0] — 2026-06-16
 
 ### Added

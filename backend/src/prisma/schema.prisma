@@ -118,13 +118,10 @@ model tb_obra {
   tb_usuario              tb_usuario?          @relation(fields: [id_usuario_responsavel], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra_usuario")
   tb_obra_cliente         tb_obra_cliente[]
   tb_requisicao           tb_requisicao[]
+  tb_rh_ponto_diaria      tb_rh_ponto_diaria[]
   tb_tarefa               tb_tarefa[]
   tb_usuario_obra         tb_usuario_obra[]
-  tb_rh_ponto_diaria      tb_rh_ponto_diaria[]
-<<<<<<< HEAD
-=======
   tb_vaga                 tb_vaga[]
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 
   @@index([id_usuario_responsavel], map: "idx_obra_usuario")
 }
@@ -174,8 +171,6 @@ model tb_usuario {
   id_usuario                   Int                       @id @default(autoincrement())
   nome                         String
   funcao                       String?
-  porte_empresa                String?
-  uso_plataforma               String?
   telefone                     String?
   email                        String?                   @unique
   username                     String?                   @unique
@@ -191,32 +186,34 @@ model tb_usuario {
   experiencias                 String?
   endereco                     String?
   cargo_base                   String?
-  cpf                          String?                   @unique
   cnpj                         String?                   @unique
-  razao_social                 String?
-  inscricao_estadual           String?
-  data_admissao                DateTime?                 @db.Date
-  matricula                    String?                   @unique
-  status                       String                    @default("ATIVO")
-  is_terceirizado              Boolean                   @default(false)
   cnpj_empreiteira             String?
-  razao_social_empreiteira     String?
-  tipo_vinculo                 String?
+  cpf                          String?                   @unique
+  data_admissao                DateTime?                 @db.Date
+  inscricao_estadual           String?
+  is_terceirizado              Boolean                   @default(false)
   lgpd_consentimento           Boolean                   @default(false)
+  matricula                    String?                   @unique
+  porte_empresa                String?
+  razao_social                 String?
+  razao_social_empreiteira     String?
+  status                       String                    @default("ATIVO")
+  tipo_vinculo                 String?
+  uso_plataforma               String?
+  tb_certificacao              tb_certificacao[]
   tb_diario_obra               tb_diario_obra[]
   tb_financeiro_obra           tb_financeiro_obra[]
+  tb_log_auditoria             tb_log_auditoria[]
   tb_movimentacao_estoque      tb_movimentacao_estoque[]
   tb_obra                      tb_obra[]
   tb_requisicao                tb_requisicao[]
+  tb_rh_conta_banco            tb_rh_conta_banco[]
+  tb_rh_ponto_diaria           tb_rh_ponto_diaria[]
+  tb_rh_residencial            tb_rh_residencial[]
+  tb_rh_salario                tb_rh_salario[]
   tb_tarefa_usuario            tb_tarefa_usuario[]
   tb_cliente                   tb_cliente?               @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_cliente")
   tb_usuario_obra              tb_usuario_obra[]
-  tb_log_auditoria             tb_log_auditoria[]
-  tb_certificacao              tb_certificacao[]
-  tb_rh_salario                tb_rh_salario[]
-  tb_rh_residencial            tb_rh_residencial[]
-  tb_rh_conta_banco            tb_rh_conta_banco[]
-  tb_rh_ponto_diaria           tb_rh_ponto_diaria[]
 }
 
 model tb_usuario_obra {
@@ -232,28 +229,25 @@ model tb_usuario_obra {
 }
 
 model tb_cliente {
-  id_cliente        Int               @id @default(autoincrement())
-  nome_razao        String
-  cpf_cnpj          String            @unique
-  telefone          String?
-  email             String?
-  criado_em         DateTime?         @default(now()) @db.Timestamp(6)
+  id_cliente         Int                  @id @default(autoincrement())
+  nome_razao         String
+  cpf_cnpj           String               @unique
+  telefone           String?
+  email              String?
+  criado_em          DateTime?            @default(now()) @db.Timestamp(6)
   /// ATIVO | INATIVO | TRIAL | SUSPENSO
-  status_assinatura String?           @default("ATIVO")
-  validade_plano    DateTime?         @db.Date
-  tb_obra_cliente   tb_obra_cliente[]
-  tb_usuario        tb_usuario[]
-  tb_rh_salario     tb_rh_salario[]
-  tb_rh_residencial tb_rh_residencial[]
-  tb_rh_conta_banco tb_rh_conta_banco[]
+  status_assinatura  String?              @default("ATIVO")
+  validade_plano     DateTime?            @db.Date
+  tb_candidato       tb_candidato[]
+  tb_entrevista      tb_entrevista[]
+  tb_obra_cliente    tb_obra_cliente[]
+  tb_rh_conta_banco  tb_rh_conta_banco[]
   tb_rh_ponto_diaria tb_rh_ponto_diaria[]
-<<<<<<< HEAD
-=======
-  tb_vaga           tb_vaga[]
-  tb_candidato      tb_candidato[]
-  tb_talento        tb_talento[]
-  tb_entrevista     tb_entrevista[]
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
+  tb_rh_residencial  tb_rh_residencial[]
+  tb_rh_salario      tb_rh_salario[]
+  tb_talento         tb_talento[]
+  tb_usuario         tb_usuario[]
+  tb_vaga            tb_vaga[]
 }
 
 model tb_obra_cliente {
@@ -310,8 +304,8 @@ model tb_tarefa {
   criado_em            DateTime            @default(now()) @db.Timestamp(6)
   /// 0 a 100
   percentual_concluido Int                 @default(0)
-  motivo_pausa         String?
   foto_comprovante     String?
+  motivo_pausa         String?
   tb_obra              tb_obra             @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
   tb_tarefa_usuario    tb_tarefa_usuario[]
 
@@ -359,14 +353,14 @@ model tb_financeiro_obra {
 }
 
 model tb_log_auditoria {
-  id_log      Int         @id @default(autoincrement())
-  id_usuario  Int?
-  acao        String
-  target_id   Int?
-  detalhes    String?
-  ip_address  String?
-  criado_em   DateTime    @default(now()) @db.Timestamp(6)
-  tb_usuario  tb_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull, onUpdate: NoAction, map: "fk_log_usuario")
+  id_log     Int         @id @default(autoincrement())
+  id_usuario Int?
+  acao       String
+  target_id  Int?
+  detalhes   String?
+  ip_address String?
+  criado_em  DateTime    @default(now()) @db.Timestamp(6)
+  tb_usuario tb_usuario? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: NoAction, map: "fk_log_usuario")
 
   @@index([id_usuario], map: "idx_log_usuario")
 }
@@ -374,7 +368,7 @@ model tb_log_auditoria {
 model tb_certificacao {
   id_certificacao Int        @id @default(autoincrement())
   id_usuario      Int
-  nome            String     // ex: "NR-10", "NR-35"
+  nome            String
   data_emissao    DateTime?  @db.Date
   data_validade   DateTime?  @db.Date
   arquivo_url     String?
@@ -387,22 +381,22 @@ model tb_certificacao {
 
 /// RH Avançado: Gestão de Salários (Multi-Tenant)
 model tb_rh_salario {
-  id_salario     Int        @id @default(autoincrement())
-  id_cliente     Int        /// Isolamento Multi-Tenant (CRÍTICO)
-  id_usuario     Int
-  salario_base   Decimal    @db.Decimal(12, 2)
-  bonus          Decimal    @default(0) @db.Decimal(12, 2)
-  desconto       Decimal    @default(0) @db.Decimal(12, 2)
-  vale_refeicao  Decimal    @default(0) @db.Decimal(10, 2)
-  vale_transporte Decimal   @default(0) @db.Decimal(10, 2)
-  data_inicio    DateTime   @db.Date
-  data_fim       DateTime?  @db.Date
-  observacoes    String?
-  criado_em      DateTime   @default(now()) @db.Timestamp(6)
-  atualizado_em  DateTime   @default(now()) @updatedAt @db.Timestamp(6)
-  
-  tb_cliente     tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_salario_cliente")
-  tb_usuario     tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_salario_usuario")
+  id_salario      Int        @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente      Int
+  id_usuario      Int
+  salario_base    Decimal    @db.Decimal(12, 2)
+  bonus           Decimal    @default(0) @db.Decimal(12, 2)
+  desconto        Decimal    @default(0) @db.Decimal(12, 2)
+  vale_refeicao   Decimal    @default(0) @db.Decimal(10, 2)
+  vale_transporte Decimal    @default(0) @db.Decimal(10, 2)
+  data_inicio     DateTime   @db.Date
+  data_fim        DateTime?  @db.Date
+  observacoes     String?
+  criado_em       DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em   DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  tb_cliente      tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_salario_cliente")
+  tb_usuario      tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_salario_usuario")
 
   @@index([id_cliente], map: "idx_rh_salario_cliente")
   @@index([id_usuario], map: "idx_rh_salario_usuario")
@@ -411,24 +405,24 @@ model tb_rh_salario {
 
 /// RH Avançado: Dados Residenciais (Multi-Tenant)
 model tb_rh_residencial {
-  id_residencial Int        @id @default(autoincrement())
-  id_cliente     Int        /// Isolamento Multi-Tenant (CRÍTICO)
-  id_usuario     Int
-  logradouro     String
-  numero         String
-  complemento    String?
-  bairro         String
-  cidade         String
-  estado         String     @db.Char(2)
-  cep            String
+  id_residencial   Int        @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente       Int
+  id_usuario       Int
+  logradouro       String
+  numero           String
+  complemento      String?
+  bairro           String
+  cidade           String
+  estado           String     @db.Char(2)
+  cep              String
   ponto_referencia String?
-  telefone       String?
-  email_pessoal  String?
-  criado_em      DateTime   @default(now()) @db.Timestamp(6)
-  atualizado_em  DateTime   @default(now()) @updatedAt @db.Timestamp(6)
-
-  tb_cliente     tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_residencial_cliente")
-  tb_usuario     tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_residencial_usuario")
+  telefone         String?
+  email_pessoal    String?
+  criado_em        DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em    DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  tb_cliente       tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_residencial_cliente")
+  tb_usuario       tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_residencial_usuario")
 
   @@index([id_cliente], map: "idx_rh_residencial_cliente")
   @@index([id_usuario], map: "idx_rh_residencial_usuario")
@@ -438,10 +432,13 @@ model tb_rh_residencial {
 /// RH Avançado: Contas Bancárias para Pagamento (Multi-Tenant)
 model tb_rh_conta_banco {
   id_conta_banco Int        @id @default(autoincrement())
-  id_cliente     Int        /// Isolamento Multi-Tenant (CRÍTICO)
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente     Int
   id_usuario     Int
-  banco          String     /// ex: "Itaú", "Bradesco", "Caixa"
-  tipo_conta     String     /// "CORRENTE" | "POUPANÇA"
+  /// ex: "Itaú", "Bradesco", "Caixa"
+  banco          String
+  /// "CORRENTE" | "POUPANÇA"
+  tipo_conta     String
   agencia        String
   numero_conta   String
   digito_conta   String?
@@ -451,7 +448,6 @@ model tb_rh_conta_banco {
   ativo          Boolean    @default(true)
   criado_em      DateTime   @default(now()) @db.Timestamp(6)
   atualizado_em  DateTime   @default(now()) @updatedAt @db.Timestamp(6)
-
   tb_cliente     tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_conta_banco_cliente")
   tb_usuario     tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_conta_banco_usuario")
 
@@ -462,24 +458,26 @@ model tb_rh_conta_banco {
 
 /// RH Avançado: Folha de Ponto / Diária (Multi-Tenant)
 model tb_rh_ponto_diaria {
-  id_ponto_diaria Int        @id @default(autoincrement())
-  id_cliente      Int        /// Isolamento Multi-Tenant (CRÍTICO)
-  id_usuario      Int
-  id_obra         Int?       /// Obra onde a diária foi trabalhada
-  data_ponto      DateTime   @db.Date
-  hora_entrada    DateTime?  @db.Timestamp(6)
-  hora_saida      DateTime?  @db.Timestamp(6)
-  horas_trabalhadas Decimal  @default(0) @db.Decimal(5, 2)
-  horas_extras    Decimal    @default(0) @db.Decimal(5, 2)
-  valor_diaria    Decimal    @db.Decimal(10, 2)
-  status          String     @default("PENDENTE") /// "PENDENTE" | "APROVADO" | "REJEITADO"
-  observacoes     String?
-  criado_em       DateTime   @default(now()) @db.Timestamp(6)
-  atualizado_em   DateTime   @default(now()) @updatedAt @db.Timestamp(6)
-
-  tb_cliente      tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_ponto_cliente")
-  tb_usuario      tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_ponto_usuario")
-  tb_obra         tb_obra?   @relation(fields: [id_obra], references: [id_obra], onDelete: SetNull, map: "fk_rh_ponto_obra")
+  id_ponto_diaria   Int        @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente        Int
+  id_usuario        Int
+  /// Obra onde a diária foi trabalhada
+  id_obra           Int?
+  data_ponto        DateTime   @db.Date
+  hora_entrada      DateTime?  @db.Timestamp(6)
+  hora_saida        DateTime?  @db.Timestamp(6)
+  horas_trabalhadas Decimal    @default(0) @db.Decimal(5, 2)
+  horas_extras      Decimal    @default(0) @db.Decimal(5, 2)
+  valor_diaria      Decimal    @db.Decimal(10, 2)
+  /// "PENDENTE" | "APROVADO" | "REJEITADO"
+  status            String     @default("PENDENTE")
+  observacoes       String?
+  criado_em         DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em     DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  tb_cliente        tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_ponto_cliente")
+  tb_obra           tb_obra?   @relation(fields: [id_obra], references: [id_obra], map: "fk_rh_ponto_obra")
+  tb_usuario        tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_ponto_usuario")
 
   @@index([id_cliente], map: "idx_rh_ponto_cliente")
   @@index([id_usuario], map: "idx_rh_ponto_usuario")
@@ -487,27 +485,25 @@ model tb_rh_ponto_diaria {
   @@index([id_obra], map: "idx_rh_ponto_obra")
   @@index([data_ponto], map: "idx_rh_ponto_data")
 }
-<<<<<<< HEAD
-=======
 
 /// RH Recrutamento: Vagas de Emprego (Multi-Tenant)
 model tb_vaga {
-  id_vaga       Int       @id @default(autoincrement())
-  id_cliente    Int       /// Isolamento Multi-Tenant (CRÍTICO)
+  id_vaga       Int             @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente    Int
   titulo        String
   descricao     String?
   requisitos    String?
-  salario       Decimal?  @db.Decimal(12, 2)
-  tipo_contrato String?   // "CLT" | "PJ" | "TEMPORARIO" | "DIARISTA"
-  status        String    @default("ABERTA") // "ABERTA" | "PAUSADA" | "FECHADA"
-  id_obra       Int?      // Opcional: vaga vinculada a uma obra específica
-  criado_em     DateTime  @default(now()) @db.Timestamp(6)
-  atualizado_em DateTime  @default(now()) @updatedAt @db.Timestamp(6)
-
-  tb_cliente    tb_cliente    @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_vaga_cliente")
-  tb_obra       tb_obra?      @relation(fields: [id_obra], references: [id_obra], onDelete: SetNull, map: "fk_vaga_obra")
+  salario       Decimal?        @db.Decimal(12, 2)
+  tipo_contrato String?
+  status        String          @default("ABERTA")
+  id_obra       Int?
+  criado_em     DateTime        @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime        @default(now()) @updatedAt @db.Timestamp(6)
   tb_candidato  tb_candidato[]
   tb_entrevista tb_entrevista[]
+  tb_cliente    tb_cliente      @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_vaga_cliente")
+  tb_obra       tb_obra?        @relation(fields: [id_obra], references: [id_obra], map: "fk_vaga_obra")
 
   @@index([id_cliente], map: "idx_vaga_cliente")
   @@index([id_obra], map: "idx_vaga_obra")
@@ -515,23 +511,26 @@ model tb_vaga {
 
 /// RH Recrutamento: Candidatos (Multi-Tenant)
 model tb_candidato {
-  id_candidato  Int       @id @default(autoincrement())
-  id_cliente    Int       /// Isolamento Multi-Tenant (CRÍTICO)
-  id_vaga       Int?      /// Vaga à qual o candidato está vinculado (opcional)
+  id_candidato  Int             @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente    Int
+  /// Vaga à qual o candidato está vinculado (opcional)
+  id_vaga       Int?
   nome          String
   email         String?
   telefone      String?
   cpf           String?
   linkedin_url  String?
-  curriculo_url String?   /// URL do currículo armazenado (upload futuro)
-  fonte         String?   /// "INDICACAO" | "LINKEDIN" | "SITE" | "WALK_IN" | "OUTRO"
-  status        String    @default("NOVO") // "NOVO" | "EM_ANALISE" | "ENTREVISTA" | "APROVADO" | "REPROVADO" | "DESISTIU"
+  /// URL do currículo armazenado (upload futuro)
+  curriculo_url String?
+  /// "INDICACAO" | "LINKEDIN" | "SITE" | "WALK_IN" | "OUTRO"
+  fonte         String?
+  status        String          @default("NOVO")
   observacoes   String?
-  criado_em     DateTime  @default(now()) @db.Timestamp(6)
-  atualizado_em DateTime  @default(now()) @updatedAt @db.Timestamp(6)
-
-  tb_cliente    tb_cliente    @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_candidato_cliente")
-  tb_vaga       tb_vaga?      @relation(fields: [id_vaga], references: [id_vaga], onDelete: SetNull, map: "fk_candidato_vaga")
+  criado_em     DateTime        @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime        @default(now()) @updatedAt @db.Timestamp(6)
+  tb_cliente    tb_cliente      @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_candidato_cliente")
+  tb_vaga       tb_vaga?        @relation(fields: [id_vaga], references: [id_vaga], map: "fk_candidato_vaga")
   tb_entrevista tb_entrevista[]
 
   @@index([id_cliente], map: "idx_candidato_cliente")
@@ -541,25 +540,28 @@ model tb_candidato {
 
 /// RH Recrutamento: Banco de Talentos (Multi-Tenant)
 model tb_talento {
-  id_talento    Int       @id @default(autoincrement())
-  id_cliente    Int       /// Isolamento Multi-Tenant (CRÍTICO)
-  nome          String
-  email         String?
-  telefone      String?
-  cpf           String?
-  linkedin_url  String?
-  curriculo_url String?
-  cargo_desejado String?
-  tipo_contrato  String?   /// "CLT" | "PJ" | "TEMPORARIO" | "DIARISTA"
-  pretensao_salarial Decimal? @db.Decimal(12, 2)
-  disponibilidade    String?  /// "IMEDIATA" | "15_DIAS" | "30_DIAS" | "60_DIAS"
-  habilidades        String?  /// Texto livre com skills
+  id_talento         Int        @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente         Int
+  nome               String
+  email              String?
+  telefone           String?
+  cpf                String?
+  linkedin_url       String?
+  curriculo_url      String?
+  cargo_desejado     String?
+  /// "CLT" | "PJ" | "TEMPORARIO" | "DIARISTA"
+  tipo_contrato      String?
+  pretensao_salarial Decimal?   @db.Decimal(12, 2)
+  /// "IMEDIATA" | "15_DIAS" | "30_DIAS" | "60_DIAS"
+  disponibilidade    String?
+  /// Texto livre com skills
+  habilidades        String?
   observacoes        String?
-  ativo              Boolean  @default(true)
-  criado_em          DateTime @default(now()) @db.Timestamp(6)
-  atualizado_em      DateTime @default(now()) @updatedAt @db.Timestamp(6)
-
-  tb_cliente    tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_talento_cliente")
+  ativo              Boolean    @default(true)
+  criado_em          DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em      DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  tb_cliente         tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_talento_cliente")
 
   @@index([id_cliente], map: "idx_talento_cliente")
   @@index([id_cliente, ativo], map: "idx_talento_cliente_ativo")
@@ -567,28 +569,31 @@ model tb_talento {
 
 /// RH Recrutamento: Entrevistas (Multi-Tenant)
 model tb_entrevista {
-  id_entrevista    Int       @id @default(autoincrement())
-  id_cliente       Int       /// Isolamento Multi-Tenant (CRÍTICO)
-  id_candidato     Int
-  id_vaga          Int?
-  entrevistador    String?   /// Nome do entrevistador (texto livre por ora)
-  tipo             String    @default("ONLINE") // "ONLINE" | "PRESENCIAL" | "TECNICA" | "RH"
-  status           String    @default("AGENDADA") // "AGENDADA" | "REALIZADA" | "CANCELADA" | "NO_SHOW"
-  data_hora        DateTime  @db.Timestamp(6)
-  duracao_minutos  Int?      @default(60)
-  local_ou_link    String?   /// Endereço físico ou link da reunião
-  feedback         String?   /// Parecer do entrevistador após a entrevista
-  nota             Int?      /// Avaliação de 1 a 5
-  criado_em        DateTime  @default(now()) @db.Timestamp(6)
-  atualizado_em    DateTime  @default(now()) @updatedAt @db.Timestamp(6)
-
-  tb_cliente    tb_cliente   @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_entrevista_cliente")
-  tb_candidato  tb_candidato @relation(fields: [id_candidato], references: [id_candidato], onDelete: Cascade, map: "fk_entrevista_candidato")
-  tb_vaga       tb_vaga?     @relation(fields: [id_vaga], references: [id_vaga], onDelete: SetNull, map: "fk_entrevista_vaga")
+  id_entrevista   Int          @id @default(autoincrement())
+  /// Isolamento Multi-Tenant (CRÍTICO)
+  id_cliente      Int
+  id_candidato    Int
+  id_vaga         Int?
+  /// Nome do entrevistador (texto livre por ora)
+  entrevistador   String?
+  tipo            String       @default("ONLINE")
+  status          String       @default("AGENDADA")
+  data_hora       DateTime     @db.Timestamp(6)
+  duracao_minutos Int?         @default(60)
+  /// Endereço físico ou link da reunião
+  local_ou_link   String?
+  /// Parecer do entrevistador após a entrevista
+  feedback        String?
+  /// Avaliação de 1 a 5
+  nota            Int?
+  criado_em       DateTime     @default(now()) @db.Timestamp(6)
+  atualizado_em   DateTime     @default(now()) @updatedAt @db.Timestamp(6)
+  tb_candidato    tb_candidato @relation(fields: [id_candidato], references: [id_candidato], onDelete: Cascade, map: "fk_entrevista_candidato")
+  tb_cliente      tb_cliente   @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_entrevista_cliente")
+  tb_vaga         tb_vaga?     @relation(fields: [id_vaga], references: [id_vaga], map: "fk_entrevista_vaga")
 
   @@index([id_cliente], map: "idx_entrevista_cliente")
   @@index([id_candidato], map: "idx_entrevista_candidato")
   @@index([id_vaga], map: "idx_entrevista_vaga")
   @@index([id_cliente, data_hora], map: "idx_entrevista_cliente_data")
 }
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f

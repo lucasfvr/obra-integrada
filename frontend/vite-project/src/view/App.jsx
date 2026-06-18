@@ -46,13 +46,10 @@ import CargosPage from "../pages/RH/Pessoas/CargosPage.jsx";
 import TransferenciasPage from "../pages/RH/Pessoas/TransferenciasPage.jsx";
 import HistoricoPage from "../pages/RH/Pessoas/HistoricoPage.jsx";
 import AniversariantesPage from "../pages/RH/Pessoas/AniversariantesPage.jsx";
-<<<<<<< HEAD
-=======
 import VagasPage from "../pages/RH/Recrutamento/VagasPage.jsx";
 import CandidatosPage from "../pages/RH/Recrutamento/CandidatosPage.jsx";
 import BancoTalentosPage from "../pages/RH/Recrutamento/BancoTalentosPage.jsx";
 import EntrevistasPage from "../pages/RH/Recrutamento/EntrevistasPage.jsx";
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 
 // Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
 // e fornecer callbacks que o Header e o form precisam pra navegar.
@@ -115,6 +112,15 @@ function App() {
     setRegisterModalOpen(false);
     setFormTempData({ id, data });
   };
+
+  // Helper function to wrap RH routes with common protection
+  const RHRoute = ({ permissao = 'ver_rh', children }) => (
+    <ProtectedRoute>
+      <PermissaoGuard permissao={permissao} redirectToRestricted>
+        {children}
+      </PermissaoGuard>
+    </ProtectedRoute>
+  );
 
   return (
     <AppWrapper>
@@ -290,59 +296,52 @@ function App() {
 
           {/* RH Layout Routes */}
           <Route element={<RHLayout />}>
-            <Route path="/rh-dashboard" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh" redirectToRestricted><RHDashboard /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh-avancado" element={<ProtectedRoute><PermissaoGuard permissao="gerenciar_usuarios" redirectToRestricted><GestaoRHAvancado /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/colaboradores" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><ColaboradoresPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/colaboradores/:id" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><ColaboradorPerfilPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/terceirizados" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><TerceirizadosPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/equipes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><EquipesPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/organograma" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><OrganogramaPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/cargos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><CargosPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/transferencias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><TransferenciasPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/historico-movimentacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><HistoricoPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/aniversariantes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><AniversariantesPage /></PermissaoGuard></ProtectedRoute>} />
-<<<<<<< HEAD
-            <Route path="/rh/vagas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Vagas" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/candidatos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Candidatos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/banco-talentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Banco de Talentos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/entrevistas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Entrevistas" /></PermissaoGuard></ProtectedRoute>} />
-=======
-            <Route path="/rh/vagas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><VagasPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/candidatos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><CandidatosPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/banco-talentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><BancoTalentosPage /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/entrevistas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><EntrevistasPage /></PermissaoGuard></ProtectedRoute>} />
->>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
-            <Route path="/rh/contratacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Contratações" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/documentacao" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Documentação" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/assinaturas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Assinaturas" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/integracao" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Integração" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/ponto" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Ponto" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/escalas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Escalas" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/banco-horas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Banco de Horas" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/ocorrencias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Ocorrências" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/treinamentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Treinamentos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/certificacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Certificações" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/avaliacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Avaliações" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/carreira" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Carreira" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/aso" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="ASO" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/exames" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Exames" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/epis" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="EPIs" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/nr10" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="NR10" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/nr35" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="NR35" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/alertas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Alertas" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/beneficios" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Benefícios" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/ferias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Férias" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/licencas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Licenças" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/afastamentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Afastamentos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/folha-pagamento" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Folha de Pagamento" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/holerites" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Holerites" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/encargos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Encargos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/resumos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Resumos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/equipes-obra" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Equipes por Obra" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/movimentacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Movimentações" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/custos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Custos" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/historico" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Histórico" /></PermissaoGuard></ProtectedRoute>} />
-            <Route path="/rh/relatorios" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Relatórios" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh-dashboard" element={<RHRoute><RHDashboard /></RHRoute>} />
+            <Route path="/rh-avancado" element={<RHRoute permissao="gerenciar_usuarios"><GestaoRHAvancado /></RHRoute>} />
+            <Route path="/rh/colaboradores" element={<RHRoute><ColaboradoresPage /></RHRoute>} />
+            <Route path="/rh/colaboradores/:id" element={<RHRoute><ColaboradorPerfilPage /></RHRoute>} />
+            <Route path="/rh/terceirizados" element={<RHRoute><TerceirizadosPage /></RHRoute>} />
+            <Route path="/rh/equipes" element={<RHRoute><EquipesPage /></RHRoute>} />
+            <Route path="/rh/organograma" element={<RHRoute><OrganogramaPage /></RHRoute>} />
+            <Route path="/rh/cargos" element={<RHRoute><CargosPage /></RHRoute>} />
+            <Route path="/rh/transferencias" element={<RHRoute><TransferenciasPage /></RHRoute>} />
+            <Route path="/rh/historico-movimentacoes" element={<RHRoute><HistoricoPage /></RHRoute>} />
+            <Route path="/rh/aniversariantes" element={<RHRoute><AniversariantesPage /></RHRoute>} />
+            <Route path="/rh/vagas" element={<RHRoute><VagasPage /></RHRoute>} />
+            <Route path="/rh/candidatos" element={<RHRoute><CandidatosPage /></RHRoute>} />
+            <Route path="/rh/banco-talentos" element={<RHRoute><BancoTalentosPage /></RHRoute>} />
+            <Route path="/rh/entrevistas" element={<RHRoute><EntrevistasPage /></RHRoute>} />
+            <Route path="/rh/contratacoes" element={<RHRoute><UnderConstruction titulo="Contratações" /></RHRoute>} />
+            <Route path="/rh/documentacao" element={<RHRoute><UnderConstruction titulo="Documentação" /></RHRoute>} />
+            <Route path="/rh/assinaturas" element={<RHRoute><UnderConstruction titulo="Assinaturas" /></RHRoute>} />
+            <Route path="/rh/integracao" element={<RHRoute><UnderConstruction titulo="Integração" /></RHRoute>} />
+            <Route path="/rh/ponto" element={<RHRoute><UnderConstruction titulo="Ponto" /></RHRoute>} />
+            <Route path="/rh/escalas" element={<RHRoute><UnderConstruction titulo="Escalas" /></RHRoute>} />
+            <Route path="/rh/banco-horas" element={<RHRoute><UnderConstruction titulo="Banco de Horas" /></RHRoute>} />
+            <Route path="/rh/ocorrencias" element={<RHRoute><UnderConstruction titulo="Ocorrências" /></RHRoute>} />
+            <Route path="/rh/treinamentos" element={<RHRoute><UnderConstruction titulo="Treinamentos" /></RHRoute>} />
+            <Route path="/rh/certificacoes" element={<RHRoute><UnderConstruction titulo="Certificações" /></RHRoute>} />
+            <Route path="/rh/avaliacoes" element={<RHRoute><UnderConstruction titulo="Avaliações" /></RHRoute>} />
+            <Route path="/rh/carreira" element={<RHRoute><UnderConstruction titulo="Carreira" /></RHRoute>} />
+            <Route path="/rh/aso" element={<RHRoute><UnderConstruction titulo="ASO" /></RHRoute>} />
+            <Route path="/rh/exames" element={<RHRoute><UnderConstruction titulo="Exames" /></RHRoute>} />
+            <Route path="/rh/epis" element={<RHRoute><UnderConstruction titulo="EPIs" /></RHRoute>} />
+            <Route path="/rh/nr10" element={<RHRoute><UnderConstruction titulo="NR10" /></RHRoute>} />
+            <Route path="/rh/nr35" element={<RHRoute><UnderConstruction titulo="NR35" /></RHRoute>} />
+            <Route path="/rh/alertas" element={<RHRoute><UnderConstruction titulo="Alertas" /></RHRoute>} />
+            <Route path="/rh/beneficios" element={<RHRoute><UnderConstruction titulo="Benefícios" /></RHRoute>} />
+            <Route path="/rh/ferias" element={<RHRoute><UnderConstruction titulo="Férias" /></RHRoute>} />
+            <Route path="/rh/licencas" element={<RHRoute><UnderConstruction titulo="Licenças" /></RHRoute>} />
+            <Route path="/rh/afastamentos" element={<RHRoute><UnderConstruction titulo="Afastamentos" /></RHRoute>} />
+            <Route path="/rh/folha-pagamento" element={<RHRoute><UnderConstruction titulo="Folha de Pagamento" /></RHRoute>} />
+            <Route path="/rh/holerites" element={<RHRoute><UnderConstruction titulo="Holerites" /></RHRoute>} />
+            <Route path="/rh/encargos" element={<RHRoute><UnderConstruction titulo="Encargos" /></RHRoute>} />
+            <Route path="/rh/resumos" element={<RHRoute><UnderConstruction titulo="Resumos" /></RHRoute>} />
+            <Route path="/rh/equipes-obra" element={<RHRoute><UnderConstruction titulo="Equipes por Obra" /></RHRoute>} />
+            <Route path="/rh/movimentacoes" element={<RHRoute><UnderConstruction titulo="Movimentações" /></RHRoute>} />
+            <Route path="/rh/custos" element={<RHRoute><UnderConstruction titulo="Custos" /></RHRoute>} />
+            <Route path="/rh/historico" element={<RHRoute><UnderConstruction titulo="Histórico" /></RHRoute>} />
+            <Route path="/rh/relatorios" element={<RHRoute><UnderConstruction titulo="Relatórios" /></RHRoute>} />
           </Route>
 
           {/* Fallback */}
