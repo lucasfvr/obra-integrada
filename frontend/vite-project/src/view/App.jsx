@@ -25,7 +25,6 @@ import { DashboardDinamico } from "../components/Dashboard/DashboardDinamico.jsx
 import ObraPage from "../pages/Obra/ObraPage.jsx";
 import CalendarPage from "../pages/Calendar.tsx";
 import { ObraDocuments } from "../pages/Obra/sections/ObraDocuments.jsx";
-import MaterialCalculator from "./MaterialCalculator.jsx";
 import { EquipeOrganograma } from "../pages/Operational/EquipeOrganograma.jsx";
 import { MeuPerfilCV } from "../pages/Operational/MeuPerfilCV.jsx";
 import { UnderConstruction } from "../components/common/UnderConstruction.jsx";
