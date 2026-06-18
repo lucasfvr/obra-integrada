@@ -46,6 +46,13 @@ import CargosPage from "../pages/RH/Pessoas/CargosPage.jsx";
 import TransferenciasPage from "../pages/RH/Pessoas/TransferenciasPage.jsx";
 import HistoricoPage from "../pages/RH/Pessoas/HistoricoPage.jsx";
 import AniversariantesPage from "../pages/RH/Pessoas/AniversariantesPage.jsx";
+<<<<<<< HEAD
+=======
+import VagasPage from "../pages/RH/Recrutamento/VagasPage.jsx";
+import CandidatosPage from "../pages/RH/Recrutamento/CandidatosPage.jsx";
+import BancoTalentosPage from "../pages/RH/Recrutamento/BancoTalentosPage.jsx";
+import EntrevistasPage from "../pages/RH/Recrutamento/EntrevistasPage.jsx";
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 
 // Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
 // e fornecer callbacks que o Header e o form precisam pra navegar.
@@ -294,10 +301,17 @@ function App() {
             <Route path="/rh/transferencias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><TransferenciasPage /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/historico-movimentacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><HistoricoPage /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/aniversariantes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><AniversariantesPage /></PermissaoGuard></ProtectedRoute>} />
+<<<<<<< HEAD
             <Route path="/rh/vagas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Vagas" /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/candidatos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Candidatos" /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/banco-talentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Banco de Talentos" /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/entrevistas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Entrevistas" /></PermissaoGuard></ProtectedRoute>} />
+=======
+            <Route path="/rh/vagas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><VagasPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/candidatos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><CandidatosPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/banco-talentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><BancoTalentosPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/entrevistas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><EntrevistasPage /></PermissaoGuard></ProtectedRoute>} />
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
             <Route path="/rh/contratacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Contratações" /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/documentacao" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Documentação" /></PermissaoGuard></ProtectedRoute>} />
             <Route path="/rh/assinaturas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Assinaturas" /></PermissaoGuard></ProtectedRoute>} />

@@ -16,8 +16,25 @@ export function StatusBadge({ status }) {
     Pendente: 'bg-amber-500/15 text-amber-700',
     Ativa: 'bg-emerald-500/15 text-emerald-700',
     PENDENTE: 'bg-amber-500/15 text-amber-700',
+<<<<<<< HEAD
     APROVADO: 'bg-emerald-500/15 text-emerald-700',
     Pago: 'bg-emerald-500/15 text-emerald-700',
+=======
+    APROVADO: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+    Pago: 'bg-emerald-500/15 text-emerald-700',
+    ABERTA: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+    PAUSADA: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+    FECHADA: 'bg-red-500/15 text-red-700 dark:text-red-400',
+    NOVO: 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
+    EM_ANALISE: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+    ENTREVISTA: 'bg-purple-500/15 text-purple-700 dark:text-purple-400',
+    REPROVADO: 'bg-red-500/15 text-red-700 dark:text-red-400',
+    DESISTIU: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400',
+    AGENDADA: 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
+    REALIZADA: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+    CANCELADA: 'bg-red-500/15 text-red-700 dark:text-red-400',
+    NO_SHOW: 'bg-orange-500/15 text-orange-700 dark:text-orange-400',
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
   };
   const cls = map[status] || 'bg-muted text-muted-foreground';
   return (

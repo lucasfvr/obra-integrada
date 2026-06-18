@@ -8,6 +8,24 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e es
 
 ## [Unreleased]
 
+<<<<<<< HEAD
+=======
+### Added
+- Módulo de Recrutamento (Candidatos, Banco de Talentos e Entrevistas):
+  - Backend: Modelagem e execução da migração Prisma schema criando as tabelas `tb_candidato`, `tb_talento` e `tb_entrevista` no banco de dados PostgreSQL (NeonDB).
+  - Backend: Implementação dos controllers `candidatoController.js`, `talentoController.js` e `entrevistaController.js` aplicando isolamento multi-tenant restrito por `id_cliente` extraído do JWT e logs automáticos em `tb_log_auditoria`.
+  - Backend: Registro de rotas e middlewares de autorização em `server.js` nas rotas `/api/rh/candidatos`, `/api/rh/talentos` e `/api/rh/entrevistas`.
+  - Frontend: Páginas `CandidatosPage.jsx` (acompanhamento de candidatos, filtros e atalhos rápidos de status), `BancoTalentosPage.jsx` (portfólio de currículos, habilidades e pretensões salariais) e `EntrevistasPage.jsx` (agendamento cronológico, pareces técnicos de feedback e avaliação em estrelas).
+  - Frontend: Extensão de `StatusBadge` em `rhUi.jsx` com novos estados do funil de recrutamento (`NOVO`, `EM_ANALISE`, `ENTREVISTA`, `APROVADO`, `REPROVADO`, `DESISTIU`, `AGENDADA`, `REALIZADA`, `CANCELADA`, `NO_SHOW`).
+  - Frontend: Mapeamento de rotas em `App.jsx` apontando para as novas páginas do módulo Recrutamento.
+- Módulo de Vagas para RH e Proprietários:
+  - Backend: Criação da tabela `tb_vaga` no Prisma schema com relações a `tb_cliente` e `tb_obra`.
+  - Backend: Implementação do controller `vagaController.js` e rotas `rhVagasRoutes.js` protegidas com isolamento multi-tenant de segurança baseada no token JWT (`req.user.id_cliente`).
+  - Frontend: Criação da página `VagasPage.jsx` para visualização premium de vagas em Grid de Cards, contendo estatísticas (Vagas Abertas, Pausadas, Fechadas), busca textual, filtros avançados (Status, Contrato e Obra), e modal interativo para criação e edição de vagas.
+  - Frontend: Criação do menu de sub-navegação de recrutamento `RHRecrutamentoNav.jsx`.
+  - Frontend: Integração com o `StatusBadge` de vagas (`ABERTA`, `PAUSADA`, `FECHADA`).
+
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 ## [1.1.0] — 2026-06-16
 
 ### Added

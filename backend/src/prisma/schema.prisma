@@ -121,6 +121,10 @@ model tb_obra {
   tb_tarefa               tb_tarefa[]
   tb_usuario_obra         tb_usuario_obra[]
   tb_rh_ponto_diaria      tb_rh_ponto_diaria[]
+<<<<<<< HEAD
+=======
+  tb_vaga                 tb_vaga[]
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 
   @@index([id_usuario_responsavel], map: "idx_obra_usuario")
 }
@@ -243,6 +247,13 @@ model tb_cliente {
   tb_rh_residencial tb_rh_residencial[]
   tb_rh_conta_banco tb_rh_conta_banco[]
   tb_rh_ponto_diaria tb_rh_ponto_diaria[]
+<<<<<<< HEAD
+=======
+  tb_vaga           tb_vaga[]
+  tb_candidato      tb_candidato[]
+  tb_talento        tb_talento[]
+  tb_entrevista     tb_entrevista[]
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
 }
 
 model tb_obra_cliente {
@@ -476,3 +487,108 @@ model tb_rh_ponto_diaria {
   @@index([id_obra], map: "idx_rh_ponto_obra")
   @@index([data_ponto], map: "idx_rh_ponto_data")
 }
+<<<<<<< HEAD
+=======
+
+/// RH Recrutamento: Vagas de Emprego (Multi-Tenant)
+model tb_vaga {
+  id_vaga       Int       @id @default(autoincrement())
+  id_cliente    Int       /// Isolamento Multi-Tenant (CRÍTICO)
+  titulo        String
+  descricao     String?
+  requisitos    String?
+  salario       Decimal?  @db.Decimal(12, 2)
+  tipo_contrato String?   // "CLT" | "PJ" | "TEMPORARIO" | "DIARISTA"
+  status        String    @default("ABERTA") // "ABERTA" | "PAUSADA" | "FECHADA"
+  id_obra       Int?      // Opcional: vaga vinculada a uma obra específica
+  criado_em     DateTime  @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente    tb_cliente    @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_vaga_cliente")
+  tb_obra       tb_obra?      @relation(fields: [id_obra], references: [id_obra], onDelete: SetNull, map: "fk_vaga_obra")
+  tb_candidato  tb_candidato[]
+  tb_entrevista tb_entrevista[]
+
+  @@index([id_cliente], map: "idx_vaga_cliente")
+  @@index([id_obra], map: "idx_vaga_obra")
+}
+
+/// RH Recrutamento: Candidatos (Multi-Tenant)
+model tb_candidato {
+  id_candidato  Int       @id @default(autoincrement())
+  id_cliente    Int       /// Isolamento Multi-Tenant (CRÍTICO)
+  id_vaga       Int?      /// Vaga à qual o candidato está vinculado (opcional)
+  nome          String
+  email         String?
+  telefone      String?
+  cpf           String?
+  linkedin_url  String?
+  curriculo_url String?   /// URL do currículo armazenado (upload futuro)
+  fonte         String?   /// "INDICACAO" | "LINKEDIN" | "SITE" | "WALK_IN" | "OUTRO"
+  status        String    @default("NOVO") // "NOVO" | "EM_ANALISE" | "ENTREVISTA" | "APROVADO" | "REPROVADO" | "DESISTIU"
+  observacoes   String?
+  criado_em     DateTime  @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente    tb_cliente    @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_candidato_cliente")
+  tb_vaga       tb_vaga?      @relation(fields: [id_vaga], references: [id_vaga], onDelete: SetNull, map: "fk_candidato_vaga")
+  tb_entrevista tb_entrevista[]
+
+  @@index([id_cliente], map: "idx_candidato_cliente")
+  @@index([id_vaga], map: "idx_candidato_vaga")
+  @@index([id_cliente, status], map: "idx_candidato_cliente_status")
+}
+
+/// RH Recrutamento: Banco de Talentos (Multi-Tenant)
+model tb_talento {
+  id_talento    Int       @id @default(autoincrement())
+  id_cliente    Int       /// Isolamento Multi-Tenant (CRÍTICO)
+  nome          String
+  email         String?
+  telefone      String?
+  cpf           String?
+  linkedin_url  String?
+  curriculo_url String?
+  cargo_desejado String?
+  tipo_contrato  String?   /// "CLT" | "PJ" | "TEMPORARIO" | "DIARISTA"
+  pretensao_salarial Decimal? @db.Decimal(12, 2)
+  disponibilidade    String?  /// "IMEDIATA" | "15_DIAS" | "30_DIAS" | "60_DIAS"
+  habilidades        String?  /// Texto livre com skills
+  observacoes        String?
+  ativo              Boolean  @default(true)
+  criado_em          DateTime @default(now()) @db.Timestamp(6)
+  atualizado_em      DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente    tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_talento_cliente")
+
+  @@index([id_cliente], map: "idx_talento_cliente")
+  @@index([id_cliente, ativo], map: "idx_talento_cliente_ativo")
+}
+
+/// RH Recrutamento: Entrevistas (Multi-Tenant)
+model tb_entrevista {
+  id_entrevista    Int       @id @default(autoincrement())
+  id_cliente       Int       /// Isolamento Multi-Tenant (CRÍTICO)
+  id_candidato     Int
+  id_vaga          Int?
+  entrevistador    String?   /// Nome do entrevistador (texto livre por ora)
+  tipo             String    @default("ONLINE") // "ONLINE" | "PRESENCIAL" | "TECNICA" | "RH"
+  status           String    @default("AGENDADA") // "AGENDADA" | "REALIZADA" | "CANCELADA" | "NO_SHOW"
+  data_hora        DateTime  @db.Timestamp(6)
+  duracao_minutos  Int?      @default(60)
+  local_ou_link    String?   /// Endereço físico ou link da reunião
+  feedback         String?   /// Parecer do entrevistador após a entrevista
+  nota             Int?      /// Avaliação de 1 a 5
+  criado_em        DateTime  @default(now()) @db.Timestamp(6)
+  atualizado_em    DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente    tb_cliente   @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_entrevista_cliente")
+  tb_candidato  tb_candidato @relation(fields: [id_candidato], references: [id_candidato], onDelete: Cascade, map: "fk_entrevista_candidato")
+  tb_vaga       tb_vaga?     @relation(fields: [id_vaga], references: [id_vaga], onDelete: SetNull, map: "fk_entrevista_vaga")
+
+  @@index([id_cliente], map: "idx_entrevista_cliente")
+  @@index([id_candidato], map: "idx_entrevista_candidato")
+  @@index([id_vaga], map: "idx_entrevista_vaga")
+  @@index([id_cliente, data_hora], map: "idx_entrevista_cliente_data")
+}
+>>>>>>> de3e7b597ac8942d033682c7a44bce614241ef4f
