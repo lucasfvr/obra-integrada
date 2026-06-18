@@ -6,3 +6,6 @@ node_modules
 
 # Vault Obsidian (Apenas Local)
 ob_obra_integrada/
+.aider*
+.claude/
+.vscode/

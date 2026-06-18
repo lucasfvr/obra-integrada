@@ -37,15 +37,21 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 const AppSidebar: FC = () => {
   const { isMobileOpen, toggleMobileSidebar } = useSidebar();
-  const { hasPermissao } = useAuth() as any;
+  const { hasPermissao, user } = useAuth() as any;
   const location = useLocation();
 
   const mainNav: NavItem[] = [
-    { icon: icons.dashboard,    name: "Painel",        path: "/dashboard" },
+    { 
+      icon: icons.dashboard,    
+      name: "Painel",        
+      path: user?.role === 'RH' ? "/rh-dashboard" : "/dashboard" 
+    },
     { icon: icons.obras,        name: "Obras",         path: "/obras",      permissao: "ver_obras",      badge: "8" },
     { icon: icons.cronograma,   name: "Cronograma",    path: "/calendar",   permissao: "ver_tarefas" },
     { icon: icons.orcamento,    name: "Orçamento",     path: "/financeiro", permissao: "ver_financeiro" },
     { icon: icons.funcionarios, name: "Funcionários",  path: "/equipe",     permissao: "ver_equipe" },
+    { icon: icons.funcionarios, name: "RH",            path: "/rh",         permissao: "ver_rh" },
+    { icon: icons.funcionarios, name: "Controle de Acesso", path: "/rh-avancado", permissao: "gerenciar_usuarios" },
     { icon: icons.materiais,    name: "Materiais",     path: "/materiais",  permissao: "ver_obras",      badge: "3" },
     { icon: icons.documentos,   name: "Documentos",    path: "/documentos", permissao: "ver_diario" },
   ].filter(item => !item.permissao || hasPermissao(item.permissao));

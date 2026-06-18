@@ -1,0 +1,559 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import API_BASE_URL from '../../config/api.js';
+import {
+  Search, Plus, AlertCircle, Clock, Users, UserPlus, UserCheck, AlertTriangle, DollarSign, Heart, Briefcase,
+  BarChart2, Calendar, ClipboardList, FileText, LayoutDashboard, TrendingUp, XCircle, CheckCircle, Circle, Bell
+} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+
+export default function RHDashboard() {
+  const { user, apiFetch } = useAuth();
+  const [stats, setStats] = useState({
+    colaboradoresAtivos: 1248,
+    admissoesEmAndamento: 15,
+    feriasProgramadas: 32,
+    afastamentos: 8,
+    examesPendentes: 12,
+    custoMaoObra: 1285000
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  const currentDate = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const formattedDate = currentDate.toLocaleDateString('pt-BR', options);
+  const totalPendencias = 18;
+
+  const saudacao = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.length > 2) {
+      setSearchResults([
+        {
+          id: 1,
+          nome: 'João Silva',
+          cpf: '123.456.789-00',
+          cargo: 'Eletricista',
+          obra: 'Residencial Alpha',
+          tipo: 'pessoa'
+        },
+        {
+          id: 2,
+          nome: 'Maria Souza',
+          cpf: '987.654.321-11',
+          cargo: 'Pedreiro',
+          obra: 'Condomínio Beta',
+          tipo: 'pessoa'
+        }
+      ]);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  const acoesRapidasButtons = [
+    { icon: UserPlus, label: 'Novo Colaborador', action: '/rh/colaboradores/novo' },
+    { icon: FileText, label: 'Enviar Documento', action: '/rh/documentacao/enviar' },
+    { icon: Briefcase, label: 'Abrir Vaga', action: '/rh/vagas/nova' },
+    { icon: Calendar, label: 'Registrar Férias', action: '/rh/ferias/registrar' },
+    { icon: Heart, label: 'Agendar Exame', action: '/rh/exames/agendar' },
+    { icon: LayoutDashboard, label: 'Criar Treinamento', action: '/rh/treinamentos/novo' },
+    { icon: BarChart2, label: 'Alocar em Obra', action: '/rh/alocacao/novo' }
+  ];
+
+  const alertas = [
+    { id: 1, text: '5 documentos vencidos', severity: 'high', link: '/rh/documentacao?status=vencidos' },
+    { id: 2, text: '12 documentos vencem em 30 dias', severity: 'medium', link: '/rh/documentacao?status=vencendo' },
+    { id: 3, text: '8 colaboradores sem treinamento obrigatório', severity: 'high', link: '/rh/treinamentos?status=pendente' },
+    { id: 4, text: '3 exames admissionais pendentes', severity: 'high', link: '/rh/exames?status=pendente' },
+    { id: 5, text: '2 colaboradores sem obra atribuída', severity: 'medium', link: '/rh/colaboradores?status=sem_obra' },
+    { id: 6, text: '4 férias aguardando aprovação', severity: 'medium', link: '/rh/ferias?status=aguardando_aprovacao' },
+  ];
+
+  const distribuicaoMaoObra = [
+    { name: 'Residencial Alpha', value: 120 },
+    { name: 'Condomínio Beta', value: 85 },
+    { name: 'Hospital Gamma', value: 65 },
+    { name: 'Shopping Delta', value: 43 },
+  ];
+
+  const movimentacoesRecentes = [
+    { time: '09:45', description: 'João Silva foi admitido.', icon: UserPlus, color: 'text-green-500' },
+    { time: '09:20', description: 'Maria Souza entrou de férias.', icon: Calendar, color: 'text-blue-500' },
+    { time: '08:55', description: 'Treinamento NR35 concluído.', icon: CheckCircle, color: 'text-purple-500' },
+    { time: '08:30', description: 'Carlos Pereira transferido para Obra Alpha.', icon: Briefcase, color: 'text-orange-500' },
+    { time: '08:10', description: 'Documento atualizado.', icon: FileText, color: 'text-yellow-500' },
+  ];
+
+  const vagasRecrutamento = {
+    abertas: 12,
+    candidatos: 128,
+    entrevistasAgendadas: 15,
+    contratacoesPrevistas: 6,
+    kanban: [
+      { status: 'Triagem', count: 35 },
+      { status: 'Entrevista', count: 18 },
+      { status: 'Proposta', count: 10 },
+      { status: 'Contratados', count: 6 },
+    ],
+  };
+
+  const statusDocumentacao = [
+    { name: 'Válidos', value: 1850, color: 'hsl(var(--success))', icon: CheckCircle },
+    { name: 'Próximos ao vencimento', value: 58, color: 'hsl(var(--warning))', icon: AlertTriangle },
+    { name: 'Vencidos', value: 12, color: 'hsl(var(--destructive))', icon: XCircle },
+    { name: 'Não enviados', value: 21, color: 'hsl(var(--muted-foreground))', icon: Circle },
+  ];
+
+  const treinamentosStatus = [
+    { treinamento: 'NR10', concluido: 92, pendente: 8 },
+    { treinamento: 'NR35', concluido: 85, pendente: 15 },
+    { treinamento: 'Integração', concluido: 97, pendente: 3 },
+    { treinamento: 'Segurança', concluido: 89, pendente: 11 },
+  ];
+
+  const feriasAfastamentos = {
+    iniciamFerias: 15,
+    retornamFerias: 8,
+    afastamentosEncerram: 3,
+    novasLicencas: 2,
+  };
+
+  const custosPessoas = {
+    folhaMes: 1285000,
+    encargos: 385000,
+    beneficios: 210000,
+    total: 1880000,
+    historico: [
+      { name: 'Jan', total: 1700000 },
+      { name: 'Fev', total: 1750000 },
+      { name: 'Mar', total: 1800000 },
+      { name: 'Abr', total: 1780000 },
+      { name: 'Mai', total: 1850000 },
+      { name: 'Jun', total: 1880000 },
+    ],
+  };
+
+  const produtividadeObra = [
+    { obra: 'Alpha', funcionarios: 120, presencaHoje: 95 },
+    { obra: 'Beta', funcionarios: 85, presencaHoje: 92 },
+    { obra: 'Gamma', funcionarios: 65, presencaHoje: 97 },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-card border-b border-border sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex flex-col">
+            <p className="text-xl font-bold text-foreground">{saudacao()}, {user?.nome?.split(' ')[0] || 'User'}.</p>
+            <p className="text-muted-foreground text-sm capitalize">Hoje é {formattedDate}.</p>
+            <p className="text-muted-foreground text-sm mt-1">
+              Você possui <span className="font-semibold text-primary">{totalPendencias} pendências</span> que exigem atenção.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-full hover:bg-accent transition-colors">
+              <Bell size={20} className="text-foreground" />
+            </button>
+            <button className="p-2 rounded-full hover:bg-accent transition-colors">
+              <Search size={20} className="text-foreground" />
+            </button>
+            <button className="p-2 rounded-full hover:bg-accent transition-colors">
+              <Plus size={20} className="text-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* Busca Global */}
+        <div className="max-w-7xl mx-auto px-6 pb-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={20} className="text-muted-foreground" />
+            </div>
+            <input
+              type="text"
+              placeholder="Pesquisar pessoa, documento ou processo..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-20">
+                {searchResults.map((result) => (
+                  <a
+                    key={result.id}
+                    href={`/rh/colaborador/${result.id}`}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-accent border-b border-border last:border-b-0 cursor-pointer transition-colors"
+                  >
+                    <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-primary font-semibold">{result.nome.charAt(0)}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">{result.nome}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{result.cpf}</span>
+                        <span>•</span>
+                        <span>{result.cargo}</span>
+                        <span>•</span>
+                        <span>{result.obra}</span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Conteúdo Principal */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-bold text-foreground mb-6">Indicadores Principais</h2>
+        
+        {/* Cards de KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <a href="/rh/colaboradores" className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">Colaboradores Ativos</p>
+                <p className="text-3xl font-bold text-foreground mt-2">{stats.colaboradoresAtivos}</p>
+              </div>
+              <Users size={40} className="text-primary/30" />
+            </div>
+          </a>
+
+          <a href="/rh/admissoes" className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">Admissões em Andamento</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.admissoesEmAndamento}</p>
+              </div>
+              <UserCheck size={40} className="text-yellow-600/30" />
+            </div>
+          </a>
+
+          <a href="/rh/ferias" className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">Férias Programadas</p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">{stats.feriasProgramadas}</p>
+              </div>
+              <Clock size={40} className="text-blue-600/30" />
+            </div>
+          </a>
+
+          <a href="/rh/afastamentos" className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">Afastamentos</p>
+                <p className="text-3xl font-bold text-orange-600 mt-2">{stats.afastamentos}</p>
+              </div>
+              <Heart size={40} className="text-orange-600/30" />
+            </div>
+          </a>
+
+          <a href="/rh/exames" className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">Exames Pendentes</p>
+                <p className="text-3xl font-bold text-red-600 mt-2">{stats.examesPendentes}</p>
+              </div>
+              <AlertTriangle size={40} className="text-red-600/30" />
+            </div>
+          </a>
+
+          <a href="/rh/folha-pagamento" className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm">Custo de Mão de Obra</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">R$ {(stats.custoMaoObra / 1000000).toFixed(1)}M</p>
+              </div>
+              <DollarSign size={40} className="text-green-600/30" />
+            </div>
+          </a>
+        </div>
+
+        {/* Alertas Críticos e Movimentações Recentes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Alertas Críticos */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Alertas Críticos</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="space-y-3">
+                {alertas.map((alerta) => (
+                  <a
+                    key={alerta.id}
+                    href={alerta.link}
+                    className={`p-4 rounded-lg border flex items-start gap-3 hover:bg-accent/50 transition-colors ${
+                      alerta.severity === 'high'
+                        ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+                        : 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800'
+                    }`}
+                  >
+                    <AlertTriangle
+                      size={18}
+                      className={`flex-shrink-0 mt-0.5 ${
+                        alerta.severity === 'high' ? 'text-red-600' : 'text-yellow-600'
+                      }`}
+                    />
+                    <p className="text-sm text-foreground">{alerta.text}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Movimentações Recentes */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Movimentações Recentes</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="relative pl-4">
+                {movimentacoesRecentes.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={index} className="mb-6 flex items-start last:mb-0">
+                      <div className="absolute -left-2 top-0 flex flex-col items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.color}`}>
+                          <Icon size={16} />
+                        </div>
+                        {index < movimentacoesRecentes.length - 1 && (
+                          <div className="h-full w-0.5 bg-border mt-2" />
+                        )}
+                      </div>
+                      <div className="ml-8">
+                        <p className="text-xs text-muted-foreground">{item.time}</p>
+                        <p className="text-sm text-foreground font-medium">{item.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Distribuição da Mão de Obra e Recrutamento */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Distribuição da Mão de Obra */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Distribuição da Mão de Obra</h2>
+            <div className="bg-card border border-border rounded-lg p-6 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={distribuicaoMaoObra} layout="vertical" margin={{ top: 20, right: 30, left: 120, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Mini Painel de Vagas */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Recrutamento</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Vagas Abertas</p>
+                  <p className="text-3xl font-bold text-primary mt-1">{vagasRecrutamento.abertas}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Candidatos</p>
+                  <p className="text-3xl font-bold text-primary mt-1">{vagasRecrutamento.candidatos}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Entrevistas</p>
+                  <p className="text-3xl font-bold text-blue-600 mt-1">{vagasRecrutamento.entrevistasAgendadas}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Contratações</p>
+                  <p className="text-3xl font-bold text-green-600 mt-1">{vagasRecrutamento.contratacoesPrevistas}</p>
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-foreground mb-3">Kanban Resumido</h3>
+              <div className="grid grid-cols-4 gap-3">
+                {vagasRecrutamento.kanban.map((stage, idx) => (
+                  <div key={idx} className="bg-accent p-3 rounded-lg text-center">
+                    <p className="text-xs text-muted-foreground">{stage.status}</p>
+                    <p className="text-xl font-bold text-foreground mt-1">{stage.count}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Controle de Documentação e Treinamentos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Documentação */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Controle de Documentação</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="space-y-4">
+                {statusDocumentacao.map((doc, idx) => {
+                  const Icon = doc.icon;
+                  return (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Icon size={20} style={{ color: doc.color }} />
+                        <p className="text-foreground">{doc.name}</p>
+                      </div>
+                      <p className="text-foreground font-bold">{doc.value}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Treinamentos */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Status de Treinamentos</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="text-muted-foreground text-xs border-b border-border">
+                    <th className="pb-3">Treinamento</th>
+                    <th className="pb-3 text-center">Concluído</th>
+                    <th className="pb-3 text-center">Pendente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {treinamentosStatus.map((t, idx) => (
+                    <tr key={idx} className="border-b border-border last:border-b-0">
+                      <td className="py-3 text-foreground font-medium">{t.treinamento}</td>
+                      <td className="py-3 text-center text-green-600 font-medium">{t.concluido}%</td>
+                      <td className="py-3 text-center text-red-600 font-medium">{t.pendente}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Férias e Afastamentos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Férias e Afastamentos (30 dias)</h2>
+            <div className="bg-card border border-border rounded-lg p-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2"><Calendar size={18} className="text-blue-500" /> Iniciam férias</p>
+                <p className="font-bold">{feriasAfastamentos.iniciamFerias}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2"><Clock size={18} className="text-green-500" /> Retornam de férias</p>
+                <p className="font-bold">{feriasAfastamentos.retornamFerias}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2"><ClipboardList size={18} className="text-orange-500" /> Afastamentos encerram</p>
+                <p className="font-bold">{feriasAfastamentos.afastamentosEncerram}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2"><Plus size={18} className="text-purple-500" /> Novas licenças</p>
+                <p className="font-bold">{feriasAfastamentos.novasLicencas}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Custos de Pessoas */}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Custos de Pessoas</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Folha</p>
+                  <p className="text-lg font-bold text-foreground mt-1">R$ {(custosPessoas.folhaMes / 1000).toFixed(0)}k</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Encargos</p>
+                  <p className="text-lg font-bold text-foreground mt-1">R$ {(custosPessoas.encargos / 1000).toFixed(0)}k</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground text-sm">Benefícios</p>
+                  <p className="text-lg font-bold text-foreground mt-1">R$ {(custosPessoas.beneficios / 1000).toFixed(0)}k</p>
+                </div>
+                <div className="text-center border-t-2 border-primary pt-2">
+                  <p className="text-muted-foreground text-sm">Total</p>
+                  <p className="text-lg font-bold text-primary mt-1">R$ {(custosPessoas.total / 1000).toFixed(0)}k</p>
+                </div>
+              </div>
+              <h3 className="text-sm font-bold text-foreground mb-3">Comparativo Mensal</h3>
+              <div className="h-[100px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={custosPessoas.historico}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis hide />
+                    <Tooltip formatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Produtividade por Obra */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Produtividade por Obra</h2>
+          <div className="bg-card border border-border rounded-lg p-6">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-muted-foreground text-xs border-b border-border">
+                  <th className="pb-3">Obra</th>
+                  <th className="pb-3 text-center">Funcionários</th>
+                  <th className="pb-3 text-center">Presença Hoje</th>
+                </tr>
+              </thead>
+              <tbody>
+                {produtividadeObra.map((obra, idx) => (
+                  <tr key={idx} className="border-b border-border last:border-b-0">
+                    <td className="py-3 text-foreground font-medium">{obra.obra}</td>
+                    <td className="py-3 text-center">{obra.funcionarios}</td>
+                    <td className="py-3 text-center font-medium"><span className="text-green-600">{obra.presencaHoje}%</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Painel de Ações Rápidas Flutuante */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <div className="group">
+          <button className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all group-hover:rotate-45">
+            <Plus size={24} />
+          </button>
+          <div className="absolute bottom-16 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col items-end space-y-2">
+            {acoesRapidasButtons.map((acao, idx) => {
+              const Icon = acao.icon;
+              return (
+                <a
+                  key={idx}
+                  href={acao.action}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-md hover:bg-primary/90 transition-colors whitespace-nowrap text-xs font-medium"
+                >
+                  <Icon size={16} />
+                  {acao.label}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

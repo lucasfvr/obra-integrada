@@ -17,6 +17,7 @@ export const ROLES = Object.freeze({
   ADMIN_MASTER: 'ADMIN_MASTER',
   ADMIN:        'ADMIN',
   PROPRIETARIO: 'PROPRIETARIO',
+  RH:           'RH',
   RESPONSAVEL:  'RESPONSAVEL',
   ESTAGIARIO:   'ESTAGIARIO',
   TRABALHADOR:  'TRABALHADOR',
@@ -34,6 +35,7 @@ export const ROLE_LABELS = Object.freeze({
   ADMIN_MASTER: 'Administrador da Plataforma',
   ADMIN:        'Administrador',
   PROPRIETARIO: 'Proprietario',
+  RH:           'Gerente de RH',
   RESPONSAVEL:  'Responsavel Tecnico (Engenheiro)',
   ESTAGIARIO:   'Estagiario(a) de Engenharia',
   TRABALHADOR:  'Trabalhador',
@@ -67,6 +69,10 @@ export const PERMISSOES = Object.freeze({
     gerenciar_equipe:        true,
     ver_rh:                  true,
     gerenciar_usuarios:      true,
+    gerenciar_salario:       true,
+    gerenciar_dados_residenciais: true,
+    gerenciar_conta_banco:   true,
+    gerenciar_ponto_diaria:  true,
     ver_perfil:              true,
   },
   ADMIN: {
@@ -76,7 +82,13 @@ export const PERMISSOES = Object.freeze({
     ver_tarefas:             true,
     ver_financeiro:          true,
     ver_equipe:              true,
+    gerenciar_equipe:        true,
     ver_rh:                  true,
+    gerenciar_usuarios:      true,
+    gerenciar_salario:       true,
+    gerenciar_dados_residenciais: true,
+    gerenciar_conta_banco:   true,
+    gerenciar_ponto_diaria:  true,
     ver_perfil:              true,
   },
   PROPRIETARIO: {
@@ -98,7 +110,22 @@ export const PERMISSOES = Object.freeze({
     gerenciar_equipe:        true,
     ver_rh:                  true,
     gerenciar_usuarios:      true,
+    gerenciar_salario:       true,
+    gerenciar_dados_residenciais: true,
+    gerenciar_conta_banco:   true,
+    gerenciar_ponto_diaria:  true,
     ver_perfil:              true,
+  },
+  RH: {
+    ver_rh:                  true,
+    gerenciar_usuarios:      true,
+    ver_equipe:              true,
+    gerenciar_salario:       true,
+    gerenciar_dados_residenciais: true,
+    gerenciar_conta_banco:   true,
+    gerenciar_ponto_diaria:  true,
+    ver_perfil:              true,
+    ver_obras:               true,
   },
   RESPONSAVEL: {
     ver_obras:               true,
@@ -199,3 +226,4 @@ export function podeImpersonar(role) {
 export function getProfile(role /*, funcao */) {
   return role || ROLES.USER;
 }
+

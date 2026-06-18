@@ -71,6 +71,30 @@ function LoginModal({ onLogin, onClose, onForgotPassword, openRegister }) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex gap-2 justify-center mb-1">
+            <button
+              type="button"
+              id="dev-login-rh"
+              onClick={() => {
+                setUsuario("rh@vanguarda.com.br");
+                setSenha("Senha123!");
+              }}
+              className="text-[10px] bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-semibold py-1 px-2 rounded transition-colors"
+            >
+              Dev: RH User
+            </button>
+            <button
+              type="button"
+              id="dev-login-admin"
+              onClick={() => {
+                setUsuario("admin@obras.com");
+                setSenha("Admin123!");
+              }}
+              className="text-[10px] bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-semibold py-1 px-2 rounded transition-colors"
+            >
+              Dev: Admin User
+            </button>
+          </div>
 
           <div>
             <div className={`relative ${errors.usuario ? 'border-red-500' : ''}`}>

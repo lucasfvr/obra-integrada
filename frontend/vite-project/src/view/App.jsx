@@ -32,7 +32,21 @@ import { UnderConstruction } from "../components/common/UnderConstruction.jsx";
 import { PermissaoGuard } from "../components/Guards/PermissaoGuard.jsx";
 import MinhasObrasPage from "../pages/Obras/MinhasObrasPage.jsx";
 import GestaoRH from "../pages/Operational/GestaoRH.jsx";
+import GestaoRHAvancado from "../pages/Operational/GestaoRHAvancado.jsx";
 import { GestaoEquipe } from "../pages/Operational/GestaoEquipe.jsx";
+import RHLayout from "../layout/RHLayout.jsx";
+import RHDashboard from "../pages/RH/RHDashboard.jsx";
+
+// Pessoas
+import ColaboradoresPage from "../pages/RH/Pessoas/ColaboradoresPage.jsx";
+import ColaboradorPerfilPage from "../pages/RH/Pessoas/ColaboradorPerfilPage.jsx";
+import TerceirizadosPage from "../pages/RH/Pessoas/TerceirizadosPage.jsx";
+import EquipesPage from "../pages/RH/Pessoas/EquipesPage.jsx";
+import OrganogramaPage from "../pages/RH/Pessoas/OrganogramaPage.jsx";
+import CargosPage from "../pages/RH/Pessoas/CargosPage.jsx";
+import TransferenciasPage from "../pages/RH/Pessoas/TransferenciasPage.jsx";
+import HistoricoPage from "../pages/RH/Pessoas/HistoricoPage.jsx";
+import AniversariantesPage from "../pages/RH/Pessoas/AniversariantesPage.jsx";
 
 // Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
 // e fornecer callbacks que o Header e o form precisam pra navegar.
@@ -108,7 +122,11 @@ function App() {
             path="/"
             element={
               isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
+                user?.role === 'RH' ? (
+                  <Navigate to="/rh-dashboard" replace />
+                ) : (
+                  <Navigate to="/dashboard" replace />
+                )
               ) : formTempData ? (
                 <Navigate to="/finalizar-cadastro" replace />
               ) : (
@@ -140,10 +158,14 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <DashboardDinamico
-                    currentUser={user}
-                    onLogout={logout}
-                  />
+                  {user?.role === 'RH' ? (
+                    <Navigate to="/rh-dashboard" replace />
+                  ) : (
+                    <DashboardDinamico
+                      currentUser={user}
+                      onLogout={logout}
+                    />
+                  )}
                 </ProtectedRoute>
               }
             />
@@ -248,7 +270,66 @@ function App() {
               }
             />
             {/* Redirecionar outras rotas para o dashboard se logado */}
-            <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+            <Route 
+              path="/home" 
+              element={
+                user?.role === 'RH' ? (
+                  <Navigate to="/rh-dashboard" replace />
+                ) : (
+                  <Navigate to="/dashboard" replace />
+                )
+              } 
+            />
+          </Route>
+
+          {/* RH Layout Routes */}
+          <Route element={<RHLayout />}>
+            <Route path="/rh-dashboard" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh" redirectToRestricted><RHDashboard /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh-avancado" element={<ProtectedRoute><PermissaoGuard permissao="gerenciar_usuarios" redirectToRestricted><GestaoRHAvancado /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/colaboradores" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><ColaboradoresPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/colaboradores/:id" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><ColaboradorPerfilPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/terceirizados" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><TerceirizadosPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/equipes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><EquipesPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/organograma" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><OrganogramaPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/cargos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><CargosPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/transferencias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><TransferenciasPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/historico-movimentacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><HistoricoPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/aniversariantes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><AniversariantesPage /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/vagas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Vagas" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/candidatos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Candidatos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/banco-talentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Banco de Talentos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/entrevistas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Entrevistas" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/contratacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Contratações" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/documentacao" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Documentação" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/assinaturas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Assinaturas" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/integracao" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Integração" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/ponto" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Ponto" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/escalas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Escalas" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/banco-horas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Banco de Horas" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/ocorrencias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Ocorrências" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/treinamentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Treinamentos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/certificacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Certificações" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/avaliacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Avaliações" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/carreira" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Carreira" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/aso" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="ASO" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/exames" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Exames" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/epis" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="EPIs" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/nr10" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="NR10" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/nr35" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="NR35" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/alertas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Alertas" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/beneficios" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Benefícios" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/ferias" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Férias" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/licencas" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Licenças" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/afastamentos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Afastamentos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/folha-pagamento" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Folha de Pagamento" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/holerites" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Holerites" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/encargos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Encargos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/resumos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Resumos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/equipes-obra" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Equipes por Obra" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/movimentacoes" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Movimentações" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/custos" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Custos" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/historico" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Histórico" /></PermissaoGuard></ProtectedRoute>} />
+            <Route path="/rh/relatorios" element={<ProtectedRoute><PermissaoGuard permissao="ver_rh"><UnderConstruction titulo="Relatórios" /></PermissaoGuard></ProtectedRoute>} />
           </Route>
 
           {/* Fallback */}

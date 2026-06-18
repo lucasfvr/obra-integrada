@@ -25,11 +25,14 @@ export function GestaoEquipe() {
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/obras`);
       if (res.ok) {
-        const data = await res.json();
-        setObras(data);
+        const result = await res.json();
+        // API retorna { data: [...], meta: {...} } ou apenas [...]
+        const obrasList = Array.isArray(result) ? result : (result.data || []);
+        setObras(obrasList);
       }
     } catch (error) {
       console.error('[EQUIPE] Erro ao buscar obras:', error);
+      setObras([]);  // Garante que é um array vazio
     }
   };
 

@@ -11,6 +11,7 @@ import tarefaRoutes from './routes/tarefaRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import financeiroRoutes from './routes/financeiroRoutes.js';
 import rhRoutes from './routes/rhRoutes.js';
+import rhAvancadoRoutes from './routes/rhAvancadoRoutes.js';
 import { UPLOADS_DIR } from './config/storageService.js';
 
 // Validação de variáveis de ambiente no boot
@@ -60,6 +61,7 @@ const generalLimiter = rateLimit({
   message: { erro: 'Muitas requisições vindas deste IP, por favor tente novamente mais tarde.' },
   standardHeaders: 'draft-7',
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'development', // Desabilita em dev
 });
 
 const authLimiter = rateLimit({
@@ -68,6 +70,7 @@ const authLimiter = rateLimit({
   message: { erro: 'Muitas tentativas de login/cadastro vindas deste IP. Tente novamente em 15 minutos.' },
   standardHeaders: 'draft-7',
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'development', // Desabilita em dev
 });
 
 app.use(generalLimiter);
@@ -89,6 +92,7 @@ app.use('/api', tarefaRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', financeiroRoutes);
 app.use('/api/rh', rhRoutes);
+app.use('/api/rh-avancado', rhAvancadoRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API Obra Integrada — Sistema Online' });

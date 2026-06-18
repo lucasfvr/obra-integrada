@@ -151,6 +151,50 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* ── Scrollbar Elegante ──────────────────────────────────── */
+  
+  /* Firefox */
+  .scrollbar-elegant {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.4) transparent;
+  }
+
+  /* WebKit (Chrome, Safari, Edge) */
+  .scrollbar-elegant::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.4);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.2s ease;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+    background-clip: content-box;
+  }
+
+  /* Dark mode - scrollbar */
+  .dark .scrollbar-elegant {
+    scrollbar-color: hsl(var(--primary) / 0.5) transparent;
+  }
+
+  .dark .scrollbar-elegant::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  .dark .scrollbar-elegant::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.7);
+  }
 }
 
 /* Micro-animações */

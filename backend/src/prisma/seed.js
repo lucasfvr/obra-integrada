@@ -222,6 +222,25 @@ async function main() {
     }
   });
 
+  // 4.2. Gerente de RH (perfil com acesso a módulo avançado de RH)
+  const rh = await prisma.tb_usuario.upsert({
+    where: { email: 'rh@vanguarda.com.br' },
+    update: { id_cliente, senha: senhaHash, role: 'RH', status: 'ATIVO' },
+    create: {
+      nome: 'Gerente de RH',
+      email: 'rh@vanguarda.com.br',
+      username: 'rh_manager',
+      senha: senhaHash,
+      role: 'RH',
+      tipo_usuario: 'RH',
+      cargo_base: 'Gerente de RH',
+      id_cliente,
+      status: 'ATIVO',
+      cpf: '000.000.000-999',
+      matricula: 'VANG-2025-RH00'
+    }
+  });
+
   // 5. Funcionários (Pool de 100)
   const usuariosGerados = [];
   for (let i = 1; i <= 100; i++) {

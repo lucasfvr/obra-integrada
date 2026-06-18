@@ -120,6 +120,7 @@ model tb_obra {
   tb_requisicao           tb_requisicao[]
   tb_tarefa               tb_tarefa[]
   tb_usuario_obra         tb_usuario_obra[]
+  tb_rh_ponto_diaria      tb_rh_ponto_diaria[]
 
   @@index([id_usuario_responsavel], map: "idx_obra_usuario")
 }
@@ -208,6 +209,10 @@ model tb_usuario {
   tb_usuario_obra              tb_usuario_obra[]
   tb_log_auditoria             tb_log_auditoria[]
   tb_certificacao              tb_certificacao[]
+  tb_rh_salario                tb_rh_salario[]
+  tb_rh_residencial            tb_rh_residencial[]
+  tb_rh_conta_banco            tb_rh_conta_banco[]
+  tb_rh_ponto_diaria           tb_rh_ponto_diaria[]
 }
 
 model tb_usuario_obra {
@@ -234,6 +239,10 @@ model tb_cliente {
   validade_plano    DateTime?         @db.Date
   tb_obra_cliente   tb_obra_cliente[]
   tb_usuario        tb_usuario[]
+  tb_rh_salario     tb_rh_salario[]
+  tb_rh_residencial tb_rh_residencial[]
+  tb_rh_conta_banco tb_rh_conta_banco[]
+  tb_rh_ponto_diaria tb_rh_ponto_diaria[]
 }
 
 model tb_obra_cliente {
@@ -363,4 +372,107 @@ model tb_certificacao {
 
   @@index([id_usuario], map: "idx_certificacao_usuario")
   @@index([data_validade], map: "idx_certificacao_validade")
+}
+
+/// RH Avançado: Gestão de Salários (Multi-Tenant)
+model tb_rh_salario {
+  id_salario     Int        @id @default(autoincrement())
+  id_cliente     Int        /// Isolamento Multi-Tenant (CRÍTICO)
+  id_usuario     Int
+  salario_base   Decimal    @db.Decimal(12, 2)
+  bonus          Decimal    @default(0) @db.Decimal(12, 2)
+  desconto       Decimal    @default(0) @db.Decimal(12, 2)
+  vale_refeicao  Decimal    @default(0) @db.Decimal(10, 2)
+  vale_transporte Decimal   @default(0) @db.Decimal(10, 2)
+  data_inicio    DateTime   @db.Date
+  data_fim       DateTime?  @db.Date
+  observacoes    String?
+  criado_em      DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em  DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  
+  tb_cliente     tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_salario_cliente")
+  tb_usuario     tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_salario_usuario")
+
+  @@index([id_cliente], map: "idx_rh_salario_cliente")
+  @@index([id_usuario], map: "idx_rh_salario_usuario")
+  @@index([id_cliente, id_usuario], map: "idx_rh_salario_cliente_usuario")
+}
+
+/// RH Avançado: Dados Residenciais (Multi-Tenant)
+model tb_rh_residencial {
+  id_residencial Int        @id @default(autoincrement())
+  id_cliente     Int        /// Isolamento Multi-Tenant (CRÍTICO)
+  id_usuario     Int
+  logradouro     String
+  numero         String
+  complemento    String?
+  bairro         String
+  cidade         String
+  estado         String     @db.Char(2)
+  cep            String
+  ponto_referencia String?
+  telefone       String?
+  email_pessoal  String?
+  criado_em      DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em  DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente     tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_residencial_cliente")
+  tb_usuario     tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_residencial_usuario")
+
+  @@index([id_cliente], map: "idx_rh_residencial_cliente")
+  @@index([id_usuario], map: "idx_rh_residencial_usuario")
+  @@index([id_cliente, id_usuario], map: "idx_rh_residencial_cliente_usuario")
+}
+
+/// RH Avançado: Contas Bancárias para Pagamento (Multi-Tenant)
+model tb_rh_conta_banco {
+  id_conta_banco Int        @id @default(autoincrement())
+  id_cliente     Int        /// Isolamento Multi-Tenant (CRÍTICO)
+  id_usuario     Int
+  banco          String     /// ex: "Itaú", "Bradesco", "Caixa"
+  tipo_conta     String     /// "CORRENTE" | "POUPANÇA"
+  agencia        String
+  numero_conta   String
+  digito_conta   String?
+  chave_pix      String?
+  titular_conta  String
+  cpf_titular    String
+  ativo          Boolean    @default(true)
+  criado_em      DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em  DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente     tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_conta_banco_cliente")
+  tb_usuario     tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_conta_banco_usuario")
+
+  @@index([id_cliente], map: "idx_rh_conta_banco_cliente")
+  @@index([id_usuario], map: "idx_rh_conta_banco_usuario")
+  @@index([id_cliente, id_usuario], map: "idx_rh_conta_banco_cliente_usuario")
+}
+
+/// RH Avançado: Folha de Ponto / Diária (Multi-Tenant)
+model tb_rh_ponto_diaria {
+  id_ponto_diaria Int        @id @default(autoincrement())
+  id_cliente      Int        /// Isolamento Multi-Tenant (CRÍTICO)
+  id_usuario      Int
+  id_obra         Int?       /// Obra onde a diária foi trabalhada
+  data_ponto      DateTime   @db.Date
+  hora_entrada    DateTime?  @db.Timestamp(6)
+  hora_saida      DateTime?  @db.Timestamp(6)
+  horas_trabalhadas Decimal  @default(0) @db.Decimal(5, 2)
+  horas_extras    Decimal    @default(0) @db.Decimal(5, 2)
+  valor_diaria    Decimal    @db.Decimal(10, 2)
+  status          String     @default("PENDENTE") /// "PENDENTE" | "APROVADO" | "REJEITADO"
+  observacoes     String?
+  criado_em       DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em   DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+
+  tb_cliente      tb_cliente @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "fk_rh_ponto_cliente")
+  tb_usuario      tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, map: "fk_rh_ponto_usuario")
+  tb_obra         tb_obra?   @relation(fields: [id_obra], references: [id_obra], onDelete: SetNull, map: "fk_rh_ponto_obra")
+
+  @@index([id_cliente], map: "idx_rh_ponto_cliente")
+  @@index([id_usuario], map: "idx_rh_ponto_usuario")
+  @@index([id_cliente, id_usuario], map: "idx_rh_ponto_cliente_usuario")
+  @@index([id_obra], map: "idx_rh_ponto_obra")
+  @@index([data_ponto], map: "idx_rh_ponto_data")
 }

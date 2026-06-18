@@ -550,6 +550,80 @@ export async function updateUserRole(req, res) {
   }
 }
 
+/**
+ * Atualiza role e status do usuário (usada pela RH)
+ * Requer permissão 'gerenciar_usuarios'
+ */
+export async function updateUserRoleAndStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { role, status } = req.body;
+    const { id_cliente } = req.user;
+
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'ID do usuário é obrigatório' });
+    }
+
+    // Validação do novo role
+    const validRoles = ['ADMIN', 'RH', 'PROPRIETARIO', 'RESPONSAVEL', 'ESTAGIARIO', 'TRABALHADOR', 'CLIENTE', 'EMPREITEIRA', 'USER'];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({ success: false, error: 'Role inválida' });
+    }
+
+    // Validação do status
+    if (status && !['ATIVO', 'INATIVO'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Status inválido' });
+    }
+
+    // Verificar se o usuário existe e pertence ao mesmo cliente
+    const user = await prisma.tb_usuario.findUnique({
+      where: { id_usuario: Number(id) }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+    }
+
+    // Validação de multi-tenant
+    if (id_cliente && user.id_cliente !== id_cliente) {
+      return res.status(403).json({ success: false, error: 'Acesso negado: usuário em outro cliente' });
+    }
+
+    // Construir dados para atualizar
+    const updateData = {};
+    if (role) updateData.role = role;
+    if (status) updateData.status = status;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, error: 'Nenhum campo para atualizar' });
+    }
+
+    const updatedUser = await prisma.tb_usuario.update({
+      where: { id_usuario: Number(id) },
+      data: updateData,
+      select: {
+        id_usuario: true,
+        nome: true,
+        email: true,
+        role: true,
+        status: true
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updatedUser,
+      message: 'Acesso atualizado com sucesso!'
+    });
+  } catch (error) {
+    console.error('[USER] Erro ao atualizar role/status:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Erro ao atualizar acesso do usuário'
+    });
+  }
+}
+
 // ==============================
 // OBTÉM USUÁRIOS DISPONÍVEIS (WIZARD ETAPA 3)
 // ==============================
