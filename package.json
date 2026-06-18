@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -c \"blue,green\" --names \"FRONTEND,BACKEND\" \"npm run frontend\" \"npm run backend\"",
+    "frontend": "npm run dev --prefix frontend/vite-project",
+    "backend": "npm run dev --prefix backend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend/vite-project",
+    "db:push": "cd backend && npx prisma db push",
+    "db:seed": "cd backend && npm run seed"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "5.22.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.2.2",
+    "nodemon": "^3.1.11"
+  }
+}

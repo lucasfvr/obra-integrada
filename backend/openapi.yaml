@@ -1,0 +1,705 @@
+openapi: 3.0.3
+info:
+  title: API Obra Integrada
+  description: |
+    Documentação detalhada e padronizada de todas as rotas do backend da plataforma **Obra Integrada**.
+    Todas as requisições protegidas exigem o cabeçalho `Authorization: Bearer <JWT_TOKEN>`.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+    description: Servidor de Desenvolvimento Local
+paths:
+  # ─── AUTENTICAÇÃO E USUÁRIOS ────────────────────────────────────────────────
+  /users/register:
+    post:
+      tags:
+        - Autenticação e Usuários
+      summary: Registrar um novo usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - email
+                - senha
+                - role
+              properties:
+                nome:
+                  type: string
+                  example: "Lucas Fernandes"
+                email:
+                  type: string
+                  example: "lucas@construtora.com.br"
+                senha:
+                  type: string
+                  example: "SenhaFort3!"
+                role:
+                  type: string
+                  enum: [ADMIN_MASTER, PROPRIETARIO, RESPONSAVEL, SUPERVISOR, OPERACIONAL]
+                  example: "PROPRIETARIO"
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+        '400':
+          description: Dados inválidos ou email já cadastrado
+        '500':
+          description: Erro interno no servidor
+
+  /users/login:
+    post:
+      tags:
+        - Autenticação e Usuários
+      summary: Realizar login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - senha
+              properties:
+                email:
+                  type: string
+                  example: "lucas@construtora.com.br"
+                senha:
+                  type: string
+                  example: "SenhaFort3!"
+      responses:
+        '200':
+          description: Login bem-sucedido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  usuario:
+                    type: object
+        '401':
+          description: Credenciais incorretas
+        '500':
+          description: Erro interno no servidor
+
+  /users/forgot-password:
+    post:
+      tags:
+        - Autenticação e Usuários
+      summary: Solicitar recuperação de senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: "lucas@construtora.com.br"
+      responses:
+        '200':
+          description: Email de recuperação enviado
+        '404':
+          description: Usuário não encontrado
+
+  /users/formulario:
+    post:
+      tags:
+        - Autenticação e Usuários
+      summary: Enviar formulário completo de cadastro (onboarding)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Formulário processado com sucesso
+
+  /users/profile:
+    get:
+      tags:
+        - Autenticação e Usuários
+      summary: Obter perfil do usuário logado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil retornado com sucesso
+        '401':
+          description: Não autorizado (token inválido ou ausente)
+
+  /usuarios-disponiveis:
+    get:
+      tags:
+        - Autenticação e Usuários
+      summary: Listar usuários disponíveis para alocação
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista retornada com sucesso
+
+  /operational/stats:
+    get:
+      tags:
+        - Autenticação e Usuários
+      summary: Obter estatísticas do trabalhador operacional (Super App)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estatísticas retornadas com sucesso
+
+  /operational/weather:
+    get:
+      tags:
+        - Autenticação e Usuários
+      summary: Obter previsão do tempo simulada para o canteiro
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Previsão retornada com sucesso
+
+  # ─── GESTÃO DE OBRAS ────────────────────────────────────────────────────────
+  /obras:
+    get:
+      tags:
+        - Gestão de Obras
+      summary: Listar todas as obras do tenant
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de obras
+    post:
+      tags:
+        - Gestão de Obras
+      summary: Criar uma nova obra
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - localizacao
+                - data_inicio
+                - data_fim
+                - orcamento
+              properties:
+                nome:
+                  type: string
+                  example: "Edifício Residencial Central"
+                localizacao:
+                  type: string
+                  example: "Rua das Flores, 123"
+                data_inicio:
+                  type: string
+                  format: date
+                  example: "2026-06-01"
+                data_fim:
+                  type: string
+                  format: date
+                  example: "2027-06-01"
+                orcamento:
+                  type: number
+                  example: 1500000.00
+      responses:
+        '210':
+          description: Obra criada com sucesso
+        '400':
+          description: Dados de entrada inválidos
+
+  /obras/{id}:
+    get:
+      tags:
+        - Gestão de Obras
+      summary: Obter detalhes de uma obra por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da obra
+        '403':
+          description: Acesso negado à obra do tenant
+        '404':
+          description: Obra não encontrada
+    put:
+      tags:
+        - Gestão de Obras
+      summary: Atualizar dados de uma obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Obra atualizada
+    delete:
+      tags:
+        - Gestão de Obras
+      summary: Deletar/Inativar uma obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Obra deletada com sucesso
+
+  /obras/{id}/org-chart:
+    get:
+      tags:
+        - Gestão de Obras
+      summary: Obter organograma da equipe alocada na obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dados do organograma estruturado
+
+  # ─── DIÁRIOS DE OBRA ────────────────────────────────────────────────────────
+  /obras/{id}/diario:
+    get:
+      tags:
+        - Diários de Obra
+      summary: Listar entradas de diário de uma obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de diários
+    post:
+      tags:
+        - Diários de Obra
+      summary: Criar entrada no diário da obra (com foto opcional)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                conteudo:
+                  type: string
+                  example: "Executada concretagem da laje do 2º pavimento."
+                clima:
+                  type: string
+                  example: "SOL"
+      responses:
+        '201':
+          description: Entrada de diário criada
+
+  /obras/{id}/diario/{entradaId}:
+    put:
+      tags:
+        - Diários de Obra
+      summary: Atualizar conteúdo de entrada de diário
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entradaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conteudo:
+                  type: string
+      responses:
+        '200':
+          description: Diário atualizado
+    delete:
+      tags:
+        - Diários de Obra
+      summary: Remover entrada do diário
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entradaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Entrada removida
+
+  /obras/{id}/diario/{entradaId}/auditar:
+    patch:
+      tags:
+        - Diários de Obra
+      summary: Auditar entrada do diário (aprovar/rejeitar relato)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entradaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status_auditoria
+              properties:
+                status_auditoria:
+                  type: string
+                  enum: [PENDENTE, APROVADO, REJEITADO]
+                  example: "APROVADO"
+      responses:
+        '200':
+          description: Status de auditoria atualizado
+
+  # ─── TAREFAS ────────────────────────────────────────────────────────────────
+  /tarefas:
+    get:
+      tags:
+        - Gestão de Tarefas
+      summary: Listar todas as tarefas ativas do usuário
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de tarefas
+
+  /tarefas/{tarefaId}:
+    patch:
+      tags:
+        - Gestão de Tarefas
+      summary: Atualizar status de uma tarefa
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tarefaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [PENDENTE, EM_ANDAMENTO, CONCLUIDA, IMPEDIDA]
+                  example: "CONCLUIDA"
+      responses:
+        '200':
+          description: Status da tarefa atualizado
+
+  /obras/{id}/tarefas:
+    get:
+      tags:
+        - Gestão de Tarefas
+      summary: Listar tarefas vinculadas a uma obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de tarefas da obra
+    post:
+      tags:
+        - Gestão de Tarefas
+      summary: Criar tarefa vinculada a uma obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - status
+              properties:
+                nome:
+                  type: string
+                  example: "Escavação das Sapatas"
+                descricao:
+                  type: string
+                  example: "Escavar blocos de fundação bloco A"
+                status:
+                  type: string
+                  enum: [PENDENTE, EM_ANDAMENTO, CONCLUIDA, IMPEDIDA]
+                  example: "PENDENTE"
+                id_usuario_responsavel:
+                  type: integer
+      responses:
+        '201':
+          description: Tarefa criada
+
+  # ─── FINANCEIRO ─────────────────────────────────────────────────────────────
+  /obras/{id}/financeiro:
+    get:
+      tags:
+        - Gestão Financeira
+      summary: Listar lançamentos financeiros da obra
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de receitas/despesas
+    post:
+      tags:
+        - Gestão Financeira
+      summary: Criar lançamento financeiro com upload de comprovante
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - valor
+                - tipo
+                - descricao
+              properties:
+                valor:
+                  type: number
+                  example: 12500.50
+                tipo:
+                  type: string
+                  enum: [RECEITA, DESPESA]
+                  example: "DESPESA"
+                descricao:
+                  type: string
+                  example: "Compra de vergalhões de aço"
+                comprovante:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Lançamento criado
+
+  /financeiro/{financeiroId}:
+    delete:
+      tags:
+        - Gestão Financeira
+      summary: Deletar lançamento financeiro
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: financeiroId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lançamento deletado
+
+  # ─── RECURSOS HUMANOS ───────────────────────────────────────────────────────
+  /rh:
+    get:
+      tags:
+        - Recursos Humanos
+      summary: Listar funcionários do tenant
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de funcionários
+    post:
+      tags:
+        - Recursos Humanos
+      summary: Cadastrar novo funcionário
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - email
+                - cpf
+                - id_papel
+              properties:
+                nome:
+                  type: string
+                  example: "Alberto Souza"
+                email:
+                  type: string
+                  example: "alberto@construtora.com.br"
+                cpf:
+                  type: string
+                  example: "123.456.789-00"
+                id_papel:
+                  type: integer
+                  example: 5
+      responses:
+        '201':
+          description: Funcionário cadastrado
+
+  /rh/{id}/inativar:
+    patch:
+      tags:
+        - Recursos Humanos
+      summary: Inativar (Soft Delete) funcionário
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Funcionário inativado
+
+  # ─── ADMINISTRAÇÃO PLATAFORMA ──────────────────────────────────────────────
+  /admin/metrics/global:
+    get:
+      tags:
+        - Administração Master
+      summary: Obter métricas globais de uso do SaaS
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Métricas agregadas de tenants e uso
+
+  /admin/clients:
+    get:
+      tags:
+        - Administração Master
+      summary: Listar todos os tenants (empresas-cliente)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de tenants
+
+  /admin/health:
+    get:
+      tags:
+        - Administração Master
+      summary: Obter estado de saúde técnico do sistema (serviços, BD)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Status de saúde da infraestrutura
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
