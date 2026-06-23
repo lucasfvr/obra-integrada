@@ -25,6 +25,14 @@ if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
 }
 
 const app = express();
+
+// Confia no primeiro hop de proxy (Vercel Edge).
+// Necessário para req.ip retornar o IP real do cliente em vez do IP do proxy,
+// o que faz o rate limiter contar corretamente e os logs de auditoria serem úteis.
+// ATENÇÃO: o número 1 = exatamente 1 hop. Se adicionar Cloudflare ou outro
+// proxy na frente, ajustar para 2.
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 5000;
 
 // Configuração de CORS estrita por env var (allowlist)
