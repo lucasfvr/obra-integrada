@@ -27,28 +27,24 @@ if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configuração de CORS por allowlist
+// Configuração de CORS estrita por env var (allowlist)
+// Default de produção: apenas o domínio oficial www.obraintegrada.com.br.
+// Em dev, defina CORS_ORIGINS explicitamente no .env (ex: http://localhost:5173).
+// Não há mais fallback automático para localhost nem bypass por NODE_ENV.
+const DEFAULT_PROD_ORIGIN = 'https://www.obraintegrada.com.br';
+
 const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
-  : ['http://localhost:5173'];
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
+  : [DEFAULT_PROD_ORIGIN];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Permite requisições sem origin (como mobile apps, curl ou postman locais)
-    if (!origin) return callback(null, true);
-
-    // Em desenvolvimento, permite qualquer porta no localhost
-    const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
-
-    if (
-      allowedOrigins.indexOf(origin) !== -1 ||
-      (process.env.NODE_ENV === 'development' && isLocalhost) ||
-      process.env.NODE_ENV === 'test'
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error('Bloqueado pelas políticas de CORS'));
+    // Requisições sem Origin (mobile nativo, server-to-server) são BLOQUEADAS.
+    // Apenas origens da allowlist são aceitas.
+    if (!origin || allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('Bloqueado pelas políticas de CORS'));
     }
+    return callback(null, true);
   },
   credentials: true
 }));
