@@ -29,26 +29,24 @@ const PORT = process.env.PORT || 5000;
 
 // Configuração de CORS estrita por env var (allowlist)
 // Origens separadas por vírgula em CORS_ORIGINS.
-// Default de produção: www.obraintegrada.com.br (inclui apex sem www para suportar ambos os acessos).
+// Fallback de produção: www.obraintegrada.com.br + apex (suporta ambos os acessos).
 // Em dev, defina CORS_ORIGINS explicitamente no .env (ex: http://localhost:5173).
-// Não há fallback automático para localhost nem bypass por NODE_ENV.
-const DEFAULT_PROD_ORIGINS = 'https://www.obraintegrada.com.br,https://obraintegrada.com.br';
+// Não há mais fallback automático para localhost nem bypass por NODE_ENV.
+const DEFAULT_PROD_ORIGINS = [
+  'https://www.obraintegrada.com.br',
+  'https://obraintegrada.com.br',
+];
 
-const allowedOrigins = (process.env.CORS_ORIGINS || DEFAULT_PROD_ORIGINS)
-  .split(',')
-  .map(origin => origin.trim())
-  .filter(Boolean);
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
+  : DEFAULT_PROD_ORIGINS;
 
 // CORS TEM QUE VIR LOGO APÓS `app = express()` E ANTES DE QUALQUER ROTA / MIDDLEWARE
+// O próprio pacote `cors` valida a origem de forma segura:
+// - Origens sem "Origin" (curl, mobile nativo) SÃO BLOQUEADAS
+// - Apenas origens da allowlist recebem o header Access-Control-Allow-Origin
 app.use(cors({
-  origin: (origin, callback) => {
-    // Requisições sem Origin (mobile nativo, server-to-server) são BLOQUEADAS.
-    // Apenas origens da allowlist são aceitas.
-    if (!origin || allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('Bloqueado pelas políticas de CORS'));
-    }
-    return callback(null, true);
-  },
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
