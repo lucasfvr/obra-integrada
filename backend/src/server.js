@@ -28,15 +28,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Configuração de CORS estrita por env var (allowlist)
-// Default de produção: apenas o domínio oficial www.obraintegrada.com.br.
+// Origens separadas por vírgula em CORS_ORIGINS.
+// Default de produção: www.obraintegrada.com.br (inclui apex sem www para suportar ambos os acessos).
 // Em dev, defina CORS_ORIGINS explicitamente no .env (ex: http://localhost:5173).
-// Não há mais fallback automático para localhost nem bypass por NODE_ENV.
-const DEFAULT_PROD_ORIGIN = 'https://www.obraintegrada.com.br';
+// Não há fallback automático para localhost nem bypass por NODE_ENV.
+const DEFAULT_PROD_ORIGINS = 'https://www.obraintegrada.com.br,https://obraintegrada.com.br';
 
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
-  : [DEFAULT_PROD_ORIGIN];
+const allowedOrigins = (process.env.CORS_ORIGINS || DEFAULT_PROD_ORIGINS)
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
 
+// CORS TEM QUE VIR LOGO APÓS `app = express()` E ANTES DE QUALQUER ROTA / MIDDLEWARE
 app.use(cors({
   origin: (origin, callback) => {
     // Requisições sem Origin (mobile nativo, server-to-server) são BLOQUEADAS.
@@ -46,7 +49,10 @@ app.use(cors({
     }
     return callback(null, true);
   },
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400 // 24h — cache do preflight no navegador
 }));
 
 // Helmet para reforço de cabeçalhos de segurança HTTP
