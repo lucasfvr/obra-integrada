@@ -669,8 +669,13 @@ export async function obterDashboardStats(req, res) {
       where: { id_cliente, status: 'ATIVO' }
     });
 
+    // "Admissões em andamento" = contratações recentes (últimos 30 dias). Antes contava
+    // status_profissional='PENDENTE', que é o default de todos os colaboradores → inflava
+    // o número (mostrava praticamente o total de ativos).
+    const trintaDiasAtras = new Date(hoje);
+    trintaDiasAtras.setDate(hoje.getDate() - 30);
     const admissoesEmAndamento = await prisma.tb_usuario.count({
-      where: { id_cliente, status_profissional: 'PENDENTE' }
+      where: { id_cliente, status: 'ATIVO', data_admissao: { gte: trintaDiasAtras } }
     });
 
     const feriasProgramadas = await prisma.tb_usuario.count({
@@ -731,7 +736,7 @@ export async function obterDashboardStats(req, res) {
       where: { id_cliente },
       orderBy: { id_usuario: 'desc' },
       take: 5,
-      select: { nome: true, cargo_base: true, data_admissao: true, criado_em: true }
+      select: { nome: true, cargo_base: true, data_admissao: true }
     });
 
     const movimentacoesRecentes = ultimosUsuarios.map((u, i) => {

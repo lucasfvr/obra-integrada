@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router';
+import { NavLink, useLocation, useNavigate } from 'react-router';
 import {
   Users, Briefcase, UserPlus, Clock, BookOpen, Shield, Umbrella,
   DollarSign, Layers, BarChart3, Home, ChevronDown, ChevronRight, Settings, Menu, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useRHSidebar } from '../context/RHSidebarContext';
+import toast from 'react-hot-toast';
 
 const iconMap = {
   Home, Users, Briefcase, UserPlus, Clock, BookOpen, Shield, Umbrella,
@@ -16,6 +17,7 @@ export default function RHSidebar() {
   const { user, logout } = useAuth();
   const { collapsed, toggleCollapse } = useRHSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const [expandedMenu, setExpandedMenu] = useState('pessoas');
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -92,13 +94,13 @@ export default function RHSidebar() {
         { label: 'EPIs', path: '/rh/epis' },
         { label: 'NR10', path: '/rh/nr10' },
         { label: 'NR35', path: '/rh/nr35' },
-        { label: 'Alertas', path: '/rh/alertas-sst' }
+        { label: 'Alertas', path: '/rh/alertas' }
       ]
     },
     {
       id: 'beneficios',
       label: 'Benefícios e Férias',
-      icon: 'PalmTree',
+      icon: 'Umbrella',
       submenu: [
         { label: 'Benefícios', path: '/rh/beneficios' },
         { label: 'Férias', path: '/rh/ferias' },
@@ -114,7 +116,7 @@ export default function RHSidebar() {
         { label: 'Folha de Pagamento', path: '/rh/folha-pagamento' },
         { label: 'Holerites', path: '/rh/holerites' },
         { label: 'Encargos', path: '/rh/encargos' },
-        { label: 'Resumos', path: '/rh/resumos-folha' }
+        { label: 'Resumos', path: '/rh/resumos' }
       ]
     },
     {
@@ -122,10 +124,10 @@ export default function RHSidebar() {
       label: 'Alocação em Obras',
       icon: 'Layers',
       submenu: [
-        { label: 'Equipes por Obra', path: '/rh/equipes-obras' },
+        { label: 'Equipes por Obra', path: '/rh/equipes-obra' },
         { label: 'Movimentações', path: '/rh/movimentacoes' },
-        { label: 'Custos de Mão de Obra', path: '/rh/custos-mao-obra' },
-        { label: 'Histórico', path: '/rh/historico-alocacao' }
+        { label: 'Custos de Mão de Obra', path: '/rh/custos' },
+        { label: 'Histórico', path: '/rh/historico' }
       ]
     },
     {
@@ -237,7 +239,8 @@ export default function RHSidebar() {
 
       {/* Bottom Menu */}
       <div className={`space-y-2 ${collapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
-        <button 
+        <button
+          onClick={() => toast('Favoritos — em breve')}
           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors ${
             collapsed ? 'justify-center' : ''
           }`}
@@ -246,7 +249,8 @@ export default function RHSidebar() {
           <BarChart3 size={18} className="flex-shrink-0" />
           {!collapsed && 'Favoritos'}
         </button>
-        <button 
+        <button
+          onClick={() => navigate('/profile')}
           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors ${
             collapsed ? 'justify-center' : ''
           }`}
