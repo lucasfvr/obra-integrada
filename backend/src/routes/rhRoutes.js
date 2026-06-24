@@ -28,6 +28,20 @@ router.get('/',
   listarFuncionarios
 );
 
+// IMPORTANTE: rotas específicas ANTES de '/:id'. Senão '/:id' captura
+// '/dashboard-stats' e '/alertas-nr' → Number('dashboard-stats') = NaN → 400 "ID inválido".
+router.get('/alertas-nr',
+  authMiddleware,
+  requirePermissao('ver_rh'),
+  obterAlertasNR
+);
+
+router.get('/dashboard-stats',
+  authMiddleware,
+  requirePermissao('ver_rh'),
+  obterDashboardStats
+);
+
 router.get('/:id',
   authMiddleware,
   requirePermissao('ver_rh'),
@@ -108,15 +122,4 @@ router.delete('/usuarios/:id/certificacoes/:idCertificacao',
   deletarCertificacao
 );
 
-router.get('/alertas-nr',
-  authMiddleware,
-  requirePermissao('ver_rh'),
-  obterAlertasNR
-);
-
-router.get('/dashboard-stats',
-  authMiddleware,
-  requirePermissao('ver_rh'),
-  obterDashboardStats
-);
 export default router;
