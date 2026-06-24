@@ -111,6 +111,15 @@ export default function RHDashboard() {
     { icon: BarChart2, label: 'Alocar em Obra', action: '/rh/equipes-obra' }
   ];
 
+  const kpis = [
+    { label: 'Colaboradores Ativos', value: stats.colaboradoresAtivos, color: 'text-foreground', to: '/rh/colaboradores' },
+    { label: 'Admissões em Andamento', value: stats.admissoesEmAndamento, color: 'text-amber-600', to: '/rh/contratacoes' },
+    { label: 'Férias Programadas', value: stats.feriasProgramadas, color: 'text-blue-600', to: '/rh/ferias' },
+    { label: 'Afastamentos', value: stats.afastamentos, color: 'text-orange-600', to: '/rh/afastamentos' },
+    { label: 'Exames Pendentes', value: stats.examesPendentes, color: 'text-red-600', to: '/rh/exames' },
+    { label: 'Custo de Mão de Obra', value: `R$ ${(stats.custoMaoObra / 1000000).toFixed(1)}M`, color: 'text-emerald-600', to: '/rh/folha-pagamento' },
+  ];
+
   return (
     <div className="min-h-screen bg-background" aria-busy={loading}>
       {/* Header */}
@@ -201,66 +210,17 @@ export default function RHDashboard() {
         <h2 className="text-2xl font-bold text-foreground mb-6">Indicadores Principais</h2>
         
         {/* Cards de KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-          <Link to="/rh/colaboradores" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Colaboradores Ativos</p>
-                <p className="text-3xl font-bold text-foreground mt-2">{stats.colaboradoresAtivos}</p>
-              </div>
-              <Users size={40} className="text-primary/30" />
-            </div>
-          </Link>
-
-          <Link to="/rh/contratacoes" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Admissões em Andamento</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.admissoesEmAndamento}</p>
-              </div>
-              <UserCheck size={40} className="text-yellow-600/30" />
-            </div>
-          </Link>
-
-          <Link to="/rh/ferias" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Férias Programadas</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{stats.feriasProgramadas}</p>
-              </div>
-              <Clock size={40} className="text-blue-600/30" />
-            </div>
-          </Link>
-
-          <Link to="/rh/afastamentos" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Afastamentos</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{stats.afastamentos}</p>
-              </div>
-              <Heart size={40} className="text-orange-600/30" />
-            </div>
-          </Link>
-
-          <Link to="/rh/exames" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Exames Pendentes</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{stats.examesPendentes}</p>
-              </div>
-              <AlertTriangle size={40} className="text-red-600/30" />
-            </div>
-          </Link>
-
-          <Link to="/rh/folha-pagamento" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Custo de Mão de Obra</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">R$ {(stats.custoMaoObra / 1000000).toFixed(1)}M</p>
-              </div>
-              <DollarSign size={40} className="text-green-600/30" />
-            </div>
-          </Link>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          {kpis.map((kpi) => (
+            <Link
+              key={kpi.label}
+              to={kpi.to}
+              className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary/30 transition-all flex flex-col gap-2 min-h-[112px]"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground leading-snug">{kpi.label}</p>
+              <p className={`text-3xl font-bold leading-none mt-auto ${kpi.color}`}>{kpi.value}</p>
+            </Link>
+          ))}
         </div>
 
         {/* Alertas Críticos e Movimentações Recentes */}
@@ -311,7 +271,7 @@ export default function RHDashboard() {
                         )}
                       </div>
                       <div className="ml-8">
-                        <p className="text-xs text-muted-foreground">{item.time}</p>
+                        <p className="text-xs text-muted-foreground">{item.data}</p>
                         <p className="text-sm text-foreground font-medium">{item.description}</p>
                       </div>
                     </div>
@@ -327,14 +287,22 @@ export default function RHDashboard() {
           {/* Distribuição da Mão de Obra */}
           <div>
             <h2 className="text-2xl font-bold text-foreground mb-4">Distribuição da Mão de Obra</h2>
-            <div className="bg-card border border-border rounded-lg p-6 h-[300px] shadow-sm">
+            <div className="bg-card border border-border rounded-lg p-6 h-[340px] shadow-sm">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={distribuicaoMaoObra} layout="vertical" margin={{ top: 20, right: 30, left: 120, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <BarChart data={distribuicaoMaoObra} layout="vertical" margin={{ top: 8, right: 24, left: 16, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#94a3b8" strokeOpacity={0.25} />
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    width={150}
+                    tick={{ fontSize: 12, fill: '#94a3b8' }}
+                    tickFormatter={(v) => (v.length > 18 ? v.slice(0, 17) + '…' : v)}
+                  />
+                  <Tooltip cursor={{ fill: 'rgba(148,163,184,0.1)' }} />
+                  <Bar dataKey="value" fill="#6366f1" radius={[0, 6, 6, 0]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

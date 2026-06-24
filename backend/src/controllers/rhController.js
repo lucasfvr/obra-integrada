@@ -738,17 +738,17 @@ export async function obterDashboardStats(req, res) {
     const alertas = [];
     let alertaId = 1;
     if (certsVencidas > 0) {
-      alertas.push({ id: alertaId++, text: `${certsVencidas} documentos/certificações vencidos`, severity: 'high', link: '/rh' });
+      alertas.push({ id: alertaId++, text: `${certsVencidas} documentos/certificações vencidos`, severity: 'high', link: '/rh/certificacoes' });
     }
     if (certsVencendo > 0) {
-      alertas.push({ id: alertaId++, text: `${certsVencendo} certificações vencem em 30 dias`, severity: 'medium', link: '/rh' });
+      alertas.push({ id: alertaId++, text: `${certsVencendo} certificações vencem em 30 dias`, severity: 'medium', link: '/rh/certificacoes' });
     }
     if (semObra > 0) {
-      alertas.push({ id: alertaId++, text: `${semObra} colaboradores ativos sem obra atribuída`, severity: 'medium', link: '/rh' });
+      alertas.push({ id: alertaId++, text: `${semObra} colaboradores ativos sem obra atribuída`, severity: 'medium', link: '/rh/colaboradores' });
     }
     if (alertas.length === 0) {
-      alertas.push({ id: alertaId++, text: 'Nenhum documento vencido hoje', severity: 'medium', link: '/rh' });
-      alertas.push({ id: alertaId++, text: 'Todos os colaboradores devidamente alocados', severity: 'medium', link: '/rh' });
+      alertas.push({ id: alertaId++, text: 'Nenhum documento vencido hoje', severity: 'medium', link: '/rh-dashboard' });
+      alertas.push({ id: alertaId++, text: 'Todos os colaboradores devidamente alocados', severity: 'medium', link: '/rh-dashboard' });
     }
 
     // 3. Movimentações Recentes (Últimos 5 usuários cadastrados)
@@ -759,17 +759,16 @@ export async function obterDashboardStats(req, res) {
       select: { nome: true, cargo_base: true, data_admissao: true }
     });
 
-    const movimentacoesRecentes = ultimosUsuarios.map((u, i) => {
-      const time = u.criado_em ? new Date(u.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '08:00';
-      return {
-        time,
-        description: `${u.nome} (${u.cargo_base || 'Colaborador'}) foi cadastrado no sistema.`,
-        icon: 'UserPlus',
-        color: 'text-green-500'
-      };
-    });
+    const movimentacoesRecentes = ultimosUsuarios.map((u) => ({
+      data: u.data_admissao
+        ? new Date(u.data_admissao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+        : 'Data não informada',
+      description: `${u.nome} (${u.cargo_base || 'Colaborador'}) foi cadastrado no sistema.`,
+      icon: 'UserPlus',
+      color: 'text-green-500'
+    }));
     if (movimentacoesRecentes.length === 0) {
-      movimentacoesRecentes.push({ time: '08:00', description: 'Nenhuma movimentação recente registrada.', icon: 'Circle', color: 'text-muted-foreground' });
+      movimentacoesRecentes.push({ data: '—', description: 'Nenhuma movimentação recente registrada.', icon: 'Circle', color: 'text-muted-foreground' });
     }
 
     // 4. Distribuição da Mão de Obra por Obra
@@ -786,7 +785,11 @@ export async function obterDashboardStats(req, res) {
       }
     });
 
-    const distribuicaoMaoObra = Object.entries(distribuicaoMap).map(([name, value]) => ({ name, value }));
+    // Top 8 obras por nº de pessoas (evita o gráfico amontoado/ilegível).
+    const distribuicaoMaoObra = Object.entries(distribuicaoMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
     if (distribuicaoMaoObra.length === 0) {
       distribuicaoMaoObra.push({ name: 'Sem Obras com Equipe', value: 0 });
     }

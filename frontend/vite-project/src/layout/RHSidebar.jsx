@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import {
   Users, Briefcase, UserPlus, Clock, BookOpen, Shield, Umbrella,
-  DollarSign, Layers, BarChart3, Home, ChevronDown, ChevronRight, Settings, Menu, X
+  DollarSign, Layers, BarChart3, Home, ChevronDown, ChevronRight, Settings, Menu, X, Sun, Moon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useRHSidebar } from '../context/RHSidebarContext';
+import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 
 const iconMap = {
@@ -16,6 +17,7 @@ const iconMap = {
 export default function RHSidebar() {
   const { user, logout } = useAuth();
   const { collapsed, toggleCollapse } = useRHSidebar();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [expandedMenu, setExpandedMenu] = useState('pessoas');
@@ -239,6 +241,18 @@ export default function RHSidebar() {
 
       {/* Bottom Menu */}
       <div className={`space-y-2 ${collapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
+        <button
+          onClick={toggleTheme}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors ${
+            collapsed ? 'justify-center' : ''
+          }`}
+          title={collapsed ? (theme === 'dark' ? 'Modo claro' : 'Modo escuro') : ''}
+        >
+          {theme === 'dark'
+            ? <Sun size={18} className="flex-shrink-0" />
+            : <Moon size={18} className="flex-shrink-0" />}
+          {!collapsed && (theme === 'dark' ? 'Modo claro' : 'Modo escuro')}
+        </button>
         <button
           onClick={() => toast('Favoritos — em breve')}
           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors ${
