@@ -49,12 +49,27 @@ const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
   : DEFAULT_PROD_ORIGINS;
 
+function corsOriginValidator(origin, callback) {
+  if (!origin) return callback(null, true);
+
+  if (allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+
+  const isLocalhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/i.test(origin);
+  if (process.env.NODE_ENV === 'development' && isLocalhostOrigin) {
+    return callback(null, true);
+  }
+
+  callback(new Error('Not allowed by CORS')); 
+}
+
 // CORS TEM QUE VIR LOGO APÓS `app = express()` E ANTES DE QUALQUER ROTA / MIDDLEWARE
 // O próprio pacote `cors` valida a origem de forma segura:
 // - Origens sem "Origin" (curl, mobile nativo) SÃO BLOQUEADAS
 // - Apenas origens da allowlist recebem o header Access-Control-Allow-Origin
 app.use(cors({
-  origin: allowedOrigins,
+  origin: corsOriginValidator,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,

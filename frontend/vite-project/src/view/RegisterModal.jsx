@@ -117,7 +117,8 @@ function RegisterModal({ onClose, onRegisterSuccess, onOpenLogin }) {
       }
     }
 
-    const emailValidation = validateEmail(email);
+    const emailValue = email.trim();
+    const emailValidation = validateEmail(emailValue);
     if (!emailValidation.valid) newErrors.email = emailValidation.message;
 
     if (Object.keys(newErrors).filter(k => newErrors[k]).length > 0) {
