@@ -79,8 +79,9 @@ export default function TerceirizadosPage() {
         emp.contrato, emp.vigencia, emp.status, emp.colaboradores.length,
       ]),
     ];
-    const csv = linhas.map((r) => r.map(escape).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csv = linhas.map((r) => r.map(escape).join(';')).join('\r\n');
+    // Prefixa BOM (U+FEFF) p/ o Excel abrir como UTF-8; ';' e o separador padrao do Excel pt-BR.
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `terceirizados_${new Date().toISOString().split('T')[0]}.csv`;
@@ -221,7 +222,9 @@ export default function TerceirizadosPage() {
                 <div>
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Documentação</p>
                   <p className="text-sm font-semibold text-foreground/90 mt-0.5">
-                    {empresa.documentos.every((d) => d.status === 'Válido') ? (
+                    {empresa.documentos.length === 0 ? (
+                      <span className="text-muted-foreground font-bold">— Sem documentos</span>
+                    ) : empresa.documentos.every((d) => d.status === 'Válido') ? (
                       <span className="text-emerald-600 font-bold">✓ Completa</span>
                     ) : (
                       <span className="text-amber-600 font-bold">⚠ Parcial</span>

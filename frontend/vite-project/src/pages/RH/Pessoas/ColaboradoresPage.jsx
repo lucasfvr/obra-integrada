@@ -29,8 +29,7 @@ export default function ColaboradoresPage() {
   const [showFiltros, setShowFiltros] = useState(false);
   const [actionMenu, setActionMenu] = useState(null);
   const [filtros, setFiltros] = useState({
-    status: 'TODOS', cargo: '', obra: '', departamento: '',
-    empresa: '', gestor: '', tipoContrato: '',
+    status: 'TODOS', cargo: '', obra: '', gestor: '', tipoContrato: '',
   });
 
   // --- perfil inline (substitui navigate) ---
@@ -60,32 +59,36 @@ export default function ColaboradoresPage() {
       const res = await apiFetch(`${API_BASE_URL}/api/rh?${params}`);
       if (!res.ok) throw new Error('Erro ao carregar colaboradores');
       const data = await res.json();
-      let lista = (data.data || []).filter((c) => !c.is_terceirizado);
-
-      if (filtros.obra)        lista = lista.filter((c) => (c.obra_atual || '').toLowerCase().includes(filtros.obra.toLowerCase()));
-      if (filtros.departamento) lista = lista.filter((c) => (c.departamento || 'Obras').toLowerCase().includes(filtros.departamento.toLowerCase()));
-      if (filtros.gestor)       lista = lista.filter((c) => (c.gestor || '').toLowerCase().includes(filtros.gestor.toLowerCase()));
-      if (filtros.tipoContrato) lista = lista.filter((c) => c.tipo_vinculo === filtros.tipoContrato);
-
+      const lista = (data.data || []).filter((c) => !c.is_terceirizado);
       setColaboradores(lista);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [apiFetch, searchTerm, filtros.cargo, filtros.obra, filtros.departamento, filtros.gestor, filtros.tipoContrato]);
+  }, [apiFetch, searchTerm, filtros.cargo]);
 
   useEffect(() => {
     const t = setTimeout(carregarColaboradores, 300);
     return () => clearTimeout(t);
   }, [carregarColaboradores]);
 
-  // Lista exibida = base completa filtrada pelo status no cliente.
-  // As contagens (pílulas) usam a base completa, então não zeram ao trocar de aba.
+  // Filtros client-side (obra/gestor/contrato) sobre a base completa.
+  const baseList = colaboradores.filter((c) => {
+    if (filtros.obra && !(c.obra_atual || '').toLowerCase().includes(filtros.obra.toLowerCase())) return false;
+    if (filtros.gestor && !(c.gestor || '').toLowerCase().includes(filtros.gestor.toLowerCase())) return false;
+    if (filtros.tipoContrato && c.tipo_vinculo !== filtros.tipoContrato) return false;
+    return true;
+  });
+
+  // Lista exibida = base filtrada pelo status. As contagens usam a base,
+  // então não zeram ao trocar de aba.
   const colaboradoresFiltrados =
-    filtros.status === 'TODOS'
-      ? colaboradores
-      : colaboradores.filter((c) => c.status === filtros.status);
+    filtros.status === 'TODOS' ? baseList : baseList.filter((c) => c.status === filtros.status);
+
+  // Opções distintas para os dropdowns (da base completa, independem dos filtros).
+  const obrasDisponiveis = [...new Set(colaboradores.map((c) => c.obra_atual).filter(Boolean))].sort();
+  const gestoresDisponiveis = [...new Set(colaboradores.map((c) => c.gestor).filter(Boolean))].sort();
 
   // ---------------------------------------------------------------- handlers
   const handleCriar = async (e) => {
@@ -144,7 +147,7 @@ export default function ColaboradoresPage() {
     a.click();
   };
 
-  const contagemStatus = (s) => s === 'TODOS' ? colaboradores.length : colaboradores.filter((c) => c.status === s).length;
+  const contagemStatus = (s) => s === 'TODOS' ? baseList.length : baseList.filter((c) => c.status === s).length;
 
   const abrirPerfil = (col) => { setActionMenu(null); setPerfilAtivo(col); };
 
@@ -232,23 +235,48 @@ export default function ColaboradoresPage() {
       {/* Filtros avançados */}
       {showFiltros && (
         <div className="mb-4 p-4 bg-card border border-border rounded-xl shadow-sm grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          {[
-            { key: 'cargo', label: 'Cargo', placeholder: 'Ex: Pedreiro' },
-            { key: 'obra', label: 'Obra', placeholder: 'Ex: Residencial Alpha' },
-            { key: 'departamento', label: 'Departamento', placeholder: 'Ex: Obras' },
-            { key: 'gestor', label: 'Gestor', placeholder: 'Nome do gestor' },
-          ].map((f) => (
-            <div key={f.key}>
-              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{f.label}</label>
-              <input
-                type="text"
-                placeholder={f.placeholder}
-                value={filtros[f.key]}
-                onChange={(e) => setFiltros((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                className="w-full mt-1 px-3 py-1.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring/30"
-              />
-            </div>
-          ))}
+          <div>
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Cargo</label>
+            <input
+              type="text"
+              placeholder="Ex: Pedreiro"
+              value={filtros.cargo}
+              onChange={(e) => setFiltros((prev) => ({ ...prev, cargo: e.target.value }))}
+              className="w-full mt-1 px-3 py-1.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring/30"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Obra</label>
+            <input
+              type="text"
+              list="obras-list"
+              placeholder="Todas as obras"
+              value={filtros.obra}
+              onChange={(e) => setFiltros((prev) => ({ ...prev, obra: e.target.value }))}
+              className="w-full mt-1 px-3 py-1.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring/30"
+            />
+            <datalist id="obras-list">
+              {obrasDisponiveis.map((o) => (
+                <option key={o} value={o} />
+              ))}
+            </datalist>
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Gestor</label>
+            <input
+              type="text"
+              list="gestores-list"
+              placeholder="Todos os gestores"
+              value={filtros.gestor}
+              onChange={(e) => setFiltros((prev) => ({ ...prev, gestor: e.target.value }))}
+              className="w-full mt-1 px-3 py-1.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring/30"
+            />
+            <datalist id="gestores-list">
+              {gestoresDisponiveis.map((g) => (
+                <option key={g} value={g} />
+              ))}
+            </datalist>
+          </div>
           <div>
             <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Contrato</label>
             <select
