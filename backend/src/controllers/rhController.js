@@ -76,7 +76,18 @@ export async function listarFuncionarios(req, res) {
           cnpj_empreiteira: true,
           razao_social_empreiteira: true,
           tipo_vinculo: true,
-          lgpd_consentimento: true
+          lgpd_consentimento: true,
+          tb_usuario_obra: {
+            select: {
+              tb_obra: {
+                select: {
+                  nome: true,
+                  // Responsável da obra = gestor derivado (dado existente, sem nova regra).
+                  tb_usuario: { select: { nome: true } }
+                }
+              }
+            }
+          }
         }
       }),
       prisma.tb_usuario.count({ where })
@@ -91,8 +102,17 @@ export async function listarFuncionarios(req, res) {
       }
     }).catch(err => console.error('[AUDITORIA] Erro ao gravar log:', err));
 
+    // Expõe a obra alocada (aditivo — não altera filtros nem regra de negócio).
+    const funcionariosComObra = funcionarios.map((f) => {
+      const { tb_usuario_obra, ...rest } = f;
+      const vinculos = tb_usuario_obra || [];
+      const obras = vinculos.map((uo) => uo.tb_obra?.nome).filter(Boolean);
+      const gestores = vinculos.map((uo) => uo.tb_obra?.tb_usuario?.nome).filter(Boolean);
+      return { ...rest, obra_atual: obras[0] || null, obras, gestor: gestores[0] || null };
+    });
+
     return res.status(200).json({
-      data: funcionarios,
+      data: funcionariosComObra,
       meta: {
         total,
         page: pageNumber,

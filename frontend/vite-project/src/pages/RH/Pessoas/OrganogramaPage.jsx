@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GitBranch, ChevronDown, ChevronRight, Mail, Phone, Users } from 'lucide-react';
 import { PageHeader, SectionCard } from '../../../components/RH/rhUi.jsx';
+import RHPessoasNav from '../../../components/RH/RHPessoasNav.jsx';
 
 const ORGANOGRAMA = {
   id: 'dir',
@@ -131,6 +132,7 @@ export default function OrganogramaPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mb-6"><RHPessoasNav /></div>
       <PageHeader
         icon={GitBranch}
         title="Organograma"

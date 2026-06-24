@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Building2, Plus, Filter, Download, Users, FileText, Phone, Mail, Calendar } from 'lucide-react';
+import { Building2, Plus, Download, Users, FileText, Phone, Mail, Calendar, X } from 'lucide-react';
 import { PageHeader, StatusBadge, SectionCard, InfoGrid, DataTable } from '../../../components/RH/rhUi.jsx';
+import RHPessoasNav from '../../../components/RH/RHPessoasNav.jsx';
+import { Modal } from '../../../components/ui/modal/index.tsx';
 
-const EMPRESAS = [
+const INITIAL_EMPRESAS = [
   {
     id: 1,
     razaoSocial: 'TecniEletra Serviços Ltda',
@@ -45,12 +47,46 @@ const EMPRESAS = [
 ];
 
 export default function TerceirizadosPage() {
+  const [empresas, setEmpresas] = useState(INITIAL_EMPRESAS);
   const [empresaSelecionada, setEmpresaSelecionada] = useState(null);
   const [busca, setBusca] = useState('');
+  const [showNovoModal, setShowNovoModal] = useState(false);
+  const [novaEmpresa, setNovaEmpresa] = useState({
+    razaoSocial: '', cnpj: '', responsavel: '', telefone: '', email: '', contrato: '', vigencia: '',
+  });
 
-  const empresasFiltradas = EMPRESAS.filter((e) =>
+  const empresasFiltradas = empresas.filter((e) =>
     !busca || e.razaoSocial.toLowerCase().includes(busca.toLowerCase()) || e.cnpj.includes(busca)
   );
+
+  const handleCriarEmpresa = (e) => {
+    e.preventDefault();
+    const newId = empresas.length ? Math.max(...empresas.map((emp) => emp.id)) + 1 : 1;
+    setEmpresas((prev) => [
+      ...prev,
+      { id: newId, ...novaEmpresa, status: 'Ativa', colaboradores: [], documentos: [] },
+    ]);
+    setNovaEmpresa({ razaoSocial: '', cnpj: '', responsavel: '', telefone: '', email: '', contrato: '', vigencia: '' });
+    setShowNovoModal(false);
+  };
+
+  const handleExportar = () => {
+    const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const linhas = [
+      ['Razão Social', 'CNPJ', 'Responsável', 'Telefone', 'Email', 'Contrato', 'Vigência', 'Status', 'Colaboradores'],
+      ...empresasFiltradas.map((emp) => [
+        emp.razaoSocial, emp.cnpj, emp.responsavel, emp.telefone, emp.email,
+        emp.contrato, emp.vigencia, emp.status, emp.colaboradores.length,
+      ]),
+    ];
+    const csv = linhas.map((r) => r.map(escape).join(';')).join('\r\n');
+    // Prefixa BOM (U+FEFF) p/ o Excel abrir como UTF-8; ';' e o separador padrao do Excel pt-BR.
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `terceirizados_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
 
   if (empresaSelecionada) {
     const emp = empresaSelecionada;
@@ -107,12 +143,16 @@ export default function TerceirizadosPage() {
 
   return (
     <div className="min-h-screen bg-muted/20 p-4 sm:p-6">
+      <div className="mb-6"><RHPessoasNav /></div>
       <PageHeader
         icon={Building2}
         title="Terceirizados"
         subtitle="Gestão de empresas contratadas e profissionais alocados"
         actions={
-          <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 text-sm font-semibold">
+          <button
+            onClick={() => setShowNovoModal(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 text-sm font-semibold"
+          >
             <Plus size={18} /> Nova Empresa
           </button>
         }
@@ -126,10 +166,10 @@ export default function TerceirizadosPage() {
           onChange={(e) => setBusca(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 bg-card border border-border rounded-lg text-sm placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
-        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent text-foreground transition-colors">
-          <Filter size={16} /> Filtros
-        </button>
-        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent text-foreground transition-colors">
+        <button
+          onClick={handleExportar}
+          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent text-foreground transition-colors"
+        >
           <Download size={16} /> Exportar
         </button>
       </div>
@@ -182,7 +222,9 @@ export default function TerceirizadosPage() {
                 <div>
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Documentação</p>
                   <p className="text-sm font-semibold text-foreground/90 mt-0.5">
-                    {empresa.documentos.every((d) => d.status === 'Válido') ? (
+                    {empresa.documentos.length === 0 ? (
+                      <span className="text-muted-foreground font-bold">— Sem documentos</span>
+                    ) : empresa.documentos.every((d) => d.status === 'Válido') ? (
                       <span className="text-emerald-600 font-bold">✓ Completa</span>
                     ) : (
                       <span className="text-amber-600 font-bold">⚠ Parcial</span>
@@ -206,6 +248,47 @@ export default function TerceirizadosPage() {
           </div>
         ))}
       </div>
+
+      <Modal isOpen={showNovoModal} onClose={() => setShowNovoModal(false)} className="max-w-lg">
+        <form onSubmit={handleCriarEmpresa} className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-foreground">Nova Empresa Terceirizada</h2>
+            <button type="button" onClick={() => setShowNovoModal(false)} className="text-muted-foreground hover:text-foreground">
+              <X size={20} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {[
+              { key: 'razaoSocial', label: 'Razão Social', required: true, full: true },
+              { key: 'cnpj', label: 'CNPJ' },
+              { key: 'responsavel', label: 'Responsável' },
+              { key: 'telefone', label: 'Telefone' },
+              { key: 'email', label: 'Email', type: 'email' },
+              { key: 'contrato', label: 'Contrato' },
+              { key: 'vigencia', label: 'Vigência' },
+            ].map((f) => (
+              <div key={f.key} className={`space-y-1 ${f.full ? 'sm:col-span-2' : ''}`}>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{f.label}</label>
+                <input
+                  type={f.type || 'text'}
+                  required={f.required}
+                  value={novaEmpresa[f.key]}
+                  onChange={(e) => setNovaEmpresa({ ...novaEmpresa, [f.key]: e.target.value })}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <button type="button" onClick={() => setShowNovoModal(false)} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent rounded-lg transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
+              Salvar Empresa
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
