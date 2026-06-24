@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import API_BASE_URL from '../../config/api.js';
 import {
@@ -9,6 +10,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function RHDashboard() {
   const { user, apiFetch } = useAuth();
+  const navigate = useNavigate();
+  const searchInputRef = useRef(null);
   const [stats, setStats] = useState({
     colaboradoresAtivos: 0,
     admissoesEmAndamento: 0,
@@ -47,44 +50,69 @@ export default function RHDashboard() {
     return 'Boa noite';
   };
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      setSearchResults([
-        {
-          id: 1,
-          nome: 'João Silva',
-          cpf: '123.456.789-00',
-          cargo: 'Eletricista',
-          obra: 'Residencial Alpha',
-          tipo: 'pessoa'
-        },
-        {
-          id: 2,
-          nome: 'Maria Souza',
-          cpf: '987.654.321-11',
-          cargo: 'Pedreiro',
-          obra: 'Condomínio Beta',
-          tipo: 'pessoa'
-        }
-      ]);
-    } else {
-      setSearchResults([]);
-    }
-  };
+  // Carrega os indicadores reais do dashboard (endpoint ja existente).
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await apiFetch(`${API_BASE_URL}/api/rh/dashboard-stats`);
+        if (!res.ok) throw new Error('Erro ao carregar o dashboard');
+        const d = await res.json();
+        if (!ativo) return;
+        if (d.stats) setStats(d.stats);
+        setAlertas(d.alertas || []);
+        setMovimentacoesRecentes(d.movimentacoesRecentes || []);
+        setDistribuicaoMaoObra(d.distribuicaoMaoObra || []);
+        setStatusDocumentacao(d.statusDocumentacao || []);
+        if (d.custosPessoas) setCustosPessoas(d.custosPessoas);
+        setProdutividadeObra(d.produtividadeObra || []);
+        if (d.vagasRecrutamento) setVagasRecrutamento(d.vagasRecrutamento);
+        setTreinamentosStatus(d.treinamentosStatus || []);
+        if (d.feriasAfastamentos) setFeriasAfastamentos(d.feriasAfastamentos);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (ativo) setLoading(false);
+      }
+    })();
+    return () => { ativo = false; };
+  }, [apiFetch]);
+
+  // Busca global real (debounce) — substitui os dados ficticios.
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) { setSearchResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await apiFetch(`${API_BASE_URL}/api/rh?busca=${encodeURIComponent(searchQuery)}&limit=5&status=TODOS`);
+        if (!res.ok) return;
+        const d = await res.json();
+        setSearchResults((d.data || []).map((u) => ({
+          id: u.id_usuario,
+          nome: u.nome,
+          cpf: u.cpf || '—',
+          cargo: u.cargo_base || '—',
+          obra: u.obra_atual || '—',
+        })));
+      } catch (e) {
+        console.error(e);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery, apiFetch]);
 
   const acoesRapidasButtons = [
-    { icon: UserPlus, label: 'Novo Colaborador', action: '/rh/colaboradores/novo' },
-    { icon: FileText, label: 'Enviar Documento', action: '/rh/documentacao/enviar' },
-    { icon: Briefcase, label: 'Abrir Vaga', action: '/rh/vagas/nova' },
-    { icon: Calendar, label: 'Registrar Férias', action: '/rh/ferias/registrar' },
-    { icon: Heart, label: 'Agendar Exame', action: '/rh/exames/agendar' },
-    { icon: LayoutDashboard, label: 'Criar Treinamento', action: '/rh/treinamentos/novo' },
-    { icon: BarChart2, label: 'Alocar em Obra', action: '/rh/alocacao/novo' }
+    { icon: UserPlus, label: 'Novo Colaborador', action: '/rh/colaboradores' },
+    { icon: FileText, label: 'Enviar Documento', action: '/rh/documentacao' },
+    { icon: Briefcase, label: 'Abrir Vaga', action: '/rh/vagas' },
+    { icon: Calendar, label: 'Registrar Férias', action: '/rh/ferias' },
+    { icon: Heart, label: 'Agendar Exame', action: '/rh/exames' },
+    { icon: LayoutDashboard, label: 'Criar Treinamento', action: '/rh/treinamentos' },
+    { icon: BarChart2, label: 'Alocar em Obra', action: '/rh/equipes-obra' }
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" aria-busy={loading}>
       {/* Header */}
       <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -96,13 +124,28 @@ export default function RHDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-full hover:bg-accent transition-colors">
+            <button
+              onClick={() => document.getElementById('alertas-criticos')?.scrollIntoView({ behavior: 'smooth' })}
+              className="p-2 rounded-full hover:bg-accent transition-colors relative"
+              title="Ver alertas"
+            >
               <Bell size={20} className="text-foreground" />
+              {totalPendencias > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+              )}
             </button>
-            <button className="p-2 rounded-full hover:bg-accent transition-colors">
+            <button
+              onClick={() => searchInputRef.current?.focus()}
+              className="p-2 rounded-full hover:bg-accent transition-colors"
+              title="Buscar"
+            >
               <Search size={20} className="text-foreground" />
             </button>
-            <button className="p-2 rounded-full hover:bg-accent transition-colors">
+            <button
+              onClick={() => navigate('/rh/colaboradores')}
+              className="p-2 rounded-full hover:bg-accent transition-colors"
+              title="Novo colaborador"
+            >
               <Plus size={20} className="text-foreground" />
             </button>
           </div>
@@ -115,19 +158,21 @@ export default function RHDashboard() {
               <Search size={20} className="text-muted-foreground" />
             </div>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Pesquisar pessoa, documento ou processo..."
               value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
 
             {searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-20">
                 {searchResults.map((result) => (
-                  <a
+                  <Link
                     key={result.id}
-                    href={`/rh/colaborador/${result.id}`}
+                    to={`/rh/colaboradores/${result.id}`}
+                    onClick={() => { setSearchQuery(''); setSearchResults([]); }}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-accent border-b border-border last:border-b-0 cursor-pointer transition-colors"
                   >
                     <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
@@ -143,7 +188,7 @@ export default function RHDashboard() {
                         <span>{result.obra}</span>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 ))}
               </div>
             )}
@@ -157,7 +202,7 @@ export default function RHDashboard() {
         
         {/* Cards de KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-          <a href="/rh/colaboradores" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
+          <Link to="/rh/colaboradores" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Colaboradores Ativos</p>
@@ -165,9 +210,9 @@ export default function RHDashboard() {
               </div>
               <Users size={40} className="text-primary/30" />
             </div>
-          </a>
+          </Link>
 
-          <a href="/rh/admissoes" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
+          <Link to="/rh/contratacoes" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Admissões em Andamento</p>
@@ -175,9 +220,9 @@ export default function RHDashboard() {
               </div>
               <UserCheck size={40} className="text-yellow-600/30" />
             </div>
-          </a>
+          </Link>
 
-          <a href="/rh/ferias" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
+          <Link to="/rh/ferias" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Férias Programadas</p>
@@ -185,9 +230,9 @@ export default function RHDashboard() {
               </div>
               <Clock size={40} className="text-blue-600/30" />
             </div>
-          </a>
+          </Link>
 
-          <a href="/rh/afastamentos" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
+          <Link to="/rh/afastamentos" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Afastamentos</p>
@@ -195,9 +240,9 @@ export default function RHDashboard() {
               </div>
               <Heart size={40} className="text-orange-600/30" />
             </div>
-          </a>
+          </Link>
 
-          <a href="/rh/exames" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
+          <Link to="/rh/exames" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Exames Pendentes</p>
@@ -205,9 +250,9 @@ export default function RHDashboard() {
               </div>
               <AlertTriangle size={40} className="text-red-600/30" />
             </div>
-          </a>
+          </Link>
 
-          <a href="/rh/folha-pagamento" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
+          <Link to="/rh/folha-pagamento" className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground text-sm">Custo de Mão de Obra</p>
@@ -215,20 +260,20 @@ export default function RHDashboard() {
               </div>
               <DollarSign size={40} className="text-green-600/30" />
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Alertas Críticos e Movimentações Recentes */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Alertas Críticos */}
-          <div>
+          <div id="alertas-criticos">
             <h2 className="text-2xl font-bold text-foreground mb-4">Alertas Críticos</h2>
             <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
               <div className="space-y-3">
                 {alertas.map((alerta) => (
-                  <a
+                  <Link
                     key={alerta.id}
-                    href={alerta.link}
+                    to={alerta.link}
                     className={`p-4 rounded-lg border flex items-start gap-3 hover:bg-accent/50 transition-colors ${
                       alerta.severity === 'high'
                         ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
@@ -242,7 +287,7 @@ export default function RHDashboard() {
                       }`}
                     />
                     <p className="text-sm text-foreground">{alerta.text}</p>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -477,14 +522,14 @@ export default function RHDashboard() {
             {acoesRapidasButtons.map((acao, idx) => {
               const Icon = acao.icon;
               return (
-                <a
+                <Link
                   key={idx}
-                  href={acao.action}
+                  to={acao.action}
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-md hover:bg-primary/90 transition-colors whitespace-nowrap text-xs font-medium"
                 >
                   <Icon size={16} />
                   {acao.label}
-                </a>
+                </Link>
               );
             })}
           </div>
