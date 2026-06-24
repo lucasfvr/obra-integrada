@@ -115,12 +115,33 @@ export const validateCEP = (cep) => {
   return { valid: true, message: "CEP válido" };
 };
 
+const getAllowedEmailDomains = () => {
+  const raw = import.meta.env.VITE_EMAIL_ALLOWED_DOMAINS;
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((domain) => domain.trim().toLowerCase())
+    .filter(Boolean);
+};
+
 // Valida email
 export const validateEmail = (email) => {
-  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9.-]{2,}\.[a-zA-Z]{2,}$/;
+  const re = /^[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@[A-Za-z0-9]+([.-][A-Za-z0-9]+)*\.[A-Za-z]{2,}$/;
   if (!re.test(email)) {
     return { valid: false, message: "Email inválido" };
   }
+
+  const allowedDomains = getAllowedEmailDomains();
+  if (allowedDomains.length > 0) {
+    const domain = email.trim().toLowerCase().split('@')[1] || '';
+    if (!allowedDomains.includes(domain)) {
+      return {
+        valid: false,
+        message: `Domínio de email não permitido. Use ${allowedDomains.join(', ')}`,
+      };
+    }
+  }
+
   return { valid: true, message: "Email válido" };
 };
 

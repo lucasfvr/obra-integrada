@@ -497,7 +497,7 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
         </fieldset>
 
         {/* OCULTADO: seleção de tipo de cadastro — apenas Pessoa Jurídica disponível */}
-        <fieldset className="border rounded-lg p-5 hidden">
+        <fieldset className="border rounded-lg p-5">
           <legend className="font-semibold text-lg flex items-center gap-2">
             <FiUser /> Tipo de cadastro
           </legend>

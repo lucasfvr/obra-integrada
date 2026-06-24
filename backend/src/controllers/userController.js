@@ -149,6 +149,17 @@ export async function registerUser(req, res) {
       return res.status(400).json({ erro: 'Formato de email inválido' });
     }
 
+    const allowedDomains = process.env.EMAIL_ALLOWED_DOMAINS
+      ? process.env.EMAIL_ALLOWED_DOMAINS.split(',').map((d) => d.trim().toLowerCase()).filter(Boolean)
+      : [];
+
+    if (allowedDomains.length > 0) {
+      const domain = trimmedEmail.split('@')[1] || '';
+      if (!allowedDomains.includes(domain)) {
+        return res.status(400).json({ erro: `Domínio de email não permitido. Use: ${allowedDomains.join(', ')}` });
+      }
+    }
+
     // Token de pré-cadastro assinado — garante consistência com o formulário final
     // Contém os dados validados para que o backend possa verificá-los na etapa seguinte
     const preRegPayload = {
