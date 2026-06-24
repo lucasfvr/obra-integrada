@@ -57,7 +57,7 @@ function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogo
                         </div>
                     ) : (
                         <>
-                            <button onClick={onLoginClick} className="hidden sm:block text-slate-600 font-semibold hover:text-indigo-600 active:text-indigo-800 transition">
+                            <button onClick={onLoginClick} className="text-slate-600 font-semibold hover:text-indigo-600 active:text-indigo-800 transition">
                                 Login
                             </button>
                             <button onClick={onRegisterClick} className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-5 py-2 rounded-lg font-semibold transition shadow focus:outline-none focus:ring-2 focus:ring-indigo-500">
