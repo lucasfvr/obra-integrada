@@ -53,7 +53,7 @@ export default function ColaboradoresPage() {
       setLoading(true);
       const params = new URLSearchParams({
         page: '1', limit: '500', busca: searchTerm,
-        status: filtros.status, sortBy: 'nome', sortOrder: 'asc',
+        status: 'TODOS', sortBy: 'nome', sortOrder: 'asc',
       });
       if (filtros.cargo) params.set('cargo', filtros.cargo);
 
@@ -73,12 +73,19 @@ export default function ColaboradoresPage() {
     } finally {
       setLoading(false);
     }
-  }, [apiFetch, searchTerm, filtros]);
+  }, [apiFetch, searchTerm, filtros.cargo, filtros.obra, filtros.departamento, filtros.gestor, filtros.tipoContrato]);
 
   useEffect(() => {
     const t = setTimeout(carregarColaboradores, 300);
     return () => clearTimeout(t);
   }, [carregarColaboradores]);
+
+  // Lista exibida = base completa filtrada pelo status no cliente.
+  // As contagens (pílulas) usam a base completa, então não zeram ao trocar de aba.
+  const colaboradoresFiltrados =
+    filtros.status === 'TODOS'
+      ? colaboradores
+      : colaboradores.filter((c) => c.status === filtros.status);
 
   // ---------------------------------------------------------------- handlers
   const handleCriar = async (e) => {
@@ -125,7 +132,7 @@ export default function ColaboradoresPage() {
   const handleExportar = () => {
     const csv = [
       ['Nome', 'Matrícula', 'Cargo', 'Status', 'Admissão', 'Email'],
-      ...colaboradores.map((c) => [
+      ...colaboradoresFiltrados.map((c) => [
         c.nome, c.matricula, c.cargo_base || '', c.status,
         c.data_admissao ? new Date(c.data_admissao).toLocaleDateString('pt-BR') : '', c.email || '',
       ]),
@@ -275,10 +282,10 @@ export default function ColaboradoresPage() {
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">Carregando...</td></tr>
-              ) : colaboradores.length === 0 ? (
+              ) : colaboradoresFiltrados.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">Nenhum colaborador encontrado</td></tr>
               ) : (
-                colaboradores.map((col) => (
+                colaboradoresFiltrados.map((col) => (
                   <tr
                     key={col.id_usuario}
                     className="hover:bg-muted/50 transition-colors cursor-pointer"

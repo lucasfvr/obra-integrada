@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Users, Plus, Filter, TrendingUp, ClipboardCheck, FileCheck, Edit2, Trash2, X, UserPlus } from 'lucide-react';
+import { Users, Plus, TrendingUp, ClipboardCheck, FileCheck, Edit2, Trash2, X, UserPlus } from 'lucide-react';
 import { PageHeader, StatusBadge, SectionCard, InfoGrid, DataTable, SideIndicatorCard } from '../../../components/RH/rhUi.jsx';
+import RHPessoasNav from '../../../components/RH/RHPessoasNav.jsx';
 import { Modal } from '../../../components/ui/modal/index.tsx';
 
 const INITIAL_EQUIPES = [
@@ -65,7 +66,8 @@ export default function EquipesPage() {
   const [equipes, setEquipes] = useState(INITIAL_EQUIPES);
   const [equipeSelecionada, setEquipeSelecionada] = useState(null);
   const [filtro, setFiltro] = useState('todas');
-  
+  const [obraFiltro, setObraFiltro] = useState('');
+
   // Estados para Modal de Edição
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [equipeEmEdicao, setEquipeEmEdicao] = useState(null);
@@ -344,8 +346,11 @@ export default function EquipesPage() {
     );
   }
 
+  const obrasDasEquipes = [...new Set(equipes.map((e) => e.obra))];
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mb-6"><RHPessoasNav /></div>
       <PageHeader
         icon={Users}
         title="Equipes"
@@ -372,9 +377,18 @@ export default function EquipesPage() {
             {f.label}
           </button>
         ))}
-        <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm hover:bg-accent ml-auto transition-colors">
-          <Filter size={16} /> Filtros
-        </button>
+        {filtro === 'por-obra' && (
+          <select
+            value={obraFiltro}
+            onChange={(e) => setObraFiltro(e.target.value)}
+            className="ml-auto px-4 py-2 bg-card border border-border rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">Todas as obras</option>
+            {obrasDasEquipes.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -382,6 +396,7 @@ export default function EquipesPage() {
           .filter(eq => {
             if (filtro === 'proprias') return eq.tipo === 'Própria';
             if (filtro === 'terceirizadas') return eq.tipo === 'Terceirizada';
+            if (filtro === 'por-obra' && obraFiltro) return eq.obra === obraFiltro;
             return true;
           })
           .map((equipe) => (
