@@ -6,6 +6,8 @@ async function main() {
     { nome: 'RH Protegido', rota: '/test-1' },
     { nome: 'Relatórios VIP', rota: '/test-2' },
     { nome: 'Suporte VIP', rota: '/test-3' },
+    { nome: 'Planejamento', rota: '/planejamento' },
+    { nome: 'Engenharia', rota: '/engenheiro' },
   ];
 
   for (const pag of paginas) {

@@ -11,6 +11,7 @@ export default function ControleAcessoPage() {
   const [formData, setFormData] = useState({ nome: '', cpf: '', role: 'RH' });
   const [paginas, setPaginas] = useState([]);
   const [permissoesSelecionadas, setPermissoesSelecionadas] = useState([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [carregandoPaginas, setCarregandoPaginas] = useState(true);
   const [erroMsg, setErroMsg] = useState('');
@@ -35,7 +36,8 @@ export default function ControleAcessoPage() {
       }
       const data = await res.json();
       setPaginas(data);
-      setPermissoesSelecionadas(data.map(p => p.id_pagina));
+      // Não selecionar todas as páginas por padrão — deixar avançado opcional
+      setPermissoesSelecionadas([]);
     } catch (error) {
       console.error('Erro ao buscar páginas', error);
     } finally {
@@ -217,36 +219,48 @@ export default function ControleAcessoPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-1">Role</label>
-              <input
-                type="text"
+              <select
                 className="w-full border border-border rounded-lg p-2.5 outline-none focus:border-primary transition-colors bg-transparent text-foreground"
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
-              />
+              >
+                <option value="RH">RH</option>
+                <option value="PLANEJADOR">PLANEJADOR</option>
+                <option value="ENGENHEIRO">ENGENHEIRO</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="USER">USER</option>
+              </select>
+              <div className="mt-2 text-sm">
+                <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} className="text-primary underline">
+                  {showAdvanced ? 'Ocultar permissões avançadas' : 'Mostrar permissões avançadas'}
+                </button>
+              </div>
             </div>
 
-            <div className="pt-2">
-              <label className="block text-sm font-medium text-muted-foreground mb-2">Permissões de página</label>
-              {carregandoPaginas ? (
-                <div className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Carregando páginas...</div>
-              ) : paginas.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma página cadastrada.</p>
-              ) : (
-                <div className="space-y-2">
-                  {paginas.map(pagina => (
-                    <label key={pagina.id_pagina} className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                        checked={permissoesSelecionadas.includes(pagina.id_pagina)}
-                        onChange={() => togglePermissao(pagina.id_pagina)}
-                      />
-                      <span className="text-sm text-foreground font-medium">{pagina.nome}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+            {showAdvanced && (
+              <div className="pt-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Permissões de página</label>
+                {carregandoPaginas ? (
+                  <div className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Carregando páginas...</div>
+                ) : paginas.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhuma página cadastrada.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {paginas.map(pagina => (
+                      <label key={pagina.id_pagina} className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                          checked={permissoesSelecionadas.includes(pagina.id_pagina)}
+                          onChange={() => togglePermissao(pagina.id_pagina)}
+                        />
+                        <span className="text-sm text-foreground font-medium">{pagina.nome}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="pt-4">
               <button

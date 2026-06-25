@@ -39,6 +39,8 @@ import GestaoRHAvancado from "../pages/Operational/GestaoRHAvancado.jsx";
 import { GestaoEquipe } from "../pages/Operational/GestaoEquipe.jsx";
 import RHLayout from "../layout/RHLayout.jsx";
 import RHDashboard from "../pages/RH/RHDashboard.jsx";
+import PlanejamentoPage from "../pages/PlanejamentoPage.jsx";
+import EngenheiroPage from "../pages/EngenheiroPage.jsx";
 
 // Pessoas
 import ColaboradoresPage from "../pages/RH/Pessoas/ColaboradoresPage.jsx";
@@ -141,6 +143,10 @@ function App() {
               isAuthenticated ? (
                 user?.role === 'RH' ? (
                   <Navigate to="/rh-dashboard" replace />
+                ) : user?.role === 'PLANEJADOR' ? (
+                  <Navigate to="/planejamento" replace />
+                ) : user?.role === 'ENGENHEIRO' ? (
+                  <Navigate to="/engenheiro" replace />
                 ) : (
                   <Navigate to="/dashboard" replace />
                 )
@@ -177,6 +183,10 @@ function App() {
                 <ProtectedRoute>
                   {user?.role === 'RH' ? (
                     <Navigate to="/rh-dashboard" replace />
+                  ) : user?.role === 'PLANEJADOR' ? (
+                    <Navigate to="/planejamento" replace />
+                  ) : user?.role === 'ENGENHEIRO' ? (
+                    <Navigate to="/engenheiro" replace />
                   ) : (
                     <DashboardDinamico
                       currentUser={user}
@@ -273,6 +283,26 @@ function App() {
                   <PermissaoGuard permissao="gerenciar_clientes" redirectToRestricted>
                     <UnderConstruction titulo="Clientes / Tenants" />
                   </PermissaoGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/planejamento"
+              element={
+                <ProtectedRoute>
+                  <PageAuthGuard rota="/planejamento">
+                    <PlanejamentoPage />
+                  </PageAuthGuard>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/engenheiro"
+              element={
+                <ProtectedRoute>
+                  <PageAuthGuard rota="/engenheiro">
+                    <EngenheiroPage />
+                  </PageAuthGuard>
                 </ProtectedRoute>
               }
             />

@@ -57,6 +57,12 @@ const AppSidebar: FC = () => {
       { icon: icons.ajuda, name: "Teste 2", path: "/test-2" },
       { icon: icons.ajuda, name: "Teste 3", path: "/test-3" },
     ] : []),
+    ...(user?.role === 'PLANEJADOR' ? [
+      { icon: icons.ajuda, name: "Planejamento", path: "/planejamento" },
+    ] : []),
+    ...(user?.role === 'ENGENHEIRO' ? [
+      { icon: icons.ajuda, name: "Engenharia", path: "/engenheiro" },
+    ] : []),
     { icon: icons.materiais,    name: "Materiais",     path: "/materiais",  permissao: "ver_obras",      badge: "3" },
     { icon: icons.documentos,   name: "Documentos",    path: "/documentos", permissao: "ver_diario" },
   ].filter(item => !item.permissao || hasPermissao(item.permissao));

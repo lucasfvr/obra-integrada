@@ -13,7 +13,7 @@ import API_BASE_URL from '../../config/api.js';
  * token para identificar quem é — não precisa (nem deve) bater no endpoint
  * de gestão do RH.
  */
-export function PageAuthGuard({ idPagina, children }) {
+export function PageAuthGuard({ idPagina, rota, children }) {
   const { user, apiFetch } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -30,8 +30,25 @@ export function PageAuthGuard({ idPagina, children }) {
         const res = await apiFetch(`${API_BASE_URL}/api/me/permissoes`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const paginas = await res.json();
-        const pagePerm = paginas.find(p => p.id_pagina === idPagina);
-        if (ativo) setHasAccess(!!(pagePerm && pagePerm.permitido));
+        const pagePerm = paginas.find(p => (
+          (idPagina && p.id_pagina === idPagina) ||
+          (rota && p.rota === rota)
+        ));
+        // Se houver registro explícito na tabela de permissões de página, respeitar
+        if (ativo && pagePerm) {
+          setHasAccess(!!pagePerm.permitido);
+        } else if (ativo) {
+          // Fallback prático: permitir acesso por role para rotas mapeadas
+          const roleByRoute = {
+            '/planejamento': 'PLANEJADOR',
+            '/engenheiro': 'ENGENHEIRO'
+          };
+          if (rota && user?.role && roleByRoute[rota] === user.role) {
+            setHasAccess(true);
+          } else {
+            setHasAccess(false);
+          }
+        }
       } catch (error) {
         console.error('Erro ao verificar permissão:', error);
         if (ativo) setHasAccess(false);
@@ -42,7 +59,7 @@ export function PageAuthGuard({ idPagina, children }) {
 
     checkPermission();
     return () => { ativo = false; };
-  }, [idPagina, user, apiFetch]);
+  }, [idPagina, rota, user, apiFetch]);
 
   if (loading) {
     return (

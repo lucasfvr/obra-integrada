@@ -41,6 +41,8 @@ export const ROLE_LABELS = Object.freeze({
   TRABALHADOR:  'Trabalhador',
   CLIENTE:      'Cliente',
   EMPREITEIRA:  'Representante da Empreiteira (Terceirizado)',
+  PLANEJADOR:   'Planejador',
+  ENGENHEIRO:   'Engenheiro',
   USER:         'Usuario',
 });
 
