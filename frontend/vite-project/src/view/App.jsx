@@ -50,6 +50,7 @@ import VagasPage from "../pages/RH/Recrutamento/VagasPage.jsx";
 import CandidatosPage from "../pages/RH/Recrutamento/CandidatosPage.jsx";
 import BancoTalentosPage from "../pages/RH/Recrutamento/BancoTalentosPage.jsx";
 import EntrevistasPage from "../pages/RH/Recrutamento/EntrevistasPage.jsx";
+import ControleAcessoPage from "../pages/RH/ControleAcessoPage.jsx";
 
 // Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
 // e fornecer callbacks que o Header e o form precisam pra navegar.
@@ -282,21 +283,26 @@ function App() {
               }
             />
             {/* Redirecionar outras rotas para o dashboard se logado */}
-            <Route 
-              path="/home" 
+            <Route
+              path="/home"
               element={
                 user?.role === 'RH' ? (
                   <Navigate to="/rh-dashboard" replace />
                 ) : (
                   <Navigate to="/dashboard" replace />
                 )
-              } 
+              }
             />
           </Route>
 
           {/* RH Layout Routes */}
           <Route element={<RHLayout />}>
             <Route path="/rh-dashboard" element={<RHRoute><RHDashboard /></RHRoute>} />
+            <Route path="/rh/controle-acesso" element={
+              <RHRoute>
+                {(user?.username === 'wh' || user?.username === 'rh_manager') ? <ControleAcessoPage /> : <Navigate to="/restricted" replace />}
+              </RHRoute>
+            } />
             <Route path="/rh-avancado" element={<RHRoute permissao="gerenciar_usuarios"><GestaoRHAvancado /></RHRoute>} />
             <Route path="/rh/colaboradores" element={<RHRoute><ColaboradoresPage /></RHRoute>} />
             <Route path="/rh/colaboradores/:id" element={<RHRoute><ColaboradorPerfilPage /></RHRoute>} />

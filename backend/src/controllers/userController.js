@@ -236,7 +236,8 @@ export async function loginUser(req, res) {
         funcao: user.funcao,
         id_cliente: user.id_cliente || null,
         cnpj: user.cnpj || null,
-        razao_social: user.razao_social || null
+        razao_social: user.razao_social || null,
+        acesso_rh: user.acesso_rh
       },
       (() => { const secret = process.env.JWT_SECRET; if (!secret) throw new Error('JWT_SECRET not set'); return secret; })(),
       { expiresIn: '8h' }
@@ -252,7 +253,8 @@ export async function loginUser(req, res) {
         email: user.email,
         id_cliente: user.id_cliente || null,
         cnpj: user.cnpj || null,
-        razao_social: user.razao_social || null
+        razao_social: user.razao_social || null,
+        acesso_rh: user.acesso_rh
       },
       token,
     });
@@ -467,7 +469,10 @@ export async function formularioCompleto(req, res) {
 
     const hashedSenha = await bcrypt.hash(senha, 10);
 
+    const clienteDefault = await prisma.tb_cliente.findFirst();
+
     const userData = {
+      id_cliente: clienteDefault ? clienteDefault.id_cliente : null,
       nome: tipoCadastro === 'fisica' ? (nome || '').trim() : (razaoSocial || '').trim(),
       email: trimmedEmail,
       username: trimmedEmail,

@@ -50,7 +50,7 @@ const AppSidebar: FC = () => {
     { icon: icons.cronograma,   name: "Cronograma",    path: "/calendar",   permissao: "ver_tarefas" },
     { icon: icons.orcamento,    name: "Orçamento",     path: "/financeiro", permissao: "ver_financeiro" },
     { icon: icons.funcionarios, name: "Funcionários",  path: "/equipe",     permissao: "ver_equipe" },
-    { icon: icons.funcionarios, name: "RH",            path: "/rh",         permissao: "ver_rh" },
+    { icon: icons.funcionarios, name: "RH",            path: "/rh-dashboard",         permissao: "ver_rh" },
     { icon: icons.funcionarios, name: "Controle de Acesso", path: "/rh-avancado", permissao: "gerenciar_usuarios" },
     { icon: icons.materiais,    name: "Materiais",     path: "/materiais",  permissao: "ver_obras",      badge: "3" },
     { icon: icons.documentos,   name: "Documentos",    path: "/documentos", permissao: "ver_diario" },

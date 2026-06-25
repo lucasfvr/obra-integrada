@@ -40,14 +40,43 @@ export function requireRole(...roles) {
 // --- 2. requirePermissao --------------------------------------------------
 
 export function requirePermissao(permissao) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const role = req.user?.role;
+    const idUsuario = req.user?.id;
 
-    if (!role) {
+    if (!role || !idUsuario) {
       return res.status(401).json({ erro: 'Nao autenticado' });
     }
 
+    const rhPermissions = [
+      'ver_rh', 'gerenciar_usuarios', 'gerenciar_salario', 
+      'gerenciar_dados_residenciais', 'gerenciar_conta_banco', 
+      'gerenciar_ponto_diaria'
+    ];
+
+    if (rhPermissions.includes(permissao)) {
+      const dbUser = await prisma.tb_usuario.findUnique({
+        where: { id_usuario: idUsuario },
+        select: { acesso_rh: true }
+      });
+      if (!dbUser || !dbUser.acesso_rh) {
+        return res.status(403).json({
+          erro: 'Acesso negado. Você não tem permissão para acessar a área de RH.',
+        });
+      }
+    }
+
     if (!hasPermissao(role, permissao)) {
+      if (permissao === 'ver_rh') {
+        const dbUser = await prisma.tb_usuario.findUnique({
+          where: { id_usuario: idUsuario },
+          select: { acesso_rh: true }
+        });
+        if (dbUser && dbUser.acesso_rh) {
+          return next();
+        }
+      }
+
       _logAcessoNegado(req, `Permissao '${permissao}' negada para role '${role}'`);
       return res.status(403).json({
         erro: 'Acao nao permitida para seu nivel de acesso.',

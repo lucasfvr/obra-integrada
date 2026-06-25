@@ -122,4 +122,81 @@ router.delete('/usuarios/:id/certificacoes/:idCertificacao',
   deletarCertificacao
 );
 
+// --- CONTROLE DE ACESSO AO RH (EXCLUSIVO DO USER 'wh') ---
+router.get('/controle-acesso/usuarios',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      if (req.user?.username !== 'wh' && req.user?.username !== 'rh_manager') {
+        return res.status(403).json({ erro: 'Acesso negado. Apenas usuários autorizados têm permissão para esta funcionalidade.' });
+      }
+
+      const usuarios = await prisma.tb_usuario.findMany({
+        select: {
+          id_usuario: true,
+          nome: true,
+          username: true,
+          email: true,
+          role: true,
+          status: true,
+          acesso_rh: true
+        },
+        orderBy: {
+          nome: 'asc'
+        }
+      });
+
+      return res.status(200).json(usuarios);
+    } catch (error) {
+      console.error('[RH CONTROLE ACESSO] Erro ao buscar usuários:', error);
+      return res.status(500).json({ erro: 'Erro interno ao carregar controle de acesso.' });
+    }
+  }
+);
+
+router.patch('/controle-acesso/usuarios/:id',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      if (req.user?.username !== 'wh' && req.user?.username !== 'rh_manager') {
+        return res.status(403).json({ erro: 'Acesso negado. Apenas usuários autorizados têm permissão para esta funcionalidade.' });
+      }
+
+      const targetId = Number(req.params.id);
+      if (isNaN(targetId)) return res.status(400).json({ erro: 'ID do usuário inválido.' });
+
+      const { acesso_rh } = req.body;
+      if (typeof acesso_rh !== 'boolean') {
+        return res.status(400).json({ erro: 'O campo acesso_rh é obrigatório e deve ser boleano.' });
+      }
+
+      // Evita lockout do próprio wh
+      const targetUser = await prisma.tb_usuario.findUnique({
+        where: { id_usuario: targetId }
+      });
+      if (targetUser && (targetUser.username === 'wh' || targetUser.username === 'rh_manager') && !acesso_rh) {
+        return res.status(400).json({ erro: 'Não é permitido revogar o próprio acesso de um usuário administrador.' });
+      }
+
+      const updatedUser = await prisma.tb_usuario.update({
+        where: { id_usuario: targetId },
+        data: { acesso_rh },
+        select: {
+          id_usuario: true,
+          nome: true,
+          acesso_rh: true
+        }
+      });
+
+      return res.status(200).json({
+        mensagem: `Acesso do usuário ${updatedUser.nome} atualizado com sucesso!`,
+        usuario: updatedUser
+      });
+    } catch (error) {
+      console.error('[RH CONTROLE ACESSO] Erro ao atualizar acesso do usuário:', error);
+      return res.status(500).json({ erro: 'Erro interno ao atualizar controle de acesso.' });
+    }
+  }
+);
+
 export default router;
