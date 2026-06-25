@@ -215,6 +215,7 @@ model tb_usuario {
   tb_tarefa_usuario            tb_tarefa_usuario[]
   tb_cliente                   tb_cliente?               @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_cliente")
   tb_usuario_obra              tb_usuario_obra[]
+  tb_permissao_pagina          tb_permissao_pagina[]
 }
 
 model tb_usuario_obra {
@@ -597,4 +598,22 @@ model tb_entrevista {
   @@index([id_candidato], map: "idx_entrevista_candidato")
   @@index([id_vaga], map: "idx_entrevista_vaga")
   @@index([id_cliente, data_hora], map: "idx_entrevista_cliente_data")
+}
+
+model tb_pagina {
+  id_pagina           Int                   @id @default(autoincrement())
+  nome                String
+  rota                String                @unique
+  tb_permissao_pagina tb_permissao_pagina[]
+}
+
+model tb_permissao_pagina {
+  id_permissao Int        @id @default(autoincrement())
+  id_usuario   Int
+  id_pagina    Int
+  permitido    Boolean    @default(false)
+  tb_usuario   tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  tb_pagina    tb_pagina  @relation(fields: [id_pagina], references: [id_pagina], onDelete: Cascade)
+
+  @@unique([id_usuario, id_pagina], map: "idx_unique_user_page")
 }

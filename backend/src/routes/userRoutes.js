@@ -3,7 +3,7 @@ import { registerUser, loginUser, forgotPassword, formularioCompleto, getAllUser
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireRole, requirePermissao } from '../middlewares/authorizationMiddleware.js';
 import { getWorkerStats, getWeatherMock, getWorkerPaymentHistory, getWorkerAvailability, getWorkerPerformanceReport, getWorkerActiveTasks } from '../controllers/operationalController.js';
-
+import { criarAcessoUsuario, getPaginas, getUserPermissions, updateUserPermission, getUsuariosParaAcesso } from '../controllers/accessController.js';
 const router = express.Router();
 
 router.post('/users/register', registerUser);
@@ -59,5 +59,20 @@ router.get('/operational/tarefas-ativas', authMiddleware, getWorkerActiveTasks);
 // Admin routes — protegidas por autenticacao + permissao
 router.get('/admin/users', authMiddleware, requirePermissao('gerenciar_usuarios'), getAllUsers);
 router.put('/admin/users/:id/role', authMiddleware, requireRole('ADMIN_MASTER', 'PROPRIETARIO'), updateUserRole);
+
+// Middleware especial para garantir que apenas o rh@vanguarda.com.br (ou admin) tenha acesso a criação rápida
+const requireRH = (req, res, next) => {
+  if (req.user && (req.user.email === 'rh@vanguarda.com.br' || req.user.role === 'ADMIN_MASTER' || req.user.role === 'RH')) {
+    return next();
+  }
+  return res.status(403).json({ erro: 'Acesso restrito ao RH' });
+};
+
+// Rotas de Novo Sistema de Acesso
+router.post('/admin/criar-acesso', authMiddleware, requireRH, criarAcessoUsuario);
+router.get('/admin/paginas', authMiddleware, requireRH, getPaginas);
+router.get('/admin/acesso-usuarios', authMiddleware, requireRH, getUsuariosParaAcesso);
+router.get('/admin/permissoes/:id_usuario', authMiddleware, requireRH, getUserPermissions);
+router.put('/admin/permissoes', authMiddleware, requireRH, updateUserPermission);
 
 export default router;

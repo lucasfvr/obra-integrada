@@ -20,6 +20,10 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import RestrictedAccess from "../pages/RestrictedAccess.jsx";
 
+// Novas telas de acesso
+import { TestPage } from "../pages/Protected/TestPages.jsx";
+import { PageAuthGuard } from "../components/Guards/PageAuthGuard.jsx";
+
 // Modern Dashboard & Project Pages
 import { DashboardDinamico } from "../components/Dashboard/DashboardDinamico.jsx";
 import ObraPage from "../pages/Obra/ObraPage.jsx";
@@ -282,6 +286,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Rotas de Teste Protegidas por id_pagina (assumindo IDs 1, 2, 3) */}
+            <Route path="/test-1" element={
+              <ProtectedRoute><PageAuthGuard idPagina={1}><TestPage num={1} /></PageAuthGuard></ProtectedRoute>
+            } />
+            <Route path="/test-2" element={
+              <ProtectedRoute><PageAuthGuard idPagina={2}><TestPage num={2} /></PageAuthGuard></ProtectedRoute>
+            } />
+            <Route path="/test-3" element={
+              <ProtectedRoute><PageAuthGuard idPagina={3}><TestPage num={3} /></PageAuthGuard></ProtectedRoute>
+            } />
             {/* Redirecionar outras rotas para o dashboard se logado */}
             <Route
               path="/home"
@@ -300,7 +315,7 @@ function App() {
             <Route path="/rh-dashboard" element={<RHRoute><RHDashboard /></RHRoute>} />
             <Route path="/rh/controle-acesso" element={
               <RHRoute>
-                {(user?.username === 'wh' || user?.username === 'rh_manager') ? <ControleAcessoPage /> : <Navigate to="/restricted" replace />}
+                <ControleAcessoPage />
               </RHRoute>
             } />
             <Route path="/rh-avancado" element={<RHRoute permissao="gerenciar_usuarios"><GestaoRHAvancado /></RHRoute>} />
