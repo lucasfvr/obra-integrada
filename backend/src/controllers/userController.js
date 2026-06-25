@@ -549,7 +549,8 @@ export async function updateUserRole(req, res) {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!role || (role !== 'USER' && role !== 'ADMIN')) {
+    const validRoles = ['ADMIN', 'RH', 'PROPRIETARIO', 'RESPONSAVEL', 'ESTAGIARIO', 'TRABALHADOR', 'CLIENTE', 'EMPREITEIRA', 'PLANEJADOR', 'ENGENHEIRO', 'USER'];
+    if (!role || !validRoles.includes(role)) {
       return res.status(400).json({ erro: 'Role inválida' });
     }
 
@@ -581,7 +582,7 @@ export async function updateUserRoleAndStatus(req, res) {
     }
 
     // Validação do novo role
-    const validRoles = ['ADMIN', 'RH', 'PROPRIETARIO', 'RESPONSAVEL', 'ESTAGIARIO', 'TRABALHADOR', 'CLIENTE', 'EMPREITEIRA', 'USER'];
+    const validRoles = ['ADMIN', 'RH', 'PROPRIETARIO', 'RESPONSAVEL', 'ESTAGIARIO', 'TRABALHADOR', 'CLIENTE', 'EMPREITEIRA', 'PLANEJADOR', 'ENGENHEIRO', 'USER'];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({ success: false, error: 'Role inválida' });
     }
