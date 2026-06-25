@@ -67,6 +67,17 @@ export function AuthProvider({ children }) {
   const isImpersonating = !!originalAdminUser;
 
   const hasPermissao = useCallback((permissao) => {
+    const rhPermissions = [
+      'ver_rh', 'gerenciar_usuarios', 'gerenciar_salario', 
+      'gerenciar_dados_residenciais', 'gerenciar_conta_banco', 
+      'gerenciar_ponto_diaria'
+    ];
+
+    if (rhPermissions.includes(permissao)) {
+      if (!user?.acesso_rh) return false;
+      if (permissao === 'ver_rh' && user?.acesso_rh) return true;
+    }
+
     return _hasPermissao(user?.role, permissao);
   }, [user]);
 

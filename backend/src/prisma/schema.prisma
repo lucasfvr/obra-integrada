@@ -200,6 +200,7 @@ model tb_usuario {
   status                       String                    @default("ATIVO")
   tipo_vinculo                 String?
   uso_plataforma               String?
+  acesso_rh                    Boolean                   @default(false)
   tb_certificacao              tb_certificacao[]
   tb_diario_obra               tb_diario_obra[]
   tb_financeiro_obra           tb_financeiro_obra[]

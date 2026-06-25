@@ -137,7 +137,13 @@ export default function RHSidebar() {
       label: 'Relatórios',
       icon: 'BarChart3',
       path: '/rh/relatorios'
-    }
+    },
+    ...(user?.username === 'wh' || user?.username === 'rh_manager' ? [{
+      id: 'controle-acesso',
+      label: 'Controle de Acesso',
+      icon: 'Shield',
+      path: '/rh/controle-acesso'
+    }] : [])
   ];
 
   const toggleMenu = (menuId) => {

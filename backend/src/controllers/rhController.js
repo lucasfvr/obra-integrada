@@ -29,7 +29,11 @@ export async function listarFuncionarios(req, res) {
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const id_cliente = req.user?.id_cliente;
+    let id_cliente = req.user?.id_cliente;
+    if (!id_cliente) {
+      const defaultClient = await prisma.tb_cliente.findFirst();
+      if (defaultClient) id_cliente = defaultClient.id_cliente;
+    }
 
     const where = {
       id_cliente: id_cliente || undefined,
@@ -183,7 +187,11 @@ export async function criarFuncionario(req, res) {
     const sequencial = (totalNoAno + 1).toString().padStart(3, '0');
     const matricula = `MAT-${anoAtual}-${sequencial}`;
 
-    const id_cliente = req.user?.id_cliente;
+    let id_cliente = req.user?.id_cliente;
+    if (!id_cliente) {
+      const defaultClient = await prisma.tb_cliente.findFirst();
+      if (defaultClient) id_cliente = defaultClient.id_cliente;
+    }
 
     const isEmpreiteira = req.user?.role === 'EMPREITEIRA';
     const resolvedIsTerceirizado = isEmpreiteira ? true : (is_terceirizado === true || is_terceirizado === 'true');
@@ -607,7 +615,11 @@ export async function deletarCertificacao(req, res) {
 
 export async function obterAlertasNR(req, res) {
   try {
-    const id_cliente = req.user?.id_cliente;
+    let id_cliente = req.user?.id_cliente;
+    if (!id_cliente) {
+      const defaultClient = await prisma.tb_cliente.findFirst();
+      if (defaultClient) id_cliente = defaultClient.id_cliente;
+    }
 
     const hoje = new Date();
     const trintaDias = new Date();
@@ -677,7 +689,11 @@ export async function obterAlertasNR(req, res) {
 
 export async function obterDashboardStats(req, res) {
   try {
-    const id_cliente = req.user?.id_cliente;
+    let id_cliente = req.user?.id_cliente;
+    if (!id_cliente) {
+      const defaultClient = await prisma.tb_cliente.findFirst();
+      if (defaultClient) id_cliente = defaultClient.id_cliente;
+    }
     if (!id_cliente) return res.status(400).json({ erro: 'id_cliente (tenant) não identificado.' });
 
     const hoje = new Date();

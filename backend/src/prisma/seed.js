@@ -190,7 +190,7 @@ async function main() {
   // 4. Proprietário
   const proprietario = await prisma.tb_usuario.upsert({
     where: { email: 'diretoria@vanguarda.com.br' },
-    update: { id_cliente, senha: senhaHash, status: 'ATIVO' },
+    update: { id_cliente, senha: senhaHash, status: 'ATIVO', acesso_rh: true },
     create: {
       nome: 'Dr. Ricardo Vanguarda',
       email: 'diretoria@vanguarda.com.br',
@@ -199,7 +199,8 @@ async function main() {
       role: 'PROPRIETARIO',
       tipo_usuario: 'PROPRIETARIO',
       id_cliente,
-      status: 'ATIVO'
+      status: 'ATIVO',
+      acesso_rh: true
     }
   });
 
@@ -225,7 +226,7 @@ async function main() {
   // 4.2. Gerente de RH (perfil com acesso a módulo avançado de RH)
   const rh = await prisma.tb_usuario.upsert({
     where: { email: 'rh@vanguarda.com.br' },
-    update: { id_cliente, senha: senhaHash, role: 'RH', status: 'ATIVO' },
+    update: { id_cliente, senha: senhaHash, role: 'RH', status: 'ATIVO', acesso_rh: true },
     create: {
       nome: 'Gerente de RH',
       email: 'rh@vanguarda.com.br',
@@ -237,7 +238,28 @@ async function main() {
       id_cliente,
       status: 'ATIVO',
       cpf: '000.000.000-999',
-      matricula: 'VANG-2025-RH00'
+      matricula: 'VANG-2025-RH00',
+      acesso_rh: true
+    }
+  });
+
+  // 4.3. Usuário wh (Administrador de Permissões)
+  const wh = await prisma.tb_usuario.upsert({
+    where: { email: 'wh@vanguarda.com.br' },
+    update: { id_cliente, senha: senhaHash, role: 'RH', status: 'ATIVO', acesso_rh: true },
+    create: {
+      nome: 'Administrador de Acesso (wh)',
+      email: 'wh@vanguarda.com.br',
+      username: 'wh',
+      senha: senhaHash,
+      role: 'RH',
+      tipo_usuario: 'RH',
+      cargo_base: 'Controle de Acesso',
+      id_cliente,
+      status: 'ATIVO',
+      cpf: '000.000.000-888',
+      matricula: 'VANG-2025-WH00',
+      acesso_rh: true
     }
   });
 
