@@ -1,44 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router';
-import api from '../../config/api.js';
+import { useAuth } from '../../hooks/useAuth.js';
+import API_BASE_URL from '../../config/api.js';
 
+/**
+ * PageAuthGuard
+ *
+ * Libera o conteúdo apenas se o usuário autenticado tiver a permissão de
+ * página (tb_permissao_pagina) correspondente a `idPagina`.
+ *
+ * Consulta o endpoint do PRÓPRIO usuário (/api/me/permissoes), que usa o
+ * token para identificar quem é — não precisa (nem deve) bater no endpoint
+ * de gestão do RH.
+ */
 export function PageAuthGuard({ idPagina, children }) {
+  const { user, apiFetch } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
-    // Buscar perfil do usuário e validar permissões?
-    // Melhor usar a API criada para buscar as permissões do usuário
-    // Como estamos apenas verificando se ele tem permissão para esta idPagina específica:
+    let ativo = true;
+
     const checkPermission = async () => {
+      if (!user?.id) {
+        if (ativo) { setHasAccess(false); setLoading(false); }
+        return;
+      }
       try {
-        const userStr = localStorage.getItem('user');
-        if (!userStr) {
-          setHasAccess(false);
-          setLoading(false);
-          return;
-        }
-        const user = JSON.parse(userStr);
-        // Pode ser um cache no localStorage ou uma chamada direta
-        const res = await api.get(`/admin/permissoes/${user.id}`);
-        const paginas = res.data;
+        const res = await apiFetch(`${API_BASE_URL}/api/me/permissoes`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const paginas = await res.json();
         const pagePerm = paginas.find(p => p.id_pagina === idPagina);
-        
-        if (pagePerm && pagePerm.permitido) {
-          setHasAccess(true);
-        } else {
-          setHasAccess(false);
-        }
+        if (ativo) setHasAccess(!!(pagePerm && pagePerm.permitido));
       } catch (error) {
         console.error('Erro ao verificar permissão:', error);
-        setHasAccess(false);
+        if (ativo) setHasAccess(false);
       } finally {
-        setLoading(false);
+        if (ativo) setLoading(false);
       }
     };
-    
+
     checkPermission();
-  }, [idPagina]);
+    return () => { ativo = false; };
+  }, [idPagina, user, apiFetch]);
 
   if (loading) {
     return (

@@ -3,7 +3,7 @@ import { registerUser, loginUser, forgotPassword, formularioCompleto, getAllUser
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { requireRole, requirePermissao } from '../middlewares/authorizationMiddleware.js';
 import { getWorkerStats, getWeatherMock, getWorkerPaymentHistory, getWorkerAvailability, getWorkerPerformanceReport, getWorkerActiveTasks } from '../controllers/operationalController.js';
-import { criarAcessoUsuario, getPaginas, getUserPermissions, updateUserPermission, getUsuariosParaAcesso } from '../controllers/accessController.js';
+import { criarAcessoUsuario, getPaginas, getUserPermissions, updateUserPermission, getUsuariosParaAcesso, getMinhasPermissoes } from '../controllers/accessController.js';
 const router = express.Router();
 
 router.post('/users/register', registerUser);
@@ -74,5 +74,8 @@ router.get('/admin/paginas', authMiddleware, requireRH, getPaginas);
 router.get('/admin/acesso-usuarios', authMiddleware, requireRH, getUsuariosParaAcesso);
 router.get('/admin/permissoes/:id_usuario', authMiddleware, requireRH, getUserPermissions);
 router.put('/admin/permissoes', authMiddleware, requireRH, updateUserPermission);
+
+// Permissões de página do próprio usuário (qualquer autenticado) — usado pelo PageAuthGuard
+router.get('/me/permissoes', authMiddleware, getMinhasPermissoes);
 
 export default router;

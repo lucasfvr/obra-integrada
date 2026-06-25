@@ -70,6 +70,40 @@ export async function getUserPermissions(req, res) {
 }
 
 /**
+ * Retorna as permissões de PÁGINA do usuário autenticado (ele mesmo).
+ * Usado pelo PageAuthGuard no front — NÃO exige RH, pois qualquer usuário
+ * precisa consultar as próprias permissões para renderizar suas páginas.
+ */
+export async function getMinhasPermissoes(req, res) {
+  try {
+    const id_usuario = req.user?.id;
+    if (!id_usuario) {
+      return res.status(401).json({ error: 'Não autenticado' });
+    }
+
+    const [paginas, permissoes] = await Promise.all([
+      prisma.tb_pagina.findMany(),
+      prisma.tb_permissao_pagina.findMany({ where: { id_usuario } })
+    ]);
+
+    const resultado = paginas.map(pagina => {
+      const perm = permissoes.find(p => p.id_pagina === pagina.id_pagina);
+      return {
+        id_pagina: pagina.id_pagina,
+        nome: pagina.nome,
+        rota: pagina.rota,
+        permitido: perm ? perm.permitido : false
+      };
+    });
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    console.error('[ACCESS] Erro ao buscar minhas permissões:', error);
+    return res.status(500).json({ error: 'Erro ao buscar permissões' });
+  }
+}
+
+/**
  * Atualiza a permissão de um usuário para uma página específica.
  */
 export async function updateUserPermission(req, res) {
@@ -115,6 +149,13 @@ export async function criarAcessoUsuario(req, res) {
     if (!nome || !cpf) {
       return res.status(400).json({ error: 'Nome e CPF são obrigatórios' });
     }
+
+    // Normaliza a role e decide o flag acesso_rh: sem isso, um usuário
+    // criado com role RH nasceria com acesso_rh=false e cairia em
+    // "Acesso Restrito" ao entrar — exatamente o bug do módulo de permissão.
+    const roleFinal = (role || 'USER').trim().toUpperCase();
+    const ROLES_COM_RH = ['RH', 'ADMIN', 'ADMIN_MASTER', 'PROPRIETARIO'];
+    const acessoRh = ROLES_COM_RH.includes(roleFinal);
 
     // Gerar email automático no padrão nome.sobrenome@vanguarda.com
     const nomes = nome.trim().split(' ');
@@ -164,9 +205,10 @@ export async function criarAcessoUsuario(req, res) {
         senha: hashedSenha,
         cpf: cpfLimpo,
         telefone: null,
-        role: role || 'USER',
+        role: roleFinal,
         status: 'ATIVO',
         tipo_usuario: 'fisica',
+        acesso_rh: acessoRh,
       }
     });
 
