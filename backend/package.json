@@ -5,6 +5,7 @@
   "scripts": {
     "test": "poku",
     "test:coverage": "c8 poku",
+    "test:email": "node --test ./tests/emailService.test.js",
     "start": "node ./src/server.js",
     "dev": "nodemon --env-file .env ./src/server.js",
     "seed": "node --env-file .env ./src/prisma/seed.js",
@@ -31,13 +32,14 @@
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.1.1",
+    "nodemailer": "^6.9.2",
     "pg": "^8.20.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@prisma/client": "^5.22.0",
     "c8": "^11.0.0",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.4.2",
     "nodemon": "^3.1.10",
     "poku": "^4.2.1",
     "prisma": "^5.22.0"

@@ -1,7 +1,82 @@
 import { UserModel } from '../models/user.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma.js';
+import { sendVerificationEmail } from '../services/emailService.js';
+
+// In-memory temporary stores for codes and pending registrations
+// Map key conventions:
+//  - codes: `${email}:${purpose}` => { code, expiresAt }
+//  - pendingRegistrations: tempId => { userData, expiresAt, code }
+const codesStore = new Map();
+const pendingRegistrations = new Map();
+const resendCooldownStore = new Map();
+
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
+}
+
+function setCode(email, purpose, code, ttlMinutes = 15) {
+  const key = `${email.toLowerCase()}:${purpose}`;
+  const expiresAt = Date.now() + ttlMinutes * 60 * 1000;
+  codesStore.set(key, { code, expiresAt });
+}
+
+function verifyCode(email, purpose, code) {
+  const key = `${email.toLowerCase()}:${purpose}`;
+  const entry = codesStore.get(key);
+  if (!entry) return false;
+  if (Date.now() > entry.expiresAt) {
+    codesStore.delete(key);
+    return false;
+  }
+  if (entry.code !== String(code)) return false;
+  codesStore.delete(key);
+  return true;
+}
+
+function getResendCooldown(email, purpose, cooldownSeconds = 30) {
+  const key = `${email.toLowerCase()}:${purpose}`;
+  const entry = resendCooldownStore.get(key);
+
+  if (!entry) {
+    return { allowed: true, remainingSeconds: 0 };
+  }
+
+  if (Date.now() < entry.expiresAt) {
+    return {
+      allowed: false,
+      remainingSeconds: Math.max(1, Math.ceil((entry.expiresAt - Date.now()) / 1000)),
+    };
+  }
+
+  resendCooldownStore.delete(key);
+  return { allowed: true, remainingSeconds: 0 };
+}
+
+function markCodeSent(email, purpose, cooldownSeconds = 30) {
+  const key = `${email.toLowerCase()}:${purpose}`;
+  resendCooldownStore.set(key, { expiresAt: Date.now() + cooldownSeconds * 1000 });
+}
+
+function createSessionForUser(user) {
+  return jwt.sign(
+    {
+      id: user.id_usuario,
+      username: user.username,
+      role: user.role || 'USER',
+      nome: user.nome,
+      funcao: user.funcao,
+      id_cliente: user.id_cliente || null,
+      cnpj: user.cnpj || null,
+      razao_social: user.razao_social || null,
+      acesso_rh: user.acesso_rh,
+    },
+    (() => { const secret = process.env.JWT_SECRET; if (!secret) throw new Error('JWT_SECRET not set'); return secret; })(),
+    { expiresIn: '8h' }
+  );
+}
 
 // Funções de validação
 const validateCPF = (cpf) => {
@@ -97,11 +172,11 @@ const validateRazaoSocial = (razaoSocial) => {
 };
 
 // ==============================
-// CADASTRO RÁPIDO (VALIDA, NÃO CRIA USUÁRIO AINDA)
+// CADASTRO RÁPIDO POR EMAIL (VALIDA, NÃO CRIA USUÁRIO AINDA)
 // ==============================
 export async function registerUser(req, res) {
   try {
-    const { tipo, nome, cpf, razaoSocial, cnpj, email } = req.body;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ erro: 'Email é obrigatório' });
@@ -113,37 +188,6 @@ export async function registerUser(req, res) {
       return res.status(409).json({ erro: 'Este email já está cadastrado!' });
     }
 
-    // Validação de duplicidade de CPF/CNPJ
-    if (tipo === 'fisica' && cpf) {
-      const cleanedCpf = cpf.replace(/\D/g, "");
-      const existingCpf = await UserModel.findByUsername(cleanedCpf);
-      if (existingCpf) {
-        return res.status(409).json({ erro: 'Este CPF já está cadastrado!' });
-      }
-    } else if (tipo === 'juridica' && cnpj) {
-      const cleanedCnpj = cnpj.replace(/\D/g, "");
-      const existingCnpj = await UserModel.findByUsername(cleanedCnpj);
-      if (existingCnpj) {
-        return res.status(409).json({ erro: 'Este CNPJ já está cadastrado!' });
-      }
-    }
-
-    // Validações adicionais para pessoa física
-    if (tipo === 'fisica') {
-      if (!nome || nome.trim().length < 3) {
-        return res.status(400).json({ erro: 'Nome é obrigatório e deve ter pelo menos 3 caracteres' });
-      }
-    }
-
-    // Validações adicionais para pessoa jurídica
-    if (tipo === 'juridica') {
-      const rsValidation = validateRazaoSocial(razaoSocial);
-      if (!rsValidation.valid) {
-        return res.status(400).json({ erro: rsValidation.message });
-      }
-    }
-
-    // Validação de email
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9.-]{2,}\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(trimmedEmail)) {
       return res.status(400).json({ erro: 'Formato de email inválido' });
@@ -160,15 +204,7 @@ export async function registerUser(req, res) {
       }
     }
 
-    // Token de pré-cadastro assinado — garante consistência com o formulário final
-    // Contém os dados validados para que o backend possa verificá-los na etapa seguinte
-    const preRegPayload = {
-      email: trimmedEmail,
-      tipo,
-      cpf:  tipo === 'fisica'   ? (cpf  || '').replace(/\D/g, '') : null,
-      cnpj: tipo === 'juridica' ? (cnpj || '').replace(/\D/g, '') : null,
-      razaoSocial: tipo === 'juridica' ? (razaoSocial || '').trim() : null,
-    };
+    const preRegPayload = { email: trimmedEmail };
     const preRegToken = jwt.sign(
       preRegPayload,
       (() => { const secret = process.env.JWT_SECRET; if (!secret) throw new Error('JWT_SECRET not set'); return secret; })(),
@@ -178,7 +214,7 @@ export async function registerUser(req, res) {
     const tempId = Date.now().toString();
 
     return res.status(200).json({
-      mensagem: 'Validação inicial ok! Prossiga para o formulário completo.',
+      mensagem: 'Pré-cadastro validado. Prossiga para o formulário completo.',
       tempId,
       userId: tempId,
       id: tempId,
@@ -190,8 +226,6 @@ export async function registerUser(req, res) {
     if (error.code === 'P2002') {
       const field = error.meta?.target?.[0];
       if (field === 'email') message = 'Este email já está cadastrado!';
-      else if (field === 'cpf') message = 'Este CPF já está cadastrado!';
-      else if (field === 'cnpj') message = 'Este CNPJ já está cadastrado!';
       else message = `Campo único violado: ${field}`;
     } else if (error.message) {
       message = error.message;
@@ -272,16 +306,158 @@ export async function forgotPassword(req, res) {
       return res.status(400).json({ erro: 'O email é obrigatório' });
     }
 
-    const user = await UserModel.findByUsername(email.trim());
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await UserModel.findByUsername(normalizedEmail);
 
-    // Retorna mensagem genérica para evitar vazamento de existência de conta
+    if (!user) {
+      return res.status(404).json({ erro: 'E-mail não cadastrado' });
+    }
+
+    try {
+      const code = generateCode();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+      await prisma.tb_usuario.update({
+        where: { id_usuario: user.id_usuario },
+        data: {
+          password_reset_token: code,
+          password_reset_expires: expiresAt,
+        },
+      });
+
+      await sendVerificationEmail(user.email, code, 'password');
+    } catch (e) {
+      console.error('Erro ao enviar email de recuperação:', e);
+      return res.status(500).json({ erro: 'Erro ao enviar o código de recuperação' });
+    }
+
     return res.status(200).json({
-      mensagem:
-        'Se o e-mail existir em nosso sistema, você receberá instruções para redefinir sua senha.',
+      mensagem: 'O código de recuperação foi enviado para o seu e-mail.',
     });
   } catch (error) {
     console.error('ERRO NO FORGOT PASSWORD:', error);
     return res.status(500).json({ erro: 'Erro ao processar recuperação de senha' });
+  }
+}
+
+export async function verifyResetCode(req, res) {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ erro: 'Email e código são obrigatórios' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.tb_usuario.findFirst({
+      where: {
+        email: normalizedEmail,
+        password_reset_token: String(code),
+      },
+    });
+
+    if (!user || !user.password_reset_expires || new Date() > user.password_reset_expires) {
+      return res.status(400).json({ erro: 'Código inválido ou expirado' });
+    }
+
+    return res.status(200).json({ mensagem: 'Código válido' });
+  } catch (error) {
+    console.error('ERRO em verifyResetCode:', error);
+    return res.status(500).json({ erro: 'Erro ao validar código' });
+  }
+}
+
+// Endpoint usado pela rota /users/send-code
+export async function sendVerificationCode(req, res) {
+  try {
+    const { email, purpose } = req.body;
+    if (!email || !purpose) return res.status(400).json({ erro: 'email e purpose são obrigatórios' });
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const cooldown = getResendCooldown(normalizedEmail, purpose);
+    if (!cooldown.allowed) {
+      return res.status(429).json({ erro: `Aguarde ${cooldown.remainingSeconds} segundos antes de reenviar o código.` });
+    }
+
+    const code = generateCode();
+    setCode(normalizedEmail, purpose, code, 15);
+    markCodeSent(normalizedEmail, purpose, 30);
+    await sendVerificationEmail(normalizedEmail, code, purpose === 'password' ? 'password' : 'verification');
+    return res.status(200).json({ mensagem: 'Código enviado' });
+  } catch (error) {
+    console.error('ERRO em sendVerificationCode:', error);
+    return res.status(500).json({ erro: 'Erro ao enviar código' });
+  }
+}
+
+// Confirm registration: cria o usuário real usando a pendingRegistrations store
+export async function confirmRegistration(req, res) {
+  try {
+    const { tempId, code } = req.body;
+    if (!tempId || !code) return res.status(400).json({ erro: 'tempId e code são obrigatórios' });
+    const pending = pendingRegistrations.get(String(tempId));
+    if (!pending) return res.status(400).json({ erro: 'Solicitação de cadastro não encontrada ou expirada' });
+    const { email } = pending.userData;
+    if (!verifyCode(email, 'register', code)) return res.status(400).json({ erro: 'Código inválido ou expirado' });
+
+    // cria usuário no banco
+    const novoUsuario = await UserModel.create(pending.userData);
+    pendingRegistrations.delete(String(tempId));
+    return res.status(201).json({ mensagem: 'Cadastro confirmado e conta criada', userId: novoUsuario.id_usuario });
+  } catch (error) {
+    console.error('ERRO em confirmRegistration:', error);
+    return res.status(500).json({ erro: 'Erro ao confirmar cadastro' });
+  }
+}
+
+// Verifica código de recuperação e altera a senha
+export async function verifyAndResetPassword(req, res) {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ erro: 'Email, código e newPassword são obrigatórios' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.tb_usuario.findFirst({
+      where: {
+        email: normalizedEmail,
+        password_reset_token: String(code),
+      },
+    });
+
+    if (!user || !user.password_reset_expires || new Date() > user.password_reset_expires) {
+      return res.status(400).json({ erro: 'Código inválido ou expirado' });
+    }
+
+    const hashedSenha = await bcrypt.hash(newPassword, 10);
+    const updatedUser = await prisma.tb_usuario.update({
+      where: { id_usuario: user.id_usuario },
+      data: {
+        senha: hashedSenha,
+        password_reset_token: null,
+        password_reset_expires: null,
+      },
+    });
+
+    const sessionToken = createSessionForUser(updatedUser);
+    return res.status(200).json({
+      mensagem: 'Senha atualizada com sucesso',
+      token: sessionToken,
+      user: {
+        id: updatedUser.id_usuario,
+        username: updatedUser.username,
+        role: updatedUser.role || 'USER',
+        nome: updatedUser.nome,
+        email: updatedUser.email,
+        id_cliente: updatedUser.id_cliente || null,
+        cnpj: updatedUser.cnpj || null,
+        razao_social: updatedUser.razao_social || null,
+        acesso_rh: updatedUser.acesso_rh,
+      },
+    });
+  } catch (error) {
+    console.error('ERRO em verifyAndResetPassword:', error);
+    return res.status(500).json({ erro: 'Erro ao redefinir senha' });
   }
 }
 
@@ -332,6 +508,10 @@ export async function formularioCompleto(req, res) {
     }
     // Extrai e normaliza o email para usar nas verificações subsequentes
     const submittedEmail = (email || '').trim().toLowerCase();
+    if (!preRegData.email || submittedEmail !== preRegData.email) {
+      return res.status(400).json({ erro: 'O email informado não corresponde ao pré-cadastro.' });
+    }
+
     // Verifica consistência de CPF/CNPJ
     if (preRegData.tipo === 'fisica') {
       const submittedCpf = (cpf || '').replace(/\D/g, '');
@@ -445,10 +625,6 @@ export async function formularioCompleto(req, res) {
       });
     }
 
-    if (!usoPlataforma) {
-      return res.status(400).json({ erro: 'A forma de utilização da plataforma é obrigatória' });
-    }
-
     if (tipo_registro_profissional && !numero_registro_profissional) {
       return res.status(400).json({ erro: `Número do ${tipo_registro_profissional} é obrigatório` });
     }
@@ -498,12 +674,28 @@ export async function formularioCompleto(req, res) {
       ].filter(Boolean).join(' | ') || null,
     };
 
-    const novoUsuario = await UserModel.create(userData);
+    // Em vez de criar o usuário imediatamente, armazenamos temporariamente e
+    // enviamos um código para o e-mail para confirmação final.
+    const tempId = Date.now().toString() + Math.floor(Math.random() * 10000).toString();
+    const expiresAt = Date.now() + 1000 * 60 * 60; // 1 hora para completar cadastro
 
-    return res.status(201).json({
-      mensagem: 'Cadastro completo realizado com sucesso!',
-      userId: novoUsuario.id_usuario,
-      role: novoUsuario.role,
+    // Armazena userData para criação após verificação do código
+    pendingRegistrations.set(tempId, { userData, expiresAt });
+
+    // Gera e envia código de verificação
+    const code = generateCode();
+    setCode(trimmedEmail, 'register', code, 15);
+    markCodeSent(trimmedEmail, 'register', 30);
+    try {
+      await sendVerificationEmail(trimmedEmail, code, 'verification');
+    } catch (e) {
+      console.error('Falha ao enviar código de verificação:', e);
+      return res.status(502).json({ erro: 'Não foi possível enviar o código de verificação. Verifique a configuração de email.' });
+    }
+
+    return res.status(200).json({
+      mensagem: 'Código de verificação enviado para o e-mail. Confirme para ativar sua conta.',
+      tempId,
     });
   } catch (error) {
     console.error('ERRO AO SALVAR FORMULÁRIO:', error);

@@ -1,7 +1,7 @@
 generator client {
   provider     = "prisma-client-js"
-  moduleFormat = "esm"
   runtime      = "nodejs"
+  moduleFormat = "esm"
 }
 
 datasource db {
@@ -175,6 +175,8 @@ model tb_usuario {
   email                        String?                   @unique
   username                     String?                   @unique
   senha                        String?
+  password_reset_token         String?
+  password_reset_expires       DateTime?
   tipo_registro_profissional   String?
   numero_registro_profissional String?
   tipo_usuario                 String?
@@ -207,6 +209,7 @@ model tb_usuario {
   tb_log_auditoria             tb_log_auditoria[]
   tb_movimentacao_estoque      tb_movimentacao_estoque[]
   tb_obra                      tb_obra[]
+  tb_permissao_pagina          tb_permissao_pagina[]
   tb_requisicao                tb_requisicao[]
   tb_rh_conta_banco            tb_rh_conta_banco[]
   tb_rh_ponto_diaria           tb_rh_ponto_diaria[]
@@ -215,7 +218,6 @@ model tb_usuario {
   tb_tarefa_usuario            tb_tarefa_usuario[]
   tb_cliente                   tb_cliente?               @relation(fields: [id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_cliente")
   tb_usuario_obra              tb_usuario_obra[]
-  tb_permissao_pagina          tb_permissao_pagina[]
 }
 
 model tb_usuario_obra {
@@ -612,8 +614,8 @@ model tb_permissao_pagina {
   id_usuario   Int
   id_pagina    Int
   permitido    Boolean    @default(false)
-  tb_usuario   tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
   tb_pagina    tb_pagina  @relation(fields: [id_pagina], references: [id_pagina], onDelete: Cascade)
+  tb_usuario   tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 
   @@unique([id_usuario, id_pagina], map: "idx_unique_user_page")
 }

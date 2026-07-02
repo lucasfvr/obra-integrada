@@ -11,6 +11,28 @@ router.post('/users/login', loginUser);
 router.post('/users/forgot-password', forgotPassword);
 router.post('/users/formulario', formularioCompleto);
 
+// New endpoints for verification flow
+router.post('/users/verify-reset-code', async (req, res) => {
+  const { verifyResetCode } = await import('../controllers/userController.js');
+  return verifyResetCode(req, res);
+});
+
+router.post('/users/send-code', async (req, res) => {
+  // implemented in controller: sendVerificationCode
+  const { sendVerificationCode } = await import('../controllers/userController.js');
+  return sendVerificationCode(req, res);
+});
+
+router.post('/users/confirm-registration', async (req, res) => {
+  const { confirmRegistration } = await import('../controllers/userController.js');
+  return confirmRegistration(req, res);
+});
+
+router.post('/users/reset-password-verify', async (req, res) => {
+  const { verifyAndResetPassword } = await import('../controllers/userController.js');
+  return verifyAndResetPassword(req, res);
+});
+
 router.get('/users/profile', authMiddleware, (req, res) => {
   res.json({ mensagem: "Acesso permitido!", usuario: req.user });
 });

@@ -1,6 +1,6 @@
 import API_BASE_URL from "../config/api.js";
-import React, { useState } from "react";
-import { FiMail, FiUser, FiMapPin, FiPhone, FiEye, FiEyeOff, FiCheck, FiX } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
+import { FiMail, FiUser, FiMapPin, FiPhone, FiCheck, FiX } from "react-icons/fi";
 
 
 import {
@@ -21,7 +21,7 @@ import {
   getMaskForState,
 } from "../utils/validation";
 
-function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCancel }) {
+function FormularioCompletoPage({ preRegisterData, onSubmitSuccess, onCancel }) {
   const [formData, setFormData] = useState({
     email: preRegisterData?.email || "",
     confirmarEmail: "",
@@ -46,7 +46,6 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
     estado: "",
     funcao: "",
     porteEmpresa: "",
-    usoPlataforma: "",
     tipo_registro_profissional: "",
     numero_registro_profissional: "",
     preRegToken: preRegisterData?.preRegToken || "",
@@ -55,8 +54,6 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
   const [errorMessage, setErrorMessage] = useState("");
   const [ieError, setIeError] = useState("");
   const [loadingCep, setLoadingCep] = useState(false);
-  const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
 
 
 
@@ -159,58 +156,6 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-
-    // Validações básicas
-    if (!formData.usoPlataforma) {
-      setErrorMessage("Por favor, informe como utilizará a plataforma.");
-      return;
-    }
-
-    // Validação de documento de registro profissional (CREA/CAU/etc) se for prestar serviços
-    if (formData.usoPlataforma === "prestar") {
-      if (!formData.funcao) {
-        setErrorMessage(
-          formData.tipoCadastro === "fisica"
-            ? "Por favor, selecione sua profissão para prestar serviços."
-            : "Por favor, selecione a área de atuação da empresa para prestar serviços."
-        );
-        return;
-      }
-
-      const isFisicaSubmit = formData.tipoCadastro === "fisica";
-      const REGISTRO_POR_AREA_SUBMIT = {
-        "Construtora":           "CREA",
-        "Engenharia Civil":      "CREA",
-        "Arquitetura":           "CAU",
-        "Elétrica":              "CREA",
-        "Hidráulica":            "CREA",
-        "Terraplanagem":         "CREA",
-        "Segurança do Trabalho": "CREA",
-      };
-      const REGISTRO_POR_PROFISSAO_SUBMIT = {
-        "Engenheiro Civil": "CREA",
-        "Arquiteto": "CAU",
-        "Engenheiro Eletricista": "CREA",
-        "Engenheiro Mecânico": "CREA",
-        "Engenheiro de Segurança do Trabalho": "CREA",
-        "Técnico em Edificações": "CREA",
-        "Técnico em Segurança do Trabalho": "MTE",
-        "Topógrafo": "CREA",
-      };
-
-      const registroNecessarioSubmit = isFisicaSubmit
-        ? REGISTRO_POR_PROFISSAO_SUBMIT[formData.funcao] || null
-        : REGISTRO_POR_AREA_SUBMIT[formData.funcao] || null;
-
-      if (registroNecessarioSubmit && !formData.numero_registro_profissional) {
-        setErrorMessage(
-          isFisicaSubmit
-            ? `O número de registro no ${registroNecessarioSubmit} é obrigatório.`
-            : `O número de registro no ${registroNecessarioSubmit} do responsável técnico é obrigatório.`
-        );
-        return;
-      }
-    }
 
 
     if (!formData.email) {
@@ -380,23 +325,189 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
         }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
         let msg = "Erro no envio";
-        try {
-          const err = await response.json();
-          msg = err?.erro || err?.message || msg;
-        } catch {
-          msg = `Erro no envio (${response.status})`;
-        }
+        msg = data?.erro || data?.message || msg;
         setErrorMessage(msg);
         return;
       }
 
+      // If server returned a tempId, enter code confirmation stage
+      if (data?.tempId) {
+        setTempId(data.tempId);
+        setShowCodeStage(true);
+        // keep email in state (already present)
+        return;
+      }
+
+      // otherwise assume user created
       onSubmitSuccess?.();
     } catch (error) {
       setErrorMessage(error.message || "Erro ao conectar com o servidor.");
     }
   };
+
+  // --- Code confirmation state & handlers ---
+  const [showCodeStage, setShowCodeStage] = useState(false);
+  const [tempId, setTempId] = useState(null);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [resendMessage, setResendMessage] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
+
+  const handleConfirmCode = async () => {
+    setVerifyError("");
+    if (!tempId || !verificationCode) {
+      setVerifyError('Código obrigatório');
+      return;
+    }
+    setVerifying(true);
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/users/confirm-registration`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempId, code: verificationCode })
+      });
+      const d = await resp.json();
+      if (resp.ok) {
+        setIsFinishing(true);
+        setVerifyError('');
+        window.setTimeout(() => {
+          onSubmitSuccess?.();
+        }, 1800);
+      } else {
+        setVerifyError(d.erro || 'Código inválido');
+      }
+    } catch (err) {
+      setVerifyError('Erro ao conectar ao servidor');
+    } finally { setVerifying(false); }
+  };
+
+  const handleResendCode = async () => {
+    if (resendCooldown > 0) {
+      setResendMessage(`Aguarde ${resendCooldown} segundos para reenviar o código.`);
+      return;
+    }
+
+    setResendMessage("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, purpose: 'register' }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setResendCooldown(30);
+        setResendMessage('Código reenviado. Verifique sua caixa de entrada e spam.');
+      } else {
+        setResendMessage(data.erro || 'Erro ao reenviar código.');
+      }
+    } catch (e) {
+      setResendMessage('Erro ao conectar com o servidor para reenviar o código.');
+    }
+  };
+
+  const handleBackToForm = () => {
+    setShowCodeStage(false);
+    setVerifyError('');
+    setVerificationCode('');
+    setResendMessage('');
+  };
+
+  if (isFinishing) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center py-8">
+        <div className="w-full max-w-xl rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+            <FiCheck className="h-8 w-8 text-emerald-600" />
+          </div>
+          <h3 className="mt-5 text-2xl font-semibold text-slate-900">Cadastro confirmado!</h3>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Seu e-mail foi verificado com sucesso. Você será redirecionado para o painel em instantes.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCodeStage) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center py-8">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+          <div className="flex flex-col items-center mb-6">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50">
+              <FiMail className="h-7 w-7 text-indigo-600" />
+            </div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Etapa 2 de 2</p>
+            <h3 className="mt-3 text-2xl font-semibold text-slate-900">Confirme seu e-mail</h3>
+            <p className="mt-2 text-sm text-slate-600 text-center">
+              Enviamos um código de 6 dígitos para{' '}
+              <span className="font-medium text-slate-900">{formData.email}</span>.
+            </p>
+          </div>
+
+          <form className="flex flex-col gap-4">
+            <div>
+              <label className="sr-only" htmlFor="verificationCode">Código de verificação</label>
+              <input
+                id="verificationCode"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Digite o código"
+                className="w-full border rounded-lg px-4 py-3 text-base text-slate-900 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                maxLength="6"
+              />
+            </div>
+
+            {verifyError && <p className="text-sm text-red-500">{verifyError}</p>}
+            {resendMessage && <p className="text-sm text-slate-600">{resendMessage}</p>}
+
+            <button
+              type="button"
+              onClick={handleConfirmCode}
+              disabled={verifying}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
+            >
+              {verifying ? 'Verificando...' : 'Confirmar cadastro'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={resendCooldown > 0}
+              className="w-full rounded-lg border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {resendCooldown > 0 ? `Reenviar em ${resendCooldown}s` : 'Reenviar código'}
+            </button>
+          </form>
+
+          <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
+            <button
+              type="button"
+              onClick={handleBackToForm}
+              className="font-semibold text-slate-600 transition hover:text-slate-900"
+            >
+              Voltar ao formulário
+            </button>
+            <span>Não recebeu? Confira também a pasta de spam.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto text-gray-800">
@@ -451,20 +562,13 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
               <label className="text-sm font-medium">Crie uma senha</label>
               <div className="relative">
                 <input
-                  type={mostrarSenha ? "text" : "password"}
+                  type="password"
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className="border rounded-lg w-full p-2 pr-10 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="border rounded-lg w-full p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setMostrarSenha(!mostrarSenha)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                >
-                  {mostrarSenha ? <FiEyeOff /> : <FiEye />}
-                </button>
               </div>
               {renderStrengthBar()}
             </div>
@@ -473,21 +577,14 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
               <label className="text-sm font-medium">Confirmar senha</label>
               <div className="relative">
                 <input
-                  type={mostrarConfirmarSenha ? "text" : "password"}
+                  type="password"
                   name="confirmarSenha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
-                  className={`border rounded-lg w-full p-2 pr-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formData.confirmarSenha && formData.senha !== formData.confirmarSenha ? 'border-red-500' : ''
+                  className={`border rounded-lg w-full p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formData.confirmarSenha && formData.senha !== formData.confirmarSenha ? 'border-red-500' : ''
                     }`}
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                >
-                  {mostrarConfirmarSenha ? <FiEyeOff /> : <FiEye />}
-                </button>
               </div>
               {formData.confirmarSenha && formData.senha !== formData.confirmarSenha && (
                 <p className="text-red-500 text-xs mt-1">As senhas não coincidem.</p>
@@ -496,82 +593,7 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
           </div>
         </fieldset>
 
-        {/* OCULTADO: seleção de tipo de cadastro — apenas Pessoa Jurídica disponível */}
-        <fieldset className="border rounded-lg p-5">
-          <legend className="font-semibold text-lg flex items-center gap-2">
-            <FiUser /> Tipo de cadastro
-          </legend>
-
-          <div className="flex gap-4 mt-2">
-            <label className={`flex items-center gap-2 ${preRegisterData?.tipo ? 'opacity-60 cursor-not-allowed' : ''}`}>
-              <input
-                type="radio"
-                name="tipoCadastro"
-                value="fisica"
-                checked={formData.tipoCadastro === "fisica"}
-                onChange={handleChange}
-                disabled={!!preRegisterData?.tipo}
-              />
-              Pessoa Física
-            </label>
-
-            <label className={`flex items-center gap-2 ${preRegisterData?.tipo ? 'opacity-60 cursor-not-allowed' : ''}`}>
-              <input
-                type="radio"
-                name="tipoCadastro"
-                value="juridica"
-                checked={formData.tipoCadastro === "juridica"}
-                onChange={handleChange}
-                disabled={!!preRegisterData?.tipo}
-              />
-              Pessoa Jurídica
-            </label>
-          </div>
-
-          {/* Uso da plataforma — só para física */}
-          {formData.tipoCadastro === "fisica" && (
-            <div className="mt-4">
-              <label className="text-sm font-medium text-gray-700">
-                Como você utilizará a plataforma? *
-              </label>
-              <select
-                name="usoPlataforma"
-                value={formData.usoPlataforma}
-                onChange={handleChange}
-                className="border rounded-lg w-full p-2 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 mt-1"
-              >
-                <option value="">Selecione</option>
-                <option value="contratar">Proprietário da obra</option>
-                <option value="prestar">Prestar serviços</option>
-              </select>
-            </div>
-          )}
-
-          {/* Uso da plataforma — só para jurídica */}
-          {formData.tipoCadastro === "juridica" && (
-            <div className="mt-4">
-              <label className="text-sm font-medium text-gray-700">
-                Como sua empresa utilizará a plataforma? *
-              </label>
-              <select
-                name="usoPlataforma"
-                value={formData.usoPlataforma}
-                onChange={handleChange}
-                className="border rounded-lg w-full p-2 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 mt-1"
-              >
-                <option value="">Selecione</option>
-                <option value="contratar">Contratar profissionais</option>
-                <option value="prestar">Prestar serviços</option>
-              </select>
-            </div>
-          )}
-
-          {preRegisterData?.tipo && (
-            <p className="text-xs text-gray-400 mt-1">O tipo de cadastro foi definido no pré-cadastro e não pode ser alterado.</p>
-          )}
-        </fieldset>
-
-        {/* DADOS PESSOAIS */}
+        {/* DADOS PESSOAIS / EMPRESA */}
         <fieldset className="border rounded-lg p-5">
           <legend className="font-semibold text-lg flex items-center gap-2">
             <FiPhone /> {formData.tipoCadastro === "juridica" ? "Dados da Empresa" : "Dados Pessoais"}
@@ -624,7 +646,7 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
                   />
                 </div>
 
-                {/* CNPJ — col 2 (já validado no pré-cadastro) */}
+                {/* CNPJ — col 2 */}
                 <div>
                   <input
                     type="text"
@@ -637,7 +659,6 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
                     required
                   />
                 </div>
-
 
                 {/* Razão Social — col 1 */}
                 <div>
@@ -722,186 +743,21 @@ function FormularioCompletoPage({ tempId, preRegisterData, onSubmitSuccess, onCa
               <input
                 type="text"
                 name="telefone"
-                placeholder="Celular 2 ou Telefone Fixo (Opcional)"
+                placeholder="Telefone fixo (Opcional)"
                 value={formData.telefone}
                 onChange={(e) => {
                   const val = e.target.value;
-                  // Aplica mascara formata de celular ou telefone baseado no tamanho do que o usuario compilar
+                  // Aplica máscara para telefone fixo ou celular apenas se o usuário digitar mais de 10 dígitos
                   setFormData({ ...formData, telefone: val.replace(/\D/g, "").length > 10 ? formatCelular(val) : formatTelefone(val) })
                 }}
                 className="border rounded-lg p-2 w-full focus:outline-none flex-grow"
                 maxLength="15"
               />
-              <p className="text-xs text-gray-500 mt-1">Contato secundário ou fixo</p>
+              <p className="text-xs text-gray-500 mt-1">Telefone fixo opcional</p>
             </div>
           </div>
         </fieldset>
 
-        {/* DADOS PROFISSIONAIS */}
-        {(() => {
-          // Se não tiver escolhido como vai utilizar a plataforma, oculta a seção de Dados Profissionais
-          if (!formData.usoPlataforma) {
-            return null;
-          }
-
-          // Oculta Dados Profissionais se não for prestar serviços (tanto física quanto jurídica)
-          if (formData.usoPlataforma !== "prestar") {
-            return null;
-          }
-
-          const isFisica = formData.tipoCadastro === "fisica";
-
-          // Mapa de áreas que exigem registro técnico e qual conselho (Pessoa Jurídica)
-          const REGISTRO_POR_AREA = {
-            "Construtora":           "CREA",
-            "Engenharia Civil":      "CREA",
-            "Arquitetura":           "CAU",
-            "Elétrica":              "CREA",
-            "Hidráulica":            "CREA",
-            "Terraplanagem":         "CREA",
-            "Segurança do Trabalho": "CREA",
-          };
-
-          // Mapa de profissões que exigem registro técnico e qual conselho (Pessoa Física)
-          const REGISTRO_POR_PROFISSAO = {
-            "Engenheiro Civil": "CREA",
-            "Arquiteto": "CAU",
-            "Engenheiro Eletricista": "CREA",
-            "Engenheiro Mecânico": "CREA",
-            "Engenheiro de Segurança do Trabalho": "CREA",
-            "Técnico em Edificações": "CREA",
-            "Técnico em Segurança do Trabalho": "MTE",
-            "Topógrafo": "CREA",
-          };
-
-          const registroNecessario = isFisica
-            ? REGISTRO_POR_PROFISSAO[formData.funcao] || null
-            : REGISTRO_POR_AREA[formData.funcao] || null;
-
-          return (
-            <fieldset className="border rounded-lg p-5">
-              <legend className="font-semibold text-lg flex items-center gap-2">
-                <FiUser /> Dados Profissionais
-              </legend>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-
-                {/* Dropdown de profissão ou área de atuação */}
-                <div>
-                  <label className="text-sm font-medium">
-                    {isFisica ? "Profissão" : "Área de atuação"}{" "}
-                    {formData.usoPlataforma === "prestar" ? (
-                      <span className="text-red-500">*</span>
-                    ) : (
-                      <span className="text-gray-400 font-normal">(Opcional)</span>
-                    )}
-                  </label>
-                  <select
-                    name="funcao"
-                    value={formData.funcao}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      funcao: e.target.value,
-                      tipo_registro_profissional: isFisica
-                        ? (REGISTRO_POR_PROFISSAO[e.target.value] || "")
-                        : (REGISTRO_POR_AREA[e.target.value] || ""),
-                      numero_registro_profissional: "",
-                    })}
-                    className="border rounded-lg w-full p-2 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    <option value="">Selecione</option>
-                    {isFisica ? (
-                      <>
-                        <option value="Engenheiro Civil">Engenheiro Civil</option>
-                        <option value="Arquiteto">Arquiteto</option>
-                        <option value="Engenheiro Eletricista">Engenheiro Eletricista</option>
-                        <option value="Engenheiro Mecânico">Engenheiro Mecânico</option>
-                        <option value="Engenheiro de Segurança do Trabalho">Engenheiro de Segurança do Trabalho</option>
-                        <option value="Técnico em Edificações">Técnico em Edificações</option>
-                        <option value="Técnico em Segurança do Trabalho">Técnico em Segurança do Trabalho</option>
-                        <option value="Topógrafo">Topógrafo</option>
-                        <option value="Mestre de Obras">Mestre de Obras</option>
-                        <option value="Pedreiro">Pedreiro</option>
-                        <option value="Servente / Ajudante">Servente / Ajudante</option>
-                        <option value="Carpinteiro">Carpinteiro</option>
-                        <option value="Eletricista">Eletricista</option>
-                        <option value="Encanador / Bombeiro Hidráulico">Encanador / Bombeiro Hidráulico</option>
-                        <option value="Pintor">Pintor</option>
-                        <option value="Gesseiro">Gesseiro</option>
-                        <option value="Serralheiro">Serralheiro</option>
-                        <option value="Soldador">Soldador</option>
-                        <option value="Vidraceiro">Vidraceiro</option>
-                        <option value="Outra">Outra</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="Construtora">Construtora</option>
-                        <option value="Engenharia Civil">Engenharia Civil</option>
-                        <option value="Arquitetura">Arquitetura</option>
-                        <option value="Elétrica">Elétrica</option>
-                        <option value="Hidráulica">Hidráulica</option>
-                        <option value="Pintura">Pintura</option>
-                        <option value="Terraplanagem">Terraplanagem</option>
-                        <option value="Acabamento">Acabamento</option>
-                        <option value="Marcenaria">Marcenaria</option>
-                        <option value="Vidraçaria">Vidraçaria</option>
-                        <option value="Segurança do Trabalho">Segurança do Trabalho</option>
-                        <option value="Locação de Equipamentos">Locação de Equipamentos</option>
-                        <option value="Fornecedor de Materiais">Fornecedor de Materiais</option>
-                        <option value="Outra">Outra</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                {/* Dropdown de porte da empresa (apenas para jurídica) */}
-                {!isFisica && (
-                  <div>
-                    <label className="text-sm font-medium">
-                      Porte da Empresa <span className="text-gray-400 font-normal">(Opcional)</span>
-                    </label>
-                    <select
-                      name="porteEmpresa"
-                      value={formData.porteEmpresa}
-                      onChange={handleChange}
-                      className="border rounded-lg w-full p-2 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    >
-                      <option value="">Selecione</option>
-                      <option value="MEI">MEI</option>
-                      <option value="Microempresa">Microempresa</option>
-                      <option value="Pequeno porte">Pequeno porte</option>
-                      <option value="Médio porte">Médio porte</option>
-                      <option value="Grande porte">Grande porte</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Campo de CREA/CAU/etc — aparece só quando a área/profissão exige */}
-                {registroNecessario && (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">
-                      Número do {registroNecessario} {isFisica ? "" : "do Responsável Técnico"} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex gap-2 items-center">
-                      <span className="border rounded-lg px-3 py-2 bg-gray-100 text-sm font-semibold text-gray-600 whitespace-nowrap">
-                        {registroNecessario}
-                      </span>
-                      <input
-                        type="text"
-                        name="numero_registro_profissional"
-                        placeholder={registroNecessario === "CAU" ? "Ex: A12345-8" : "Ex: 12345/D-SP"}
-                        value={formData.numero_registro_profissional}
-                        onChange={handleChange}
-                        className="border rounded-lg p-2 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            </fieldset>
-          );
-        })()}
 
         {/* ENDEREÇO */}
         <fieldset className="border rounded-lg p-5">
