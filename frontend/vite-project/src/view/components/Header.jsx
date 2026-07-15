@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router'; // <-- Import colocado no lugar certo!
 import logoObraIntegrada from '../../assets/logo-obra-integrada.png';
 
 const UserIcon = () => (
@@ -21,10 +22,18 @@ function Header({ onNavigate, onLoginClick, onRegisterClick, currentUser, onLogo
 
                 {/* Links de Navegação */}
                 <nav className="hidden md:flex items-center space-x-8">
-                    <button onClick={() => onNavigate('integracoes')} className="text-slate-600 hover:text-indigo-600 transition">Integrações</button>
-                    <button onClick={() => onNavigate('recursos')} className="text-slate-600 hover:text-indigo-600 transition">Recursos</button>
-                    <button onClick={() => onNavigate('sobre-nos')} className="text-slate-600 hover:text-indigo-600 transition">Sobre nós</button>
-                    <button onClick={() => onNavigate('contato')} className="text-slate-600 hover:text-indigo-600 transition">Contato</button>
+                    <button onClick={() => onNavigate('integracoes')} className="text-slate-600 hover:text-indigo-600 transition font-medium">Integrações</button>
+                    <button onClick={() => onNavigate('recursos')} className="text-slate-600 hover:text-indigo-600 transition font-medium">Recursos</button>
+
+                    {/* Link nativo do React Router para o "Sobre Nós" */}
+                    <Link
+                        to="/sobre-nos"
+                        className="text-slate-600 hover:text-indigo-600 transition font-medium"
+                    >
+                        Sobre Nós
+                    </Link>
+
+                    <button onClick={() => onNavigate('contato')} className="text-slate-600 hover:text-indigo-600 transition font-medium">Contato</button>
                 </nav>
 
                 {/* Lado Direito Dinâmico */}
