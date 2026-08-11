@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiMail, FiLoader, FiArrowLeft } from "react-icons/fi";
+import { FiMail, FiLoader, FiArrowLeft, FiEye, FiEyeOff } from "react-icons/fi";
 import logoObraIntegrada from "../assets/logo-obra-integrada.png";
 import { validateEmail } from "../utils/validation";
 import API_BASE_URL from "../config/api.js";
@@ -12,6 +12,8 @@ function ForgotPasswordModal({ onBack, onClose }) {
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
 
   const resetForm = () => {
@@ -148,138 +150,162 @@ function ForgotPasswordModal({ onBack, onClose }) {
           &times;
         </button>
 
-        <div className="flex flex-col items-center mb-6 mt-8">
-          <div className="mb-3">
-            <img src={logoObraIntegrada} alt="Logo" className="w-20 h-20 object-contain" />
-          </div>
-          <h2 className="text-2xl font-semibold text-gray-800">Recuperar Senha</h2>
-          <p className="text-gray-600 text-sm text-center mt-2">
-            {stage === "email"
-              ? "Digite seu e-mail para receber o código de recuperação."
-              : stage === "verify"
-              ? "Insira o código que você recebeu por e-mail."
-              : stage === "reset"
-              ? "Escolha uma nova senha para sua conta."
-              : "Sua senha foi redefinida com sucesso."}
-          </p>
-        </div>
-
-        {infoMessage && (
-          <p className="text-green-600 text-sm mb-4 text-center">{infoMessage}</p>
-        )}
-
         {stage === "email" && (
-          <form onSubmit={handleSubmitEmail} className="flex flex-col gap-4">
-            <div>
-              <div className="relative">
-                <FiMail className="absolute left-3 top-3.5 text-gray-400 text-lg" />
-                <input
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border rounded-lg outline-none focus:border-indigo-500"
-                  required
-                />
+          <>
+            <div className="flex flex-col items-center mb-6 mt-8">
+              <div className="mb-3">
+                <img src={logoObraIntegrada} alt="Logo" className="w-20 h-20 object-contain" />
               </div>
-              {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+              <h2 className="text-2xl font-semibold text-gray-800">Recuperar Senha</h2>
+              <p className="text-gray-600 text-sm text-center mt-2">
+                Digite seu e-mail para receber o código de recuperação.
+              </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2"
-            >
-              {loading && <FiLoader className="animate-spin" />}
-              {loading ? "Enviando..." : "Enviar código"}
-            </button>
-          </form>
-        )}
+            <form onSubmit={handleSubmitEmail} className="flex flex-col gap-4">
+              <div>
+                <div className="relative">
+                  <FiMail className="absolute left-3 top-3.5 text-gray-400 text-lg" />
+                  <input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100"
+                    required
+                  />
+                </div>
+                {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+              </div>
 
-        {stage === "verify" && (
-          <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-              <input
-                type="email"
-                value={email}
-                readOnly
-                className="w-full p-2 border rounded-lg bg-gray-100 text-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Código</label>
-              <input
-                type="text"
-                placeholder="Código de 6 dígitos"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
-            {error && <p className="text-red-500 text-xs">{error}</p>}
-            <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-2.5 rounded-lg flex-1"
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition"
               >
-                {loading ? "Verificando..." : "Verificar código"}
+                {loading && <FiLoader className="animate-spin" />}
+                {loading ? "Enviando..." : "Enviar código"}
               </button>
+            </form>
+          </>
+        )}
+
+        {stage === "verify" && (
+          <>
+            <div className="flex flex-col items-center mb-6">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50">
+                <FiMail className="h-7 w-7 text-indigo-600" />
+              </div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Etapa 1 de 3</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-900">Insira o código</h3>
+              <p className="mt-2 text-sm text-slate-600 text-center">
+                Enviamos um código de 6 dígitos para{' '}
+                <span className="font-medium text-slate-900">{email}</span>.
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
+              <div>
+                <input
+                  type="text"
+                  placeholder="Digite o código"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  maxLength="6"
+                  className="w-full border rounded-lg px-4 py-3 text-base text-slate-900 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                />
+              </div>
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
+              >
+                {loading ? 'Verificando...' : 'Verificar código'}
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
                   setStage("email");
                   resetForm();
                 }}
-                className="py-2 px-3 border rounded-lg"
+                className="w-full rounded-lg border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Voltar
               </button>
-            </div>
-          </form>
+            </form>
+          </>
         )}
 
         {stage === "reset" && (
-          <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Código</label>
-              <input
-                type="text"
-                value={code}
-                readOnly
-                className="w-full p-2 border rounded-lg bg-gray-100 text-gray-700"
-              />
+          <>
+            <div className="flex flex-col items-center mb-6">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50">
+                <FiMail className="h-7 w-7 text-indigo-600" />
+              </div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Etapa 2 de 3</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-900">Escolha sua nova senha</h3>
+              <p className="mt-2 text-sm text-slate-600 text-center">
+                Crie uma senha forte e segura para sua conta.
+              </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Nova senha</label>
-              <input
-                type="password"
-                placeholder="Nova senha"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar nova senha</label>
-              <input
-                type="password"
-                placeholder="Confirmar senha"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
-            {error && <p className="text-red-500 text-xs">{error}</p>}
-            <div className="flex gap-2">
+
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nova senha</label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Nova senha"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full p-3 pr-10 border rounded-lg outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showNewPassword ? "Ocultar senha" : "Mostrar senha"}
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    {showNewPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar nova senha</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirmar senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full p-3 pr-10 border rounded-lg outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-2.5 rounded-lg flex-1"
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
               >
-                {loading ? "Redefinindo..." : "Redefinir senha"}
+                {loading ? 'Redefinindo...' : 'Redefinir senha'}
               </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -287,25 +313,35 @@ function ForgotPasswordModal({ onBack, onClose }) {
                   setError("");
                   setInfoMessage("");
                 }}
-                className="py-2 px-3 border rounded-lg"
+                className="w-full rounded-lg border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Voltar
               </button>
-            </div>
-          </form>
+            </form>
+          </>
         )}
 
         {stage === "done" && (
-          <div className="flex flex-col gap-4">
-            <p className="text-green-700 text-center font-medium">Senha atualizada com sucesso!</p>
+          <>
+            <div className="flex flex-col items-center mb-6">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+                <FiMail className="h-7 w-7 text-green-600" />
+              </div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-green-600">Concluído</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-900">Senha redefinida!</h3>
+              <p className="mt-2 text-sm text-slate-600 text-center">
+                Sua senha foi atualizada com sucesso. Você pode fazer login com a nova senha.
+              </p>
+            </div>
+
             <button
               type="button"
               onClick={onClose}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg"
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold transition hover:bg-indigo-700"
             >
               Fechar
             </button>
-          </div>
+          </>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import API_BASE_URL from "../config/api.js";
 import React, { useEffect, useState } from "react";
-import { FiMail, FiUser, FiMapPin, FiPhone, FiCheck, FiX } from "react-icons/fi";
+import { FiMail, FiUser, FiMapPin, FiPhone, FiCheck, FiX, FiEye, FiEyeOff } from "react-icons/fi";
 
 
 import {
@@ -54,6 +54,8 @@ function FormularioCompletoPage({ preRegisterData, onSubmitSuccess, onCancel }) 
   const [errorMessage, setErrorMessage] = useState("");
   const [ieError, setIeError] = useState("");
   const [loadingCep, setLoadingCep] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
 
@@ -562,13 +564,21 @@ function FormularioCompletoPage({ preRegisterData, onSubmitSuccess, onCancel }) 
               <label className="text-sm font-medium">Crie uma senha</label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className="border rounded-lg w-full p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="border rounded-lg w-full p-2 pr-10 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   required
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
               </div>
               {renderStrengthBar()}
             </div>
@@ -577,14 +587,22 @@ function FormularioCompletoPage({ preRegisterData, onSubmitSuccess, onCancel }) 
               <label className="text-sm font-medium">Confirmar senha</label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   name="confirmarSenha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
-                  className={`border rounded-lg w-full p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formData.confirmarSenha && formData.senha !== formData.confirmarSenha ? 'border-red-500' : ''
+                  className={`border rounded-lg w-full p-2 pr-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formData.confirmarSenha && formData.senha !== formData.confirmarSenha ? 'border-red-500' : ''
                     }`}
                   required
                 />
+                <button
+                  type="button"
+                  aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
               </div>
               {formData.confirmarSenha && formData.senha !== formData.confirmarSenha && (
                 <p className="text-red-500 text-xs mt-1">As senhas não coincidem.</p>

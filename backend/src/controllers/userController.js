@@ -13,6 +13,15 @@ const codesStore = new Map();
 const pendingRegistrations = new Map();
 const resendCooldownStore = new Map();
 
+function withTimeout(promise, ms, fallbackValue) {
+  let timeoutId;
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve(fallbackValue), ms);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
 }
@@ -183,7 +192,18 @@ export async function registerUser(req, res) {
     }
 
     const trimmedEmail = email.trim().toLowerCase();
-    const existingEmail = await UserModel.findByUsername(trimmedEmail);
+    let existingEmail = null;
+
+    try {
+      existingEmail = await withTimeout(
+        UserModel.findByUsername(trimmedEmail),
+        800,
+        null
+      );
+    } catch {
+      existingEmail = null;
+    }
+
     if (existingEmail) {
       return res.status(409).json({ erro: 'Este email já está cadastrado!' });
     }

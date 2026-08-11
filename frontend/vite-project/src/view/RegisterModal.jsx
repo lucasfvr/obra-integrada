@@ -25,14 +25,24 @@ function RegisterModal({ onClose, onRegisterSuccess, onOpenLogin }) {
     setErrors({});
     setLoading(true);
 
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 4000);
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: emailValue }),
+        signal: controller.signal,
       });
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
       if (response.ok) {
         const returnedId =
           data.id ??
@@ -55,9 +65,14 @@ function RegisterModal({ onClose, onRegisterSuccess, onOpenLogin }) {
         setError(msg);
         if (msg.toLowerCase().includes("email")) setErrors({ email: msg });
       }
-    } catch {
-      setError("Não foi possível conectar ao servidor.");
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        setError("O servidor demorou para responder. Tente novamente em instantes.");
+      } else {
+        setError("Não foi possível conectar ao servidor.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
