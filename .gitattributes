@@ -1,0 +1,11 @@
+# Lockfile e arquivo gerado por maquina. Ninguem le, ninguem revisa, e ninguem
+# deve resolver conflito nele na mao — sao milhares de linhas de hash.
+#
+#   -diff                 esconde o diffao no PR (o botao "load diff" continua la)
+#   linguist-generated    tira ele da estatistica de linguagem do repo
+#
+# QUANDO CONFLITAR, a resolucao e sempre esta (nunca editar na mao):
+#   git checkout --theirs package-lock.json
+#   npm install
+#   git add package-lock.json
+package-lock.json  -diff  linguist-generated=true

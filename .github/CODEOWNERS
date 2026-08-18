@@ -1,0 +1,41 @@
+# CODEOWNERS — quem o GitHub chama para revisar cada parte do projeto.
+#
+# Como funciona: quando alguem abre um PR mexendo num arquivo daqui, o GitHub
+# pede a revisao do dono AUTOMATICAMENTE. Ninguem precisa lembrar de marcar.
+# A ultima regra que casar com o arquivo e a que vale.
+#
+# IMPORTANTE: isso SUGERE revisor. Para virar OBRIGATORIO, o @lucasfvr (unico
+# admin) precisa ligar em Settings > Branches > Add rule na main:
+#   [x] Require a pull request before merging
+#   [x] Require review from Code Owners
+#   [x] Require status checks to pass  -> marcar "Frontend" e "Backend"
+# Sem isso, a main continua aceitando push direto sem revisao (e o caso hoje).
+
+# ── Padrao: qualquer arquivo sem dono especifico ─────────────────────────────
+# Basta UM dos dois aprovar. Dois nomes para nao travar o time quando um sumir.
+*                                           @p-dromiguel @lucasfvr
+
+# ── Pontos quentes ───────────────────────────────────────────────────────────
+# Estes sao os arquivos que 5 pessoas diferentes ja editaram. Nao e coincidencia:
+# sao os pontos onde features distintas se cruzam (login e cadastro moram os dois
+# no userController). Sao a origem da maior parte dos conflitos do projeto.
+/backend/src/controllers/userController.js  @p-dromiguel @lucasfvr
+/backend/src/routes/userRoutes.js           @p-dromiguel @lucasfvr
+/frontend/vite-project/src/view/App.jsx     @p-dromiguel @lucasfvr
+/frontend/vite-project/src/utils/validation.js  @p-dromiguel @lucasfvr
+
+# O schema e o mais perigoso: duas migrations em paralelo deixam o banco de cada
+# um num estado diferente. Mudanca aqui e combinada no grupo ANTES de codar.
+/backend/src/prisma/schema.prisma           @p-dromiguel @lucasfvr
+
+# ── Infraestrutura ───────────────────────────────────────────────────────────
+/.github/                                   @p-dromiguel @lucasfvr
+/.gitattributes                             @p-dromiguel @lucasfvr
+
+# ── Time (logins conferidos via API do GitHub em 18/08/2026) ─────────────────
+#   @lucasfvr          Lucas Fernandes   (unico admin do repositorio)
+#   @p-dromiguel       Pedro Miguel
+#   @KauaRBexe         Kaua Ritson
+#   @Victor220205      Victor
+#   @Rhuan-Gabriel05   Rhuan Gabriel
+#   @jssica08          Jessica

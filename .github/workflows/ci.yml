@@ -1,0 +1,63 @@
+name: CI
+
+# Roda sozinho em todo PR para a main e em todo push na main.
+# A ideia e simples: ninguem precisa LEMBRAR de conferir se o projeto ainda
+# compila. Se ficar vermelho, quebrou — e da pra ver antes de mergear, nao depois.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/vite-project
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/vite-project/package-lock.json
+
+      # npm ci (e nao npm install): instala exatamente o que esta no lockfile.
+      - run: npm ci
+
+      # O lint aqui nao e frescura de estilo. Ele pega bug de verdade — foi assim
+      # que apareceu o `React is not defined` no workerService.js.
+      - run: npm run lint
+
+      - run: npm run build
+
+  backend:
+    name: Backend (instala + testes)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # O postinstall do backend roda `prisma generate`. Isso NAO precisa de banco
+      # ligado — le so o schema.prisma. Se o schema quebrar, quebra aqui.
+      - run: npm ci
+
+      # ATENCAO, leia antes de confiar neste verde:
+      # os testes em backend/tests/ hoje NAO exercitam o codigo do projeto. Varios
+      # montam um objeto na propria linha e conferem esse objeto (ex.: api.test.js).
+      # Passam mesmo com o backend inteiro apagado. Estao aqui porque `npm ci` e
+      # `prisma generate` ja valem a pena, e porque no dia em que os testes virarem
+      # de verdade o CI ja esta ligado. Verde aqui = "instala e gera"; nao e
+      # "o backend funciona".
+      - run: npm test
