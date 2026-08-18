@@ -16,6 +16,10 @@ export function RHSidebarProvider({ children }) {
   );
 }
 
+// Provider + hook no mesmo arquivo e o padrao normal de Context no React. A regra
+// abaixo so reclama de perda de hot-reload em dev; separar em dois arquivos nao
+// traria beneficio real aqui.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRHSidebar() {
   const context = useContext(RHSidebarContext);
   if (!context) {

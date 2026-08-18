@@ -34,7 +34,6 @@ export default function GestaoRHAvancado() {
   // Estados de Modais
   const [selectedColaborador, setSelectedColaborador] = useState(null);
   const [showAccessModal, setShowAccessModal] = useState(false);
-  const [profileTab, setProfileTab] = useState('pessoais');
 
   // Filtros de Busca
   const [busca, setBusca] = useState('');

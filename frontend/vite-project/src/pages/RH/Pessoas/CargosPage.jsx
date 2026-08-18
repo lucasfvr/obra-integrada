@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Briefcase, Plus, Edit2, Trash2 } from 'lucide-react';
 
 export default function CargosPage() {

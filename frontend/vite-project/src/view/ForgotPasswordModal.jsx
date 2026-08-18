@@ -14,6 +14,10 @@ function ForgotPasswordModal({ onBack, onClose }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // `infoMessage` e alimentado por setInfoMessage em 8 pontos deste arquivo, mas
+  // nunca chega a ser renderizado — as mensagens sao definidas e nao aparecem
+  // para o usuario. Fica anotado; corrigir exige decidir ONDE mostrar.
+  // eslint-disable-next-line no-unused-vars
   const [infoMessage, setInfoMessage] = useState("");
 
   const resetForm = () => {

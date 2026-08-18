@@ -1,5 +1,6 @@
 import API_BASE_URL from "../../config/api.js";
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth.js';
 import { PermissaoGuard } from '../../components/Guards/PermissaoGuard.jsx';
@@ -205,6 +206,10 @@ export default function GestaoRH() {
     });
   };
 
+  // Esta funcao abre o modal de perfil completo do colaborador (mais abaixo neste
+  // arquivo), mas NENHUM botao a chama hoje — o modal e inalcancavel na tela.
+  // Mantida de proposito: a feature esta pronta, falta ligar o gatilho na listagem.
+  // eslint-disable-next-line no-unused-vars
   const abrirPerfil = async (funcionario) => {
     setProfileUser(funcionario);
     setProfileTab('pessoais');

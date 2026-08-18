@@ -4,6 +4,7 @@
  * Serviço frontend para consumir as APIs de trabalhador
  * Integrar em Dashboard, Mobile App, RH, etc.
  */
+import React from 'react';
 
 const API_BASE = '/api';
 
