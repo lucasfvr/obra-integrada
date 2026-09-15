@@ -77,7 +77,7 @@ export async function deployCustomSQL() {
           console.log(`  ok  ${arquivo} (${statements.length} statement(s))`);
           total++;
         } catch (erro) {
-          // Falha em um arquivo nao deve esconder os outros: reporta e segue.
+          // Diz qual arquivo quebrou e interrompe: os seguintes podem depender dele.
           console.error(`  ERRO ${arquivo}: ${erro.message.split('\n')[0]}`);
           throw erro;
         }
