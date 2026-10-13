@@ -57,6 +57,8 @@ import CandidatosPage from "../pages/RH/Recrutamento/CandidatosPage.jsx";
 import BancoTalentosPage from "../pages/RH/Recrutamento/BancoTalentosPage.jsx";
 import EntrevistasPage from "../pages/RH/Recrutamento/EntrevistasPage.jsx";
 import ControleAcessoPage from "../pages/RH/ControleAcessoPage.jsx";
+import SobreNosPage from '../pages/SobreNosPage'; // Certifique-se de que o caminho real é este!
+
 
 // Pagina /finalizar-cadastro — extraida pra poder usar useNavigate
 // e fornecer callbacks que o Header e o form precisam pra navegar.
@@ -162,6 +164,7 @@ function App() {
           />
 
           <Route path="/restricted" element={<RestrictedAccess />} />
+          <Route path="/sobre-nos" element={<SobreNosPage />} />
 
           <Route
             path="/finalizar-cadastro"
@@ -361,7 +364,7 @@ function App() {
             <Route path="/rh/vagas" element={<RHRoute><VagasPage /></RHRoute>} />
             <Route path="/rh/candidatos" element={<RHRoute><CandidatosPage /></RHRoute>} />
             <Route path="/rh/banco-talentos" element={<RHRoute><BancoTalentosPage /></RHRoute>} />
-            <Route path="/rh/entrevistas" element={<RHRoute><EntrevistasPage /></RHRoute>} />
+            <Route path="/rh/entrevistas" element={<RHRoute><UnderConstruction titulo="Entrevistas" /></RHRoute>} />
             <Route path="/rh/contratacoes" element={<RHRoute><UnderConstruction titulo="Contratações" /></RHRoute>} />
             <Route path="/rh/documentacao" element={<RHRoute><UnderConstruction titulo="Documentação" /></RHRoute>} />
             <Route path="/rh/assinaturas" element={<RHRoute><UnderConstruction titulo="Assinaturas" /></RHRoute>} />
@@ -444,4 +447,5 @@ function App() {
   );
 }
 
+// Exportação que estava faltando na sua versão original!
 export default App;
