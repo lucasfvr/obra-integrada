@@ -56,7 +56,7 @@ export function ObrasScreen({ navigation }: StackScreenProps<PrivateStackParamsL
             {busy && !refreshing ? <ActivityIndicator color="#EB7437" className="my-3" /> : null}
           </View>
         }
-        ListEmptyComponent={!busy ? <Text className="text-center text-muted py-10">Nenhuma obra vinculada. Caso esteja incorreto, consulte o responsável pelo acesso.</Text> : null}
+        ListEmptyComponent={!busy ? <Text className="text-center text-muted py-10">Nenhuma obra vinculada. Caso esteja incorreto, consulte o responsável pelo acesso.</Text> : undefined}
       />
     </View>
   );

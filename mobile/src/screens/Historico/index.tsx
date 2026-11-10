@@ -57,7 +57,7 @@ export function HistoricoScreen({ navigation, route }: StackScreenProps<PrivateS
             <Text className="text-orange font-bold mt-2">Ver detalhes</Text>
           </Pressable>
         )}
-        ListEmptyComponent={!busy ? <Text className="text-muted text-center py-10">Ainda não há registros nesta obra.</Text> : null}
+        ListEmptyComponent={!busy ? <Text className="text-muted text-center py-10">Ainda não há registros nesta obra.</Text> : undefined}
         ListFooterComponent={
           <View>
             {busy ? <ActivityIndicator color="#EB7437" className="my-4" /> : null}
