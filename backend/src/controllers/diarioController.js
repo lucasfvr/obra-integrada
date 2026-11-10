@@ -68,6 +68,9 @@ export async function listarDiario(req, res) {
     const data = entradas.map((e) => ({
       id_diario:        e.id_diario,
       descricao:        e.descricao,
+      clima:            e.clima,
+      efetivo:          e.efetivo,
+      ocorrencias:      e.ocorrencias,
       data_registro:    e.data_registro,
       foto_url:         e.foto_url,
       latitude:         e.latitude ? Number(e.latitude) : null,
@@ -103,7 +106,7 @@ export async function listarDiario(req, res) {
 export async function criarEntradaDiario(req, res) {
   try {
     const idObra    = req.obraAccess?.idObra || Number(req.params.id);
-    const { descricao, latitude, longitude } = req.body;
+    const { descricao, latitude, longitude, clima, efetivo, ocorrencias } = req.body;
     if (typeof descricao !== 'string') {
       return res.status(400).json({ erro: 'Descricao deve ser texto.' });
     }
@@ -117,6 +120,14 @@ export async function criarEntradaDiario(req, res) {
 
     if (descricao.trim().length < 3) {
       return res.status(400).json({ erro: 'Descricao e obrigatoria (minimo 3 caracteres)' });
+    }
+
+    const climaText = typeof clima === 'string' ? clima.trim() : '';
+    const ocorrenciasText = typeof ocorrencias === 'string' ? ocorrencias.trim() : '';
+    const efetivoNum = efetivo === undefined || efetivo === null || efetivo === '' ? null : Number(efetivo);
+    if (climaText.length > 80 || ocorrenciasText.length > 300 ||
+        (efetivoNum !== null && (!Number.isSafeInteger(efetivoNum) || efetivoNum < 0 || efetivoNum > 9999999))) {
+      return res.status(400).json({ erro: 'Dados de clima, efetivo ou ocorrencias invalidos.' });
     }
 
     let fotoUrl = null;
@@ -172,6 +183,9 @@ export async function criarEntradaDiario(req, res) {
         id_obra:           idObra,
         id_usuario:        idUsuario,
         descricao:         descricao.trim(),
+        clima:             climaText || null,
+        efetivo:           efetivoNum,
+        ocorrencias:       ocorrenciasText || null,
         foto_url:          fotoUrl,
         latitude:          lat,
         longitude:         lon,
@@ -198,6 +212,9 @@ export async function criarEntradaDiario(req, res) {
       entrada: {
         id_diario:     novaEntrada.id_diario,
         descricao:     novaEntrada.descricao,
+        clima:         novaEntrada.clima,
+        efetivo:       novaEntrada.efetivo,
+        ocorrencias:   novaEntrada.ocorrencias,
         foto_url:      novaEntrada.foto_url,
         data_registro: novaEntrada.data_registro,
         status_auditoria: novaEntrada.status_auditoria,

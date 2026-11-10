@@ -281,6 +281,9 @@ model tb_diario_obra {
   /// Caminho relativo no storage: "diario/uuid-timestamp.jpg"
   foto_url          String?
   descricao         String
+  clima             String?
+  efetivo           Int?
+  ocorrencias       String?
   data_registro     DateTime   @default(now()) @db.Timestamp(6)
   /// Campos de Auditoria Geográfica (Fase 3)
   latitude          Decimal?   @db.Decimal(10, 7)

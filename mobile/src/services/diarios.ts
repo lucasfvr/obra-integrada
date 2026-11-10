@@ -12,15 +12,12 @@ export async function criarDiario(
   obraId: number,
   args: { descricao: string; clima: string; efetivo: string; ocorrencias: string; foto: Photo | null }
 ): Promise<{ entrada: { id_diario: number }; mensagem: string }> {
-  // O backend atual so persiste "descricao" e "foto".
-  // Campos adicionais sao registrados na descricao, sinalizados no README,
-  // ate existir migracao para colunas estruturadas.
-  const linhas = [args.descricao.trim()];
-  if (args.clima) linhas.push('Clima: ' + args.clima);
-  if (args.efetivo.trim()) linhas.push('Efetivo informado: ' + args.efetivo.trim());
-  if (args.ocorrencias.trim()) linhas.push('Ocorrências: ' + args.ocorrencias.trim());
+  // Os campos estruturados requerem a migracao do backend da mesma branch.
   const form = new FormData();
-  form.append('descricao', linhas.join('\n'));
+  form.append('descricao', args.descricao.trim());
+  if (args.clima.trim()) form.append('clima', args.clima.trim());
+  if (args.efetivo.trim()) form.append('efetivo', args.efetivo.trim());
+  if (args.ocorrencias.trim()) form.append('ocorrencias', args.ocorrencias.trim());
   if (args.foto) {
     if (!/^image\/(jpeg|png|webp|gif)$/.test(args.foto.mimeType || '')) {
       throw new Error('Tipo de imagem não suportado pela API.');
