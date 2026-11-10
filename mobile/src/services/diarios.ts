@@ -22,6 +22,9 @@ export async function criarDiario(
   const form = new FormData();
   form.append('descricao', linhas.join('\n'));
   if (args.foto) {
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(args.foto.mimeType || '')) {
+      throw new Error('Tipo de imagem não suportado pela API.');
+    }
     form.append('foto', {
       uri: args.foto.uri,
       type: args.foto.mimeType || 'image/jpeg',
