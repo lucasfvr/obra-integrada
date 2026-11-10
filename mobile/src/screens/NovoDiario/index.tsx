@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -6,6 +6,9 @@ import { Field } from '../../components/Field';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { useAuthContext } from '../../context/auth.context';
 import { criarDiario, type Photo } from '../../services/diarios';
+import { preparePhoto } from '../../services/photos';
+import { clearDraft, loadDraft, saveDraft } from '../../services/drafts';
+import { podeRegistrarDiario } from '../../shared/permissions';
 import type { PrivateStackParamsList } from '../../routes';
 
 export function NovoDiarioScreen({ navigation, route }: StackScreenProps<PrivateStackParamsList, 'NovoDiario'>) {
@@ -18,6 +21,35 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
   const [ocorrencias, setOcorrencias] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [draftMessage, setDraftMessage] = useState('');
+
+  useEffect(() => {
+    if (!session) return;
+    let active = true;
+    void loadDraft(session.user.id, obraId).then(value => {
+      if (!active) return;
+      if (value) {
+        setDescricao(value.descricao);
+        setClima(value.clima);
+        setEfetivo(value.efetivo);
+        setOcorrencias(value.ocorrencias);
+        setDraftMessage('Rascunho de texto restaurado. Selecione a foto novamente.');
+      }
+    }).catch(() => { if (active) setDraftMessage('Não foi possível restaurar o rascunho.'); })
+      .finally(() => { if (active) setDraftLoaded(true); });
+    return () => { active = false; };
+  }, [obraId, session?.user.id]);
+
+  useEffect(() => {
+    if (!draftLoaded || !session) return;
+    const userId = session.user.id;
+    const timer = setTimeout(() => {
+      void saveDraft(userId, obraId, { descricao, clima, efetivo, ocorrencias })
+        .catch(() => setDraftMessage('Não foi possível salvar o rascunho neste aparelho.'));
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [draftLoaded, session?.user.id, obraId, descricao, clima, efetivo, ocorrencias]);
 
   async function selecionarFoto(camera: boolean) {
     try {
@@ -33,7 +65,7 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
         : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, allowsEditing: false });
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        setFoto({ uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName });
+        setFoto(preparePhoto(asset));
         setError('');
       }
     } catch (e) {
@@ -43,6 +75,10 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
 
   async function submit() {
     if (!session) return;
+    if (!podeRegistrarDiario(session.user)) {
+      setError('Seu perfil não possui permissão para criar diários.');
+      return;
+    }
     if (descricao.trim().length < 3) { setError('Descreva o serviço realizado (mínimo de 3 caracteres).'); return; }
     if (efetivo.trim() && (!/^\d+$/.test(efetivo.trim()) || Number(efetivo) < 0)) {
       setError('Informe um número inteiro válido para o efetivo.'); return;
@@ -54,6 +90,7 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
         setError('O servidor não confirmou o identificador do registro. Consulte o histórico antes de reenviar.');
         return;
       }
+      await clearDraft(session.user.id, obraId).catch(() => {});
       navigation.replace('Resultado', { obraId, obraNome, diarioId: resposta.entrada.id_diario });
     } catch (e) {
       const mensagem = e instanceof Error ? e.message : 'Falha ao enviar.';
@@ -69,6 +106,8 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
         <Text className="text-xl font-bold text-navy mb-1">{obraNome}</Text>
         <Text className="text-muted mb-4">Registre o que aconteceu hoje. Foto opcional conforme API atual.</Text>
+        <Text className="text-muted text-xs mb-3">O texto do rascunho é salvo neste aparelho; a foto precisa ser selecionada novamente.</Text>
+        {draftMessage ? <Text className="text-muted mb-3">{draftMessage}</Text> : null}
         <View className="bg-white rounded-2xl border border-line p-3 mb-4">
           {foto ? <Image source={{ uri: foto.uri }} resizeMode="cover" className="w-full h-52 rounded-xl mb-3" /> :
             <Text className="text-muted text-center py-8">Nenhuma foto selecionada</Text>}
@@ -76,12 +115,12 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
           <PrimaryButton title="Escolher da galeria" onPress={() => { void selecionarFoto(false); }} secondary disabled={busy} />
         </View>
         <Field label="Descrição do serviço *" placeholder="Ex.: concretagem da laje do 2º pavimento"
-          multiline value={descricao} onChangeText={setDescricao} editable={!busy} />
-        <Field label="Clima (opcional)" placeholder="Ex.: ensolarado" value={clima} onChangeText={setClima} editable={!busy} />
+          multiline maxLength={900} value={descricao} onChangeText={setDescricao} editable={!busy && draftLoaded} />
+        <Field label="Clima (opcional)" placeholder="Ex.: ensolarado" maxLength={80} value={clima} onChangeText={setClima} editable={!busy && draftLoaded} />
         <Field label="Efetivo (opcional)" placeholder="Quantidade de trabalhadores" keyboardType="number-pad"
-          value={efetivo} onChangeText={setEfetivo} editable={!busy} />
+          maxLength={7} value={efetivo} onChangeText={setEfetivo} editable={!busy && draftLoaded} />
         <Field label="Ocorrências (opcional)" placeholder="Ex.: chuva, atraso ou nenhuma"
-          value={ocorrencias} onChangeText={setOcorrencias} multiline editable={!busy} />
+          maxLength={300} value={ocorrencias} onChangeText={setOcorrencias} multiline editable={!busy && draftLoaded} />
         <Text className="text-muted text-xs my-2">
           Nesta versão, clima, efetivo e ocorrências seguem como texto no registro.
           A estrutura de dados específica depende de evolução da API.
@@ -91,7 +130,7 @@ export function NovoDiarioScreen({ navigation, route }: StackScreenProps<Private
           Alert.alert('Confirmar envio', 'O registro será enviado ao servidor e poderá ficar pendente de avaliação.', [
             { text: 'Cancelar', style: 'cancel' }, { text: 'Enviar', onPress: () => { void submit(); } }
           ]);
-        }} loading={busy} />
+        }} loading={busy} disabled={!draftLoaded || !podeRegistrarDiario(session?.user)} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
