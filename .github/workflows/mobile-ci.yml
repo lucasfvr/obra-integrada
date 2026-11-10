@@ -30,3 +30,8 @@ jobs:
         run: npx expo install --check
       - name: TypeScript
         run: npm run typecheck
+
+      - name: Validate backend controller syntax
+        run: node --check ../backend/src/controllers/diarioController.js
+      - name: Validate middleware syntax
+        run: node --check ../backend/src/middlewares/authorizationMiddleware.js

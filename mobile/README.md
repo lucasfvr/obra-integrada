@@ -86,3 +86,14 @@ O papel e a permissão de cada usuário são validados pelo **backend**. O mobil
 - GitHub: \`backend/src/controllers/diarioController.js\`, \`backend/src/controllers/userController.js\` e \`backend/src/controllers/obraController.js\`
 
 A aula \`aula_finalizada_06-11-2026\` é referência **interna de programação** e não deve ser citada nem reproduzida no DOCX acadêmico do Obra Integrada.
+
+
+## Revisão de código - novembro de 2026
+
+- Botão "Registrar o dia" só aparece para perfis com a permissão correspondente na matriz atual. A API continua validando o acesso por obra.
+- Respostas 401 encerram a sessão associada ao token expirado. O app não interpreta erro de senha como expiração de uma sessão válida.
+- Validação de MIME, extensão e limite informado de 5 MB antes do upload (o backend mantém verificação própria).
+- Campos de texto têm rascunho por usuário e obra no SecureStore, restaurado ao retornar ao formulário. A foto **não** é preservada no rascunho. Ainda é necessário testar esse comportamento no Android.
+- Backend na branch mobile define status inicial PENDENTE, não autoriza por GPS e exige auditor diferente do autor e motivo na reprovação.
+- Migração Prisma da auditoria está apenas no repositório e **não foi executada**. Seguir o roteiro em backend/src/sql/README_AUDITORIA_MOBILE.md.
+- Clima, efetivo e ocorrências continuam no texto da descrição até existir migração específica, aprovada e testada.
