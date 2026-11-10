@@ -1,0 +1,28 @@
+name: Mobile branch - Web compatibility
+
+on:
+  push:
+    branches: [mobile]
+    paths:
+      - 'frontend/vite-project/**'
+      - '.github/workflows/mobile-web-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/vite-project
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Build React frontend
+        run: npm run build
