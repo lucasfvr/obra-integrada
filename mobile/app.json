@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Obra Integrada",
+    "slug": "obra-integrada-mobile",
+    "scheme": "obraintegrada",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.obraintegrada.mobile"
+    },
+    "android": {
+      "package": "br.com.obraintegrada.mobile"
+    },
+    "plugins": [
+      ["expo-image-picker", {
+        "photosPermission": "Permitir selecionar imagens para o Diário de Obra.",
+        "cameraPermission": "Permitir fotografar os serviços para o Diário de Obra."
+      }],
+      "expo-secure-store"
+    ]
+  }
+}
