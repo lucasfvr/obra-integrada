@@ -1187,24 +1187,10 @@ function PainelEngenheiro({ isReadOnly, obras, onGoToObra, pendentesAuditoria, o
             const cfg = toneConfig[p.tone];
             const Icon = cfg.icon;
             
-            // Clique para aprovação rápida de diários
-            const handleItemClick = async () => {
-              if (p.type === 'auditoria') {
-                const action = await showConfirm({
-                  title: 'Auditoria de Diário',
-                  message: `Deseja AUTORIZAR o diário de ${p.raw?.tb_usuario?.nome} para ${p.raw?.tb_obra?.nome}? Clique em "Autorizar" para aprovar ou "Reprovar" para negar.`,
-                  confirmLabel: 'Autorizar',
-                  cancelLabel: 'Reprovar',
-                  type: 'default'
-                });
-                if (action) {
-                  onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'AUTORIZADO');
-                } else {
-                  onAuditar(p.raw?.id_obra, p.raw?.id_diario, 'REPROVADO');
-                }
-              } else if (p.type === 'atraso') {
-                onGoToObra(p.raw?.id_obra);
-              }
+            // A auditoria exige escolha explícita. Um clique no cartão
+            // não pode confundir "cancelar" com "reprovar".
+            const handleItemClick = () => {
+              if (p.type === 'atraso') onGoToObra(p.raw?.id_obra);
             };
 
             return (
