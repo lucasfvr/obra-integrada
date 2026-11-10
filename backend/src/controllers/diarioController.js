@@ -74,6 +74,9 @@ export async function listarDiario(req, res) {
       longitude:        e.longitude ? Number(e.longitude) : null,
       status_auditoria: e.status_auditoria,
       justificativa_gps: e.justificativa_gps,
+      motivo_reprovacao: e.motivo_reprovacao,
+      id_usuario_auditor: e.id_usuario_auditor,
+      auditado_em: e.auditado_em,
       autor: {
         id:     e.tb_usuario.id_usuario,
         nome:   e.tb_usuario.nome,
@@ -100,9 +103,19 @@ export async function listarDiario(req, res) {
 export async function criarEntradaDiario(req, res) {
   try {
     const idObra    = req.obraAccess?.idObra || Number(req.params.id);
-    const { descricao, latitude, longitude, status_auditoria, justificativa_gps } = req.body;
+    const { descricao, latitude, longitude } = req.body;
+    if (typeof descricao !== 'string') {
+      return res.status(400).json({ erro: 'Descricao deve ser texto.' });
+    }
+    const lat = latitude === undefined || latitude === null || latitude === '' ? null : Number(latitude);
+    const lon = longitude === undefined || longitude === null || longitude === '' ? null : Number(longitude);
+    if ((lat === null) !== (lon === null) ||
+        (lat !== null && (!Number.isFinite(lat) || lat < -90 || lat > 90)) ||
+        (lon !== null && (!Number.isFinite(lon) || lon < -180 || lon > 180))) {
+      return res.status(400).json({ erro: 'Latitude e longitude devem ser validas e informadas juntas.' });
+    }
 
-    if (!descricao || descricao.trim().length < 3) {
+    if (descricao.trim().length < 3) {
       return res.status(400).json({ erro: 'Descricao e obrigatoria (minimo 3 caracteres)' });
     }
 
@@ -160,10 +173,11 @@ export async function criarEntradaDiario(req, res) {
         id_usuario:        idUsuario,
         descricao:         descricao.trim(),
         foto_url:          fotoUrl,
-        latitude:          latitude ? Number(latitude) : null,
-        longitude:         longitude ? Number(longitude) : null,
-        status_auditoria:  status_auditoria || 'PENDENTE',
-        justificativa_gps: justificativa_gps || null,
+        latitude:          lat,
+        longitude:         lon,
+        // A decisão de auditoria pertence exclusivamente ao servidor.
+        status_auditoria:  'PENDENTE',
+        justificativa_gps: null,
       },
       include: {
         tb_usuario: { select: { nome: true, funcao: true } },
@@ -186,6 +200,7 @@ export async function criarEntradaDiario(req, res) {
         descricao:     novaEntrada.descricao,
         foto_url:      novaEntrada.foto_url,
         data_registro: novaEntrada.data_registro,
+        status_auditoria: novaEntrada.status_auditoria,
         autor:         novaEntrada.tb_usuario.nome,
       },
     });
@@ -264,43 +279,63 @@ export async function deletarEntradaDiario(req, res) {
 // ─── PATCH /api/obras/:id/diario/:entradaId/auditar ───────────────────────
 export async function atualizarStatusAuditoria(req, res) {
   try {
-    const idObra    = req.obraAccess?.idObra || Number(req.params.id);
-    const idEntrada   = Number(req.params.entradaId);
-    const { status }  = req.body;
-
+    const idObra = req.obraAccess?.idObra || Number(req.params.id);
+    const idEntrada = Number(req.params.entradaId);
+    const idAuditor = Number(req.user?.id);
+    const { status, motivo } = req.body || {};
+    if (!Number.isInteger(idEntrada) || idEntrada <= 0 || !Number.isInteger(idAuditor) || idAuditor <= 0) {
+      return res.status(400).json({ erro: 'Identificador invalido.' });
+    }
     if (!['AUTORIZADO', 'REPROVADO'].includes(status)) {
-      return res.status(400).json({ erro: 'Status de auditoria invalido' });
+      return res.status(400).json({ erro: 'Status de auditoria invalido.' });
     }
-
-    const entrada = await prisma.tb_diario_obra.findUnique({
-      where: { id_diario: idEntrada },
-    });
-
+    const motivoLimpo = typeof motivo === 'string' ? motivo.trim() : '';
+    if (status === 'REPROVADO' && (!motivoLimpo || motivoLimpo.length > 2000)) {
+      return res.status(400).json({ erro: 'Informe o motivo da reprovacao (ate 2000 caracteres).' });
+    }
+    const entrada = await prisma.tb_diario_obra.findUnique({ where: { id_diario: idEntrada } });
     if (!entrada || entrada.id_obra !== idObra) {
-      return res.status(404).json({ erro: 'Entrada nao encontrada nesta obra' });
+      return res.status(404).json({ erro: 'Entrada nao encontrada nesta obra.' });
     }
-
-    const entradaAtualizada = await prisma.tb_diario_obra.update({
-      where: { id_diario: idEntrada },
-      data: { status_auditoria: status },
+    if (entrada.id_usuario === idAuditor) {
+      return res.status(403).json({ erro: 'O autor nao pode auditar seu proprio diario.' });
+    }
+    if (!['PENDENTE', 'AUTOMATICO'].includes(entrada.status_auditoria)) {
+      return res.status(409).json({ erro: 'Este diario ja foi analisado.' });
+    }
+    // updateMany com condicao impede duas decisoes simultaneas no mesmo registro.
+    const result = await prisma.tb_diario_obra.updateMany({
+      where: {
+        id_diario: idEntrada,
+        id_obra: idObra,
+        id_usuario: { not: idAuditor },
+        status_auditoria: { in: ['PENDENTE', 'AUTOMATICO'] },
+      },
+      data: {
+        status_auditoria: status,
+        motivo_reprovacao: status === 'REPROVADO' ? motivoLimpo : null,
+        id_usuario_auditor: idAuditor,
+        auditado_em: new Date(),
+      },
     });
-
-    // Auditoria
+    if (result.count !== 1) {
+      return res.status(409).json({ erro: 'O diario foi alterado por outro usuario. Atualize a lista.' });
+    }
+    const entradaAtualizada = await prisma.tb_diario_obra.findUnique({ where: { id_diario: idEntrada } });
     await registrarLog({
-      idUsuario: req.user?.id,
+      idUsuario: idAuditor,
       acao: 'DIARIO_AUDITAR_ENTRADA',
       targetId: idEntrada,
-      detalhes: { status, id_obra: idObra },
+      detalhes: { status, id_obra: idObra, motivo: status === 'REPROVADO' ? motivoLimpo : null },
       ip: getIp(req),
     });
-
     return res.status(200).json({
-      mensagem: `Entrada ${status.toLowerCase()} com sucesso!`,
+      mensagem: 'Auditoria registrada com sucesso.',
       entrada: entradaAtualizada,
     });
   } catch (error) {
-    console.error('[DIARIO] Erro ao auditar entrada:', error);
-    return res.status(500).json({ erro: 'Erro ao atualizar status de auditoria' });
+    console.error('[DIARIO] Erro ao auditar:', error);
+    return res.status(500).json({ erro: 'Erro ao atualizar auditoria.' });
   }
 }
 

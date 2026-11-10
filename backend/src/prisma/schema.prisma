@@ -285,8 +285,11 @@ model tb_diario_obra {
   /// Campos de Auditoria Geográfica (Fase 3)
   latitude          Decimal?   @db.Decimal(10, 7)
   longitude         Decimal?   @db.Decimal(10, 7)
-  status_auditoria  String     @default("AUTOMATICO")
+  status_auditoria  String     @default("PENDENTE")
   justificativa_gps String?
+  motivo_reprovacao String?
+  id_usuario_auditor Int?
+  auditado_em      DateTime?  @db.Timestamp(6)
   tb_obra           tb_obra    @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade, onUpdate: NoAction)
   tb_usuario        tb_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
 
