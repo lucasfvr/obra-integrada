@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { ApiError } from '../services/api';
+import { ApiError, setUnauthorizedHandler } from '../services/api';
 import { login, validateSession } from '../services/auth';
 import type { Session } from '../shared/types';
 
@@ -49,6 +49,17 @@ export function AuthContextProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => { void retryStartup(); }, [retryStartup]);
+
+  useEffect(() => {
+    setUnauthorizedHandler(async token => {
+      const currentToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      if (currentToken !== token) return;
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      setSession(current => current?.token === token ? null : current);
+      setStartupError(null);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   const handleAuthenticate = useCallback(async (username: string, password: string) => {
     const response = await login(username, password);

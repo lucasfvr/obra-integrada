@@ -1,5 +1,12 @@
 const configuredUrl = (process.env.EXPO_PUBLIC_API_URL || '').trim().replace(/\/+$/, '');
 
+type UnauthorizedHandler = (token: string) => Promise<void>;
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(fn: UnauthorizedHandler | null): void {
+  onUnauthorized = fn;
+}
+
 export class ApiError extends Error {
   constructor(message: string, public status: number | null = null) {
     super(message);
@@ -51,7 +58,12 @@ export async function apiRequest<T>(
     });
     return await readResponse<T>(response);
   } catch (error) {
-    if (error instanceof ApiError) throw error;
+    if (error instanceof ApiError) {
+      if (error.status === 401 && options.token && onUnauthorized) {
+        await onUnauthorized(options.token).catch(() => {});
+      }
+      throw error;
+    }
     if (controller.signal.aborted) throw new ApiError('Tempo esgotado. Confira o histórico antes de tentar enviar novamente.');
     throw new ApiError('Sem conexão com a API. Confira sua rede e a URL configurada.');
   } finally {

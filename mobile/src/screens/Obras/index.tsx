@@ -6,6 +6,7 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { useAuthContext } from '../../context/auth.context';
 import { listarObras } from '../../services/obras';
 import type { Obra } from '../../shared/types';
+import { podeRegistrarDiario } from '../../shared/permissions';
 import type { PrivateStackParamsList } from '../../routes';
 
 export function ObrasScreen({ navigation }: StackScreenProps<PrivateStackParamsList, 'Obras'>) {
@@ -33,7 +34,9 @@ export function ObrasScreen({ navigation }: StackScreenProps<PrivateStackParamsL
       <Text className="text-lg font-bold text-navy">{item.nome}</Text>
       <Text className="text-muted mb-3">{[item.cidade, item.estado].filter(Boolean).join(' / ') || 'Localização não informada'}</Text>
       <Text className="text-ink mb-2">{item.tb_status?.nome || 'Status da obra não informado'}</Text>
-      <PrimaryButton title="Registrar o dia" onPress={() => navigation.navigate('NovoDiario', { obraId: item.id_obra, obraNome: item.nome })} />
+      {podeRegistrarDiario(session?.user)
+        ? <PrimaryButton title="Registrar o dia" onPress={() => navigation.navigate('NovoDiario', { obraId: item.id_obra, obraNome: item.nome })} />
+        : <Text className="text-muted my-2">Seu perfil permite consultar, mas não criar registros.</Text>}
       <PrimaryButton title="Consultar histórico" secondary onPress={() => navigation.navigate('Historico', { obraId: item.id_obra, obraNome: item.nome })} />
     </View>
   );
