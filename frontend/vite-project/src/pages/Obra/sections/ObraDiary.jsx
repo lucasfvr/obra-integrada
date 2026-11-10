@@ -169,9 +169,7 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], manager, onR
       formData.append('longitude', newEntry.longitude || '');
       formData.append('justificativa_gps', newEntry.justificativa_gps || '');
 
-      // Status de auditoria automático se GPS estiver OK
-      const status = (!gpsFailed && newEntry.latitude) ? 'AUTOMATICO' : 'PENDENTE';
-      formData.append('status_auditoria', status);
+      // O servidor determina o status inicial; localização é informação auxiliar.
 
       if (newEntry.foto) formData.append('foto', newEntry.foto);
 
@@ -260,10 +258,10 @@ export function ObraDiary({ initialEntries = [], idObra, team = [], manager, onR
                     <div className="w-full h-full bg-muted flex items-center justify-center italic text-xs text-muted-foreground font-semibold">Sem Comprovação Visual</div>
                   )}
                   <div className="absolute top-4 left-4 flex gap-2">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider shadow-md backdrop-blur-md ${entry.status_auditoria === 'AUTOMATICO' ? 'bg-emerald-500 text-white' :
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider shadow-md backdrop-blur-md ${entry.status_auditoria === 'AUTOMATICO' ? 'bg-amber-500 text-gray-950' :
                       entry.status_auditoria === 'AUTORIZADO' ? 'bg-blue-500 text-white' : 'bg-amber-500 text-gray-950'
                       }`}>
-                      {entry.status_auditoria || 'PENDENTE'}
+                      {entry.status_auditoria === 'AUTOMATICO' ? 'CLASSIFICAÇÃO GPS (LEGADO)' : (entry.status_auditoria || 'PENDENTE')}
                     </span>
                   </div>
                 </div>

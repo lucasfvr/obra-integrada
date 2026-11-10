@@ -1440,7 +1440,7 @@ function PainelMestre({ isReadOnly, tarefas, onUpdateTarefa, stats, weather, api
         formData.append('latitude', coords.latitude);
         formData.append('longitude', coords.longitude);
       }
-      formData.append('status_auditoria', coords ? 'AUTOMATICO' : 'PENDENTE');
+      // A API define status PENDENTE; GPS não significa aprovação.
 
       const res = await apiFetch(`${API_BASE_URL}/api/obras/${selectedObra}/diario`, {
         method: 'POST',
@@ -1873,15 +1873,32 @@ export function DashboardDinamico({ currentUser }) {
 
   const handleAuditar = async (idObra, idDiario, status) => {
     if (isImpersonating) return;
+    let motivo = '';
+    if (status === 'REPROVADO') {
+      const resposta = window.prompt('Informe o motivo da reprovação do Diário de Obra:');
+      if (resposta === null) return;
+      motivo = resposta.trim();
+      if (!motivo || motivo.length > 2000) {
+        window.alert('Informe um motivo de reprovação com até 2000 caracteres.');
+        return;
+      }
+    }
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/obras/${idObra}/diario/${idDiario}/auditar`, {
         method: 'PATCH',
-        body: JSON.stringify({ status })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, ...(motivo ? { motivo } : {}) })
       });
       if (res.ok) {
         setPendentes(prev => prev.filter(p => p.id_diario !== idDiario));
+      } else {
+        const body = await res.json().catch(() => ({}));
+        window.alert(body.erro || 'Não foi possível registrar a decisão de auditoria.');
       }
-    } catch (e) { console.error('Erro na auditoria:', e); }
+    } catch (e) {
+      console.error('Erro na auditoria:', e);
+      window.alert('Falha de conexão ao auditar. Atualize a lista e tente novamente.');
+    }
   };
 
   const updateTarefa = async (id, data) => {
