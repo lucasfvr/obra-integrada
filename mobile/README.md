@@ -38,7 +38,7 @@ As dependências do Expo/NativeWind devem ser verificadas e alinhadas pelo \`npx
 
 ## 3. Limitações conhecidas da API existente
 
-O backend atual recebe \`descricao\`, \`foto\` e coordenadas no POST do diário, mas não possui colunas específicas comprovadas para clima, efetivo e ocorrências. Temporariamente o app organiza esses dados **dentro da descrição**. A equipe deve evoluir schema/API antes de apresentá-los como campos estruturados do banco.
+O backend atual recebe \`descricao\`, \`foto\` e coordenadas no POST do diário, mas não possui colunas específicas comprovadas para clima, efetivo e ocorrências. Na branch `mobile`, esses campos são enviados separadamente (`clima`, `efetivo`, `ocorrencias`) e exigem que as migrações SQL do backend sejam aplicadas antes do teste de integração. A equipe deve evoluir schema/API antes de apresentá-los como campos estruturados do banco.
 
 No banco há registros com status \`AUTOMATICO\`; o app mostra **"Classificação automática (revisar)"**, e não "Aprovado". A API ainda deve ser corrigida para remover a aceitação de status vindo do cliente, impedir autoaprovação, salvar motivo de reprovação e alinhar o contrato OpenAPI. O app nunca envia status de aprovação no POST.
 
@@ -96,4 +96,17 @@ A aula \`aula_finalizada_06-11-2026\` é referência **interna de programação*
 - Campos de texto têm rascunho por usuário e obra no SecureStore, restaurado ao retornar ao formulário. A foto **não** é preservada no rascunho. Ainda é necessário testar esse comportamento no Android.
 - Backend na branch mobile define status inicial PENDENTE, não autoriza por GPS e exige auditor diferente do autor e motivo na reprovação.
 - Migração Prisma da auditoria está apenas no repositório e **não foi executada**. Seguir o roteiro em backend/src/sql/README_AUDITORIA_MOBILE.md.
-- Clima, efetivo e ocorrências continuam no texto da descrição até existir migração específica, aprovada e testada.
+- Clima, efetivo e ocorrências têm migração específica na branch mobile, mas ainda dependem de aplicação em homologação e deploy do backend compatível.
+
+## Passos para integração de homologação
+
+1. Fazer backup do banco e usar uma instância de homologação.
+2. Conferir as migrações `20261110_diario_auditoria_segura` e `20261111_diario_dados_campo`.
+3. Aplicar as migrações e substituir os objetos SQL de auditoria geográfica conforme `backend/src/sql/README_AUDITORIA_MOBILE.md`.
+4. Gerar o Prisma Client na API dessa mesma branch; publicar a API de homologação com novas colunas.
+5. Configurar `EXPO_PUBLIC_API_URL` para o HTTPS da API de homologação.
+6. Executar login, obras, envio com foto, histórico, reprovação com motivo e testes negativos com perfis diferentes.
+7. Verificar também o frontend web de homologação; a rejeição agora exige motivo e o GPS não aprova registros automaticamente.
+8. Só após testes autorizar deploy de produção, atualização de documentação acadêmica ou merge. Não publicar credenciais nem dados pessoais de teste.
+
+Nenhuma migração, publicação da API ou instalação Android foi realizada automaticamente por esta branch.
