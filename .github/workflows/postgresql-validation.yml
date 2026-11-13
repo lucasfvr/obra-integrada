@@ -1,0 +1,113 @@
+name: Obra Integrada PostgreSQL validation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/banco-postgresql/**'
+      - '.github/workflows/postgresql-validation.yml'
+      - 'backend/src/prisma/**'
+      - 'backend/package*.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/obra_integrada_ci?sslmode=disable
+      BACKUP_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/obra_integrada_ci?sslmode=disable
+      RESTORE_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/obra_integrada_restore?sslmode=disable
+      PGPASSWORD: postgres
+      CONFIRM_TEST_LOAD: YES
+      CONFIRM_LAB_RESTORE: YES
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL 17 client utilities
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y curl ca-certificates postgresql-common
+          sudo mkdir -p /usr/share/postgresql-common/pgdg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc >/dev/null
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client-17 postgresql-contrib
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+          /usr/lib/postgresql/17/bin/pg_dump --version
+          command -v pgbench
+      - name: Create isolated test databases
+        run: |
+          set -euo pipefail
+          createdb -h 127.0.0.1 -U postgres obra_integrada_ci
+          createdb -h 127.0.0.1 -U postgres obra_integrada_restore
+          createdb -h 127.0.0.1 -U postgres obra_integrada_prisma
+      - name: Transactions, roles, growth and compactation
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/banco-postgresql/02_transacoes/transacoes.sql | tee evidence/transacoes.txt
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/banco-postgresql/04_performance/lab.sql | tee evidence/performance.txt
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/banco-postgresql/03_permissoes/roles.sql | tee evidence/permissoes.txt
+          psql "$DATABASE_URL" -Atc "SELECT count(*) FROM obra_integrada.carga_experimento" | grep -qx 1000
+      - name: Backup and restore with checksum
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/dumps
+          BACKUP_DIR="$PWD/evidence/dumps" bash docs/banco-postgresql/01_backup/backup.sh
+          BACKUP_FILE="$(find evidence/dumps -name '*.dump' -print -quit)"
+          BACKUP_FILE="$PWD/$BACKUP_FILE" bash docs/banco-postgresql/01_backup/restore.sh | tee evidence/restore.txt
+          psql "$RESTORE_DATABASE_URL" -Atc "SELECT count(*) FROM obra_integrada.carga_experimento" | grep -qx 1000
+          psql "$RESTORE_DATABASE_URL" -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema='obra_integrada' AND table_name='carga_experimento'" | grep -qx 1
+          echo "Restauracao validada: 1000 registros, esquema existente" | tee -a evidence/restore.txt
+          sha256sum evidence/dumps/*.dump > evidence/backup-digest.txt
+      - name: Benchmark and concurrent monitoring
+        run: |
+          set -euo pipefail
+          bash docs/banco-postgresql/04_performance/load.sh > evidence/pgbench.txt 2>&1 &
+          load_pid=$!
+          for i in $(seq 1 10); do
+            psql "$DATABASE_URL" -Atc "SELECT now(), count(*) FILTER (WHERE state='active') AS ativas, count(*) AS sessoes FROM pg_stat_activity WHERE datname=current_database()" >> evidence/conexoes.csv
+            sleep 2
+          done
+          wait "$load_pid"
+          cat evidence/pgbench.txt
+          grep -E '^tps =|^latency average =|number of clients' evidence/pgbench.txt || true
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/banco-postgresql/04_performance/monitor.sql > evidence/monitor-final.txt
+      - name: Validate Prisma schema and creation on fresh database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/obra_integrada_prisma?sslmode=disable
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          npx prisma validate --schema src/prisma/schema.prisma
+          npx prisma db push --schema src/prisma/schema.prisma --skip-generate
+          psql "$DATABASE_URL" -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'" | tee ../evidence/prisma-tables.txt
+          test "$(cat ../evidence/prisma-tables.txt)" -ge 30
+      - name: Upload validation logs (not database backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-validation-evidence
+          path: |
+            evidence/*.txt
+            evidence/*.csv
+          retention-days: 14
