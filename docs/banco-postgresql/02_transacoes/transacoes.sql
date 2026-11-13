@@ -1,4 +1,4 @@
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 -- Testes controlados em tabela temporaria. Nenhuma tabela de negocio alterada.
 BEGIN;
 CREATE TEMP TABLE obra_transacao(id integer PRIMARY KEY, descricao text) ON COMMIT PRESERVE ROWS;
