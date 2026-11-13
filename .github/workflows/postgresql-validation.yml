@@ -39,20 +39,29 @@ jobs:
       CONFIRM_LAB_RESTORE: YES
     steps:
       - uses: actions/checkout@v4
-      - name: Install PostgreSQL client utilities
+      - name: Install PostgreSQL 17 client utilities
         run: |
+          set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client postgresql-contrib
-          command -v pg_dump
-          command -v pg_restore
+          sudo apt-get install -y curl ca-certificates postgresql-common
+          sudo mkdir -p /usr/share/postgresql-common/pgdg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc >/dev/null
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client-17 postgresql-contrib
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+          /usr/lib/postgresql/17/bin/pg_dump --version
           command -v pgbench
       - name: Create isolated test databases
         run: |
+          set -euo pipefail
           createdb -h 127.0.0.1 -U postgres obra_integrada_ci
           createdb -h 127.0.0.1 -U postgres obra_integrada_restore
           createdb -h 127.0.0.1 -U postgres obra_integrada_prisma
       - name: Transactions, roles, growth and compactation
         run: |
+          set -euo pipefail
           mkdir -p evidence
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/banco-postgresql/02_transacoes/transacoes.sql | tee evidence/transacoes.txt
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/banco-postgresql/04_performance/lab.sql | tee evidence/performance.txt
@@ -60,6 +69,7 @@ jobs:
           psql "$DATABASE_URL" -Atc "SELECT count(*) FROM obra_integrada.carga_experimento" | grep -qx 1000
       - name: Backup and restore with checksum
         run: |
+          set -euo pipefail
           mkdir -p evidence/dumps
           BACKUP_DIR="$PWD/evidence/dumps" bash docs/banco-postgresql/01_backup/backup.sh
           BACKUP_FILE="$(find evidence/dumps -name '*.dump' -print -quit)"
@@ -70,6 +80,7 @@ jobs:
           sha256sum evidence/dumps/*.dump > evidence/backup-digest.txt
       - name: Benchmark and concurrent monitoring
         run: |
+          set -euo pipefail
           bash docs/banco-postgresql/04_performance/load.sh > evidence/pgbench.txt 2>&1 &
           load_pid=$!
           for i in $(seq 1 10); do
@@ -85,6 +96,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/obra_integrada_prisma?sslmode=disable
         run: |
+          set -euo pipefail
           npm ci --legacy-peer-deps
           npx prisma validate --schema src/prisma/schema.prisma
           npx prisma db push --schema src/prisma/schema.prisma --skip-generate
