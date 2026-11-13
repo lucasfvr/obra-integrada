@@ -1,29 +1,39 @@
-# Obra Integrada — Operação PostgreSQL
+# Obra Integrada — PostgreSQL: plano e evidências
+
+## Escopo e segurança
+- Neon: projeto `Lucas`, banco `neondb`, branch `obra-integrada`, schema `obra_integrada`.
+- Branch principal `production` não recebeu alterações.
+- O backend real usa Prisma em `backend/src/prisma/schema.prisma`: **33 modelos**. Esta branch Neon possui apenas duas tabelas em `obra_integrada` e duas em `public`; **não é o banco atualmente pronto para executar a aplicação**. Nenhuma migration foi aplicada.
 
 ## Evidências executadas em 13/11/2026
-Ambiente Neon: projeto Lucas, banco neondb, branch obra-integrada, schema obra_integrada. Branch production preservada.
+| Controle | Resultado |
+| --- | --- |
+| Rollback por falha | Uma transação com duas inserções na mesma PK gerou SQLSTATE 23505; registro id=987654: 0 antes e 0 depois |
+| Privilégios | Roles NOLOGIN `obra_leitura` e `obra_escrita`; SELECT(leitura)=true, INSERT(leitura)=false, INSERT(escrita)=true |
+| Crescimento | `obra_integrada.carga` recebeu 10.000 linhas e ocupou aproximadamente 6.000 kB |
+| Remoção | 9.000 linhas excluídas; tamanho inicialmente continuou em 6.000 kB |
+| Compactação | `VACUUM (FULL, ANALYZE)` reduziu o tamanho para 624 kB, 1.000 linhas remanescentes (redução ~89,6%) |
+| Consulta indexada | `EXPLAIN (ANALYZE, BUFFERS)` retornou Index Scan em `carga_pkey` e 0,028 ms em uma execução pontual |
+| Recuperação Neon | Branch `obra-integrada-recuperacao` criada a partir de `obra-integrada`; ambas apresentaram 2 tabelas, 1.000 linhas de carga, 1 linha de transações |
+| Simulação limitada | Quatro solicitações de SELECT disparadas pela integração; todas completaram, duração agregada observada ~22,2 s; monitor retornou 1 sessão ativa. **Não comprova concorrência**, nem TPS ou latência individual |
+| Snapshot | Serviço rejeitou snapshot de branch não raiz; não há snapshot nativo desta branch |
 
-- Transação com chave duplicada: erro SQLSTATE 23505; contagem do registro 987654 foi 0 antes e 0 depois, comprovando rollback integral.
-- Roles NOLOGIN obra_leitura e obra_escrita: leitura SELECT=true, leitura INSERT=false, escrita INSERT=true.
-- Crescimento: 10.000 registros, tabela 6.000 kB. Após excluir 9.000, 6.000 kB. Após VACUUM FULL: 1.000 registros, 624 kB (redução de 89,6%).
-- Consulta EXPLAIN ANALYZE por id=5000: Index Scan em carga_pkey, tempo 0,028 ms (medição pontual).
-- Monitor pg_stat_activity: 1 sessão ativa no momento da amostra, não é teste de concorrência.
-- Branch obra-integrada-recuperacao criada a partir de obra-integrada; comparação confirmou 2 tabelas, 1.000 registros de carga e 1 registro de transações em ambas.
-- Snapshot nativo recusado pelo Neon em branch não raiz. Clonagem de branch não substitui backup externo.
-
-## Pendências
-- Executar pg_dump externo, validar checksum e restaurar em banco vazio independente.
-- Executar teste concorrente pgbench e registrar métricas em intervalos durante a carga.
-- Aplicar migrations Prisma somente após identificar e validar o banco da aplicação real.
-- Capturar logs e prints sem segredos e anexar ao relatório.
+## Pendências reais
+1. Executar `pg_dump --format=custom` contra branch isolada, verificar checksum, restaurar com `pg_restore` em banco vazio e conferir a integridade/contagens. **Não executado**.
+2. Executar `pgbench` com clientes concorrentes e coletar `pg_stat_activity`, TPS e latência. **Não executado**.
+3. Identificar o banco real da aplicação e revisar migrations Prisma antes de decidir aplicar os 33 modelos à branch Neon. **Não executado**.
+4. Anexar registros de execução, revisão de código e fechar PR após validação.
 
 ## Política proposta
-Backup diário às 02h de Brasília, retenção de 7 diários e 4 semanais, armazenamento externo seguro e teste de restauração mensal. RPO 24h e RTO 4h são metas a validar. Os uploads Multer exigem backup independente.
+Backup diário às 02h (horário de Brasília), 7 cópias diárias + 4 semanais, armazenamento independente e teste mensal de restauração. RPO de 24h e RTO de 4h são **metas propostas**, não resultados verificados. O diretório de uploads Multer exige cópias independentes do PostgreSQL.
 
 ## Scripts
-- `01_backup/backup.sh` e `restore.sh`: backup e restauração isolada.
-- `02_transacoes/transacoes.sql`: COMMIT, SAVEPOINT e ROLLBACK.
-- `03_permissoes/roles.sql`: perfis de leitura e escrita.
-- `04_performance/lab.sql`, `monitor.sql` e `load.sh`: crescimento, compactação, observabilidade e carga.
+- `01_backup/backup.sh`: backup lógico com `pg_dump`, lista do arquivo e SHA256.
+- `01_backup/restore.sh`: verifica arquivo/checksum e restaura **somente em destino descartável vazio**.
+- `02_transacoes/transacoes.sql`: COMMIT, SAVEPOINT e ROLLBACK em tabela temporária.
+- `03_permissoes/roles.sql`: perfis de acesso para o schema `obra_integrada`.
+- `04_performance/lab.sql`: dados sintéticos em tabela própria `carga_experimento`, EXPLAIN, DELETE e VACUUM FULL.
+- `04_performance/load.sh`: `pgbench` moderado (4 clientes, 2 threads, 30 s) para leitura da tabela `obra_integrada.carga`.
+- `04_performance/monitor.sql`: contagem de sessões e tamanhos.
 
-**Segurança:** scripts de carga e compactação somente em banco descartável; nunca na branch production.
+**Nunca executar testes de carga, compactação ou restauração na branch `production`. Credenciais e dumps não devem ser versionados no GitHub.**
