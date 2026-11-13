@@ -3,8 +3,8 @@
 ## Visão geral
 - **Neon conectado:** projeto `Lucas`, banco `neondb`, branch `obra-integrada`, schema `obra_integrada`. Branch `production` preservada.
 - **Validação automatizada independente:** GitHub Actions, serviço Docker PostgreSQL **17**, bancos descartáveis `obra_integrada_ci`, `obra_integrada_restore` e `obra_integrada_prisma`.
-- **Execução completa aprovada:** [GitHub Actions #43472797446](https://github.com/lucasfvr/obra-integrada/actions/runs/43472797446), job `postgres-validation`. Logs e artefato de evidências disponíveis na execução, sem publicar o dump.
-- **Repositório:** PR [#128](https://github.com/lucasfvr/obra-integrada/pull/128) em revisão, sem merge na `main`.
+- **Execução completa aprovada:** [GitHub Actions #43473334337](https://github.com/lucasfvr/obra-integrada/actions/runs/43473334337), job `postgres-validation`. Logs e artefato de evidências disponíveis na execução, sem publicar o dump.
+- **Repositório:** PR [#128](https://github.com/lucasfvr/obra-integrada/pull/128) **integrado à `main`** via squash merge (`9732582ae8c773d47a998ef94a20da9590b8d98c`).
 
 ## Resultados diretos na branch Neon `obra-integrada`
 | Controle | Resultado verificado |
