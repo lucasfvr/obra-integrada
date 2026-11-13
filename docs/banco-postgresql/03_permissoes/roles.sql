@@ -11,4 +11,4 @@ GRANT SELECT ON ALL TABLES IN SCHEMA obra_integrada TO obra_leitura;
 GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA obra_integrada TO obra_escrita;
 ALTER DEFAULT PRIVILEGES IN SCHEMA obra_integrada GRANT SELECT ON TABLES TO obra_leitura;
 ALTER DEFAULT PRIVILEGES IN SCHEMA obra_integrada GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO obra_escrita;
-SELECT has_table_privilege('obra_leitura','obra_integrada.carga','SELECT') AS leitura_select,has_table_privilege('obra_leitura','obra_integrada.carga','INSERT') AS leitura_insert,has_table_privilege('obra_escrita','obra_integrada.carga','INSERT') AS escrita_insert;
+SELECT has_table_privilege('obra_leitura','obra_integrada.carga_experimento','SELECT') AS leitura_select,has_table_privilege('obra_leitura','obra_integrada.carga_experimento','INSERT') AS leitura_insert,has_table_privilege('obra_escrita','obra_integrada.carga_experimento','INSERT') AS escrita_insert;
