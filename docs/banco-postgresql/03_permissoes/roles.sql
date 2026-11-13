@@ -1,4 +1,4 @@
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 -- Executar somente na branch obra-integrada com privilegios administrativos.
 DO $$ BEGIN
  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='obra_leitura') THEN CREATE ROLE obra_leitura NOLOGIN; END IF;
