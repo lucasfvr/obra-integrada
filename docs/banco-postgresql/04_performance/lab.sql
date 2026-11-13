@@ -1,4 +1,4 @@
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 -- Rodar EXCLUSIVAMENTE na branch Neon obra-integrada, nunca em production.
 -- Tabela exclusiva do experimento; preserva obra_integrada.carga existente.
 CREATE SCHEMA IF NOT EXISTS obra_integrada;
