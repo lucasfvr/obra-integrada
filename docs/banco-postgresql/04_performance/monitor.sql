@@ -5,4 +5,4 @@ FROM pg_stat_activity
 WHERE datname = current_database()
 GROUP BY state ORDER BY state;
 SELECT pg_database_size(current_database()) AS bytes_banco,
-       pg_total_relation_size('obra_integrada.carga') AS bytes_tabela;
+       pg_total_relation_size('obra_integrada.carga_experimento') AS bytes_tabela;
