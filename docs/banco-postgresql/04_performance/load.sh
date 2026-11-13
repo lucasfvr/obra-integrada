@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-: "${LAB_DATABASE_URL:?Defina LAB_DATABASE_URL para PostgreSQL local DESCARTAVEL}"
-: "${CONFIRM_LAB_LOAD:?Defina CONFIRM_LAB_LOAD=YES}"
-[[ "$CONFIRM_LAB_LOAD" == "YES" ]] || exit 2
+: "${DATABASE_URL:?Informe DATABASE_URL apenas da branch obra-integrada (nao production)}"
+: "${CONFIRM_TEST_LOAD:?Defina CONFIRM_TEST_LOAD=YES}"
+[[ "$CONFIRM_TEST_LOAD" == "YES" ]] || { echo "Confirmacao invalida"; exit 2; }
+command -v pgbench >/dev/null || { echo "pgbench nao instalado"; exit 1; }
+# Consulta somente leitura: os dados da tabela devem existir antes do teste.
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
-printf 'SELECT count(*) FROM obra_perf.carga WHERE id BETWEEN 1 AND 1000;\n' > "$tmp"
-# Carga moderada e limitada: 4 clientes por 30 segundos; executar apos lab.sql
-pgbench -n -f "$tmp" -c 4 -j 2 -T 30 "$LAB_DATABASE_URL"
+printf 'SELECT count(*) FROM obra_integrada.carga WHERE id BETWEEN 1 AND 1000;\n' > "$tmp"
+echo "Teste moderado: 4 clientes, 2 threads, 30 segundos."
+pgbench --no-vacuum --file="$tmp" --client=4 --jobs=2 --time=30 "$DATABASE_URL"
